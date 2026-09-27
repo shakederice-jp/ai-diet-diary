@@ -22,6 +22,10 @@ export function getSupabaseServiceRoleKey() {
   return required("SUPABASE_SERVICE_ROLE_KEY");
 }
 
+export function getAnthropicApiKey() {
+  return required("ANTHROPIC_API_KEY");
+}
+
 export function getHealthPlanetRedirectUri(origin: string) {
   return (
     process.env.HEALTHPLANET_REDIRECT_URI ??

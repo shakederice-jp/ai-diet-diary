@@ -14,7 +14,7 @@ import {
   listRecentWeightRecords,
   type WeightRecordSummary,
 } from "@/lib/supabase/admin";
-import { USER_COOKIE, verifySignedValue } from "@/lib/session";
+import { readUserIdFromCookies, USER_COOKIE, verifySignedValue } from "@/lib/session";
 
 type HomeSearchParams = Promise<{
   month?: string;
@@ -126,7 +126,10 @@ export default async function Home({
   const month = parseMonthParam(params.month, today);
   const store = await cookies();
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
-  const calorieRecords = await getMealCalorieRecords(month.year, month.month);
+  const mealUserId = await readUserIdFromCookies();
+  const calorieRecords = mealUserId
+    ? await getMealCalorieRecords(mealUserId, month.year, month.month).catch(() => [])
+    : [];
   const calendar = buildMonthCalendar({
     year: month.year,
     month: month.month,
