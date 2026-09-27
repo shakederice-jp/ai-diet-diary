@@ -3,10 +3,17 @@ import {
   getHealthPlanetClientSecret,
   getHealthPlanetRedirectUri,
 } from "@/lib/env";
+import {
+  formatHealthPlanetTimestamp,
+  parseHealthPlanetTimestamp,
+} from "@/lib/healthplanet-time";
 
 export const HEALTHPLANET_AUTH_URL = "https://www.healthplanet.jp/oauth/auth";
 export const HEALTHPLANET_TOKEN_URL = "https://www.healthplanet.jp/oauth/token";
+export const HEALTHPLANET_INNERSCAN_URL =
+  "https://www.healthplanet.jp/status/innerscan.json";
 export const HEALTHPLANET_SCOPE = "innerscan,sphygmomanometer,pedometer";
+export const HEALTHPLANET_WEIGHT_TAG = "6021";
 
 export type HealthPlanetTokenResponse = {
   access_token: string;
@@ -87,4 +94,120 @@ export async function refreshAccessToken(
   });
 
   return postToken(body);
+}
+
+export class HealthPlanetRequestError extends Error {
+  readonly status: number;
+  readonly code: string | null;
+
+  constructor(message: string, status: number, code: string | null) {
+    super(message);
+    this.name = "HealthPlanetRequestError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+export function isHealthPlanetAuthError(error: unknown) {
+  if (!(error instanceof HealthPlanetRequestError)) {
+    return false;
+  }
+  return (
+    error.status === 401 ||
+    error.code === "invalid_token" ||
+    error.code === "expired_token"
+  );
+}
+
+export type HealthPlanetWeight = {
+  measuredAt: Date;
+  weightKg: number;
+  model: string | null;
+};
+
+type InnerScanRow = {
+  date?: string;
+  keydata?: string;
+  model?: string;
+  tag?: string;
+};
+
+type InnerScanResponse = {
+  data?: InnerScanRow[];
+  error?: string;
+};
+
+export async function fetchWeightMeasurements(input: {
+  accessToken: string;
+  from: Date;
+  to: Date;
+}): Promise<HealthPlanetWeight[]> {
+  let from = formatHealthPlanetTimestamp(input.from);
+  let to = formatHealthPlanetTimestamp(input.to);
+  if (from >= to) {
+    to = formatHealthPlanetTimestamp(
+      new Date(parseHealthPlanetTimestamp(from).getTime() + 1000),
+    );
+  }
+
+  const body = new URLSearchParams({
+    access_token: input.accessToken,
+    // Registration date, so a visit loads data registered since the previous visit.
+    date: "0",
+    tag: HEALTHPLANET_WEIGHT_TAG,
+    from,
+    to,
+  });
+
+  const response = await fetch(HEALTHPLANET_INNERSCAN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+    cache: "no-store",
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  const text = await response.text();
+  let payload: InnerScanResponse = {};
+  try {
+    payload = JSON.parse(text) as InnerScanResponse;
+  } catch {
+    throw new HealthPlanetRequestError(
+      `Health Planet weight endpoint returned a non-JSON response (${response.status})`,
+      response.status,
+      null,
+    );
+  }
+
+  if (!response.ok || payload.error) {
+    throw new HealthPlanetRequestError(
+      payload.error ?? `Health Planet weight request failed (${response.status})`,
+      response.status,
+      payload.error ?? null,
+    );
+  }
+
+  const rows = Array.isArray(payload.data) ? payload.data : [];
+  const weights: HealthPlanetWeight[] = [];
+  for (const row of rows) {
+    if (row.tag && row.tag !== HEALTHPLANET_WEIGHT_TAG) {
+      continue;
+    }
+    if (!row.date) {
+      continue;
+    }
+    const weightKg = Number(row.keydata);
+    if (!Number.isFinite(weightKg)) {
+      continue;
+    }
+    weights.push({
+      measuredAt: parseHealthPlanetTimestamp(row.date),
+      weightKg,
+      model: row.model?.trim() ? row.model : null,
+    });
+  }
+
+  return weights;
 }
