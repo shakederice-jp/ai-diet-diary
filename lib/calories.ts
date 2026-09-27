@@ -1,14 +1,24 @@
+import { listMealKcalBetween } from "@/lib/meals";
+
 export type DailyCalorieRecord = {
   date: string;
   totalKcal: number;
 };
 
-// Meal logging is not implemented yet. This returns no recorded days, so the
-// calendar shows 0 kcal and averages skip every day. Replace the body with a
-// query against the meal log table for the given month.
 export async function getMealCalorieRecords(
-  _year: number,
-  _month: number,
+  userId: string,
+  year: number,
+  month: number,
 ): Promise<DailyCalorieRecord[]> {
-  return [];
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const start = `${year}-${String(month).padStart(2, "0")}-01`;
+  const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const rows = await listMealKcalBetween(userId, start, end);
+  const totals = new Map<string, number>();
+
+  for (const row of rows) {
+    totals.set(row.recorded_on, (totals.get(row.recorded_on) ?? 0) + row.kcal);
+  }
+
+  return [...totals.entries()].map(([date, totalKcal]) => ({ date, totalKcal }));
 }

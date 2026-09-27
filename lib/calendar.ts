@@ -109,6 +109,22 @@ export function formatKcal(value: number) {
   return `${grouped}kcal`;
 }
 
+export function weekBounds(date: string, weekStartsOn: WeekStart) {
+  const parsed = parseIsoDate(date);
+  if (!parsed) {
+    throw new Error(`Invalid date: ${date}`);
+  }
+
+  const weekday = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day)).getUTCDay();
+  const offset = weekStartsOn === "monday" ? (weekday + 6) % 7 : weekday;
+  const start = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day - offset));
+  const end = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day - offset + 6));
+  const iso = (value: Date) =>
+    `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, "0")}-${String(value.getUTCDate()).padStart(2, "0")}`;
+
+  return { start: iso(start), end: iso(end) };
+}
+
 function isoDate(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }

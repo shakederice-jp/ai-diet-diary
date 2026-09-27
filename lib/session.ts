@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 import { getHealthPlanetClientSecret } from "@/lib/env";
 
@@ -87,4 +88,18 @@ export function readUserIdFromRequest(request: NextRequest) {
 
 export function readStateFromRequest(request: NextRequest) {
   return request.cookies.get(STATE_COOKIE)?.value ?? null;
+}
+
+export async function readUserIdFromCookies() {
+  const store = await cookies();
+  const raw = store.get(USER_COOKIE)?.value;
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return verifySignedValue(raw, getHealthPlanetClientSecret());
+  } catch {
+    return null;
+  }
 }
