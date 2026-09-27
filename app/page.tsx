@@ -1,68 +1,90 @@
-import Image from "next/image";
+import { cookies } from "next/headers";
+import { getHealthPlanetConnection } from "@/lib/supabase/admin";
+import { USER_COOKIE, verifySignedValue } from "@/lib/session";
 
-export default function Home() {
+type HomeSearchParams = Promise<{
+  healthplanet?: string;
+  reason?: string;
+}>;
+
+async function getConnectionStatus() {
+  const clientId = process.env.HEALTHPLANET_CLIENT_ID;
+  const clientSecret = process.env.HEALTHPLANET_CLIENT_SECRET;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!clientId || !clientSecret || !supabaseUrl || !serviceRoleKey) {
+    return { connected: false as const, configured: false as const };
+  }
+
+  const store = await cookies();
+  const raw = store.get(USER_COOKIE)?.value;
+  if (!raw) {
+    return { connected: false as const, configured: true as const };
+  }
+
+  const userId = verifySignedValue(raw, clientSecret);
+  if (!userId) {
+    return { connected: false as const, configured: true as const };
+  }
+
+  try {
+    const connection = await getHealthPlanetConnection(userId);
+    return {
+      connected: Boolean(connection),
+      configured: true as const,
+    };
+  } catch {
+    return { connected: false as const, configured: true as const };
+  }
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: HomeSearchParams;
+}) {
+  const params = await searchParams;
+  const status = await getConnectionStatus();
+  const linked = params.healthplanet === "connected" || status.connected;
+  const failed = params.healthplanet === "error";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
+      <main className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm dark:bg-zinc-950">
+        <p className="text-sm font-medium text-zinc-500">AI Diet Diary</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          Health Planet 連携
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          タニタ Health Planet の体組成・血圧・歩数データを取り込むために、アカウント連携を開始します。
+        </p>
+
+        {linked ? (
+          <p className="mt-6 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+            Health Planet と連携済みです。
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        ) : null}
+
+        {failed ? (
+          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+            連携に失敗しました
+            {params.reason ? `: ${params.reason}` : ""}
+          </p>
+        ) : null}
+
+        {!status.configured ? (
+          <p className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            HEALTHPLANET_CLIENT_ID / HEALTHPLANET_CLIENT_SECRET と Supabase
+            の環境変数を設定してください。
+          </p>
+        ) : null}
+
+        <a
+          href="/api/auth/healthplanet"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:bg-zinc-800 dark:hover:bg-zinc-200"
+        >
+          Health Planetと連携する
+        </a>
       </main>
     </div>
   );
