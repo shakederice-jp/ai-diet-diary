@@ -1,4 +1,13 @@
 import { cookies, headers } from "next/headers";
+import { MonthCalendar } from "@/components/month-calendar";
+import { getMealCalorieRecords } from "@/lib/calories";
+import {
+  WEEK_START_COOKIE,
+  buildMonthCalendar,
+  parseMonthParam,
+  parseWeekStart,
+  tokyoToday,
+} from "@/lib/calendar";
 import { syncHealthPlanetWeights } from "@/lib/weight-sync";
 import {
   getHealthPlanetConnection,
@@ -8,6 +17,7 @@ import {
 import { USER_COOKIE, verifySignedValue } from "@/lib/session";
 
 type HomeSearchParams = Promise<{
+  month?: string;
   healthplanet?: string;
   reason?: string;
 }>;
@@ -112,6 +122,18 @@ export default async function Home({
   searchParams: HomeSearchParams;
 }) {
   const params = await searchParams;
+  const today = tokyoToday();
+  const month = parseMonthParam(params.month, today);
+  const store = await cookies();
+  const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
+  const calorieRecords = await getMealCalorieRecords(month.year, month.month);
+  const calendar = buildMonthCalendar({
+    year: month.year,
+    month: month.month,
+    weekStartsOn,
+    records: calorieRecords,
+    today,
+  });
   const status = await getConnectionStatus();
   const linked = params.healthplanet === "connected" || status.connected;
   const failed = params.healthplanet === "error";
@@ -135,12 +157,22 @@ export default async function Home({
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 px-6 py-16 font-sans dark:bg-black">
-      <main className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm dark:bg-zinc-950">
-        <p className="text-sm font-medium text-zinc-500">AI Diet Diary</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+    <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans sm:px-6 dark:bg-black">
+      <main className="flex w-full max-w-4xl flex-col gap-8">
+        <MonthCalendar
+          model={calendar}
+          weekStartsOn={weekStartsOn}
+          today={today}
+          preserved={{
+            healthplanet: params.healthplanet,
+            reason: params.reason,
+          }}
+        />
+        <section className="w-full rounded-3xl bg-white p-8 shadow-sm dark:bg-zinc-950">
+        <p className="text-sm font-medium text-[#F5821F]">AI Diet Diary</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
           Health Planet 連携
-        </h1>
+        </h2>
         <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
           タニタ Health Planet の体組成・血圧・歩数データを取り込むために、アカウント連携を開始します。
         </p>
@@ -153,9 +185,9 @@ export default async function Home({
 
         {status.connected ? (
           <section className="mt-6">
-            <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+            <h3 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
               体重
-            </h2>
+            </h3>
             {syncError ? (
               <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
                 体重の取得に失敗しました: {syncError}
@@ -209,10 +241,11 @@ export default async function Home({
 
         <a
           href="/api/auth/healthplanet"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:bg-zinc-800 dark:hover:bg-zinc-200"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white transition-colors hover:bg-[#E06E0C]"
         >
           Health Planetと連携する
         </a>
+        </section>
       </main>
     </div>
   );
