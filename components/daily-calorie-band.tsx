@@ -77,10 +77,7 @@ export function DailyCalorieBand({
             height={Math.max(slice.height, 0)}
             fill={slice.color}
           >
-            <title>
-              {slice.period}
-              {slice.source ? ` ${slice.source}` : ""} {formatKcal(slice.kcal)}
-            </title>
+            <title>{`${slice.period}${slice.source ? ` ${slice.source}` : ""} ${formatKcal(slice.kcal)}`}</title>
           </rect>
         ))}
         <line

@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
 import { MealEntryForm } from "@/components/meal-entry-form";
+import { MealRecordList } from "@/components/meal-record-list";
+import { WeightRecordPanel } from "@/components/weight-record-panel";
 import {
   createCategory,
   updateCategoryName,
@@ -18,9 +20,11 @@ import {
   parseWeekStart,
 } from "@/lib/calendar";
 import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
-import { mealPeriodForTokyoHour, mealTone, tokyoHour } from "@/lib/meal-slot";
+import { mealPeriodForTokyoHour, tokyoHour } from "@/lib/meal-slot";
 import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals";
 import { readUserIdFromCookies } from "@/lib/session";
+import { dateTimeLocalOnPageDate, type WeightDayRecord } from "@/lib/weight-format";
+import { listWeightsOnDate } from "@/lib/weights";
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 
@@ -45,6 +49,8 @@ export default async function DayPage({
   let meals: Awaited<ReturnType<typeof loadDayScreen>>["meals"] = [];
   let categories: MenuCategory[] = [];
   let favorites: FavoriteMenu[] = [];
+  let weights: WeightDayRecord[] = [];
+  let weightError: string | null = null;
   const goal = await getWeeklyCalorieGoal(userId ?? "local");
 
   if (userId) {
@@ -57,9 +63,19 @@ export default async function DayPage({
       favorites = screen.favorites;
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      loadError = /meal_records|menu_categories|favorite_menus|meal_period|meal_source/.test(message)
+      loadError = /meal_records|menu_categories|favorite_menus|meal_period|meal_source|kcal_source/.test(
+        message,
+      )
         ? "食事記録のテーブルがありません。マイグレーションを適用してください。"
         : "食事記録を読み込めませんでした。";
+    }
+    try {
+      weights = await listWeightsOnDate(userId, parsed.date);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      weightError = /weight_records/.test(message)
+        ? "体重のテーブルがありません。マイグレーションを適用してください。"
+        : "体重を読み込めませんでした。";
     }
   }
 
@@ -128,33 +144,20 @@ export default async function DayPage({
           <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
             この日の記録
           </h2>
-          <DailyCalorieBand meals={meals} dailyGoal={dailyGoal} />
-          {meals.length > 0 ? (
-            <ul className="mt-3 divide-y divide-[#F5821F]/20">
-              {meals.map((meal) => (
-                <li key={meal.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                  <span>
-                    {meal.name}
-                    <span
-                      className="ml-2 text-xs"
-                      style={{ color: mealTone(meal.mealPeriod, meal.mealSource) }}
-                    >
-                      {meal.mealPeriod}
-                      {meal.mealSource ? `・${meal.mealSource}` : ""}
-                    </span>
-                  </span>
-                  <span className={`font-medium text-[#F5821F] ${kcalFigure}`}>
-                    {formatKcal(meal.kcal)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-              まだ記録がありません。
-            </p>
+          {loadError ? null : (
+            <>
+              <DailyCalorieBand meals={meals} dailyGoal={dailyGoal} />
+              <MealRecordList date={parsed.date} meals={meals} />
+            </>
           )}
         </section>
+
+        <WeightRecordPanel
+          date={parsed.date}
+          initialMeasuredAt={dateTimeLocalOnPageDate(parsed.date)}
+          records={weights}
+          loadError={weightError}
+        />
 
         <section className="mt-8">
           <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">

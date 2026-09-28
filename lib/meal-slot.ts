@@ -1,8 +1,14 @@
 export const MEAL_PERIODS = ["朝食", "昼食", "夕食", "間食"] as const;
 export const MEAL_SOURCES = ["外食", "内食", "中食"] as const;
+export const KCAL_SOURCES = ["manual", "ai"] as const;
 
 export type MealPeriod = (typeof MEAL_PERIODS)[number];
 export type MealSource = (typeof MEAL_SOURCES)[number];
+export type KcalSource = (typeof KCAL_SOURCES)[number];
+
+export function kcalSourceLabel(source: KcalSource) {
+  return source === "manual" ? "手入力" : "AI推定";
+}
 
 export const SOURCE_COLORS: Record<MealSource, string> = {
   外食: "#C8553D",

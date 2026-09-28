@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { parseManualKcal } from "@/lib/calories";
 import { parseIsoDate } from "@/lib/calendar";
 import {
   mealPeriodForTokyoHour,
@@ -14,14 +15,27 @@ import { getHealthPlanetClientSecret } from "@/lib/env";
 import {
   addCategory,
   deleteFavoriteMealsOnDate,
+  deleteMeal,
   ensureDefaultCategories,
   getFavorite,
+  getMeal,
   insertMeal,
   listMeals,
   moveFavorite,
   renameCategory,
+  updateMeal,
   upsertFavorite,
 } from "@/lib/meals";
+import {
+  parseTokyoDateTimeLocal,
+  parseWeightKg,
+  tokyoDateFromInstant,
+} from "@/lib/weight-format";
+import {
+  deleteManualWeight,
+  insertManualWeight,
+  updateManualWeight,
+} from "@/lib/weights";
 import {
   USER_COOKIE,
   signedValue,
@@ -61,7 +75,10 @@ function failureMessage(error: unknown) {
   if (message.includes("ANTHROPIC_API_KEY") || message.includes("HEALTHPLANET_CLIENT_SECRET")) {
     return "APIキーの環境変数を設定してください。";
   }
-  if (/meal_records|menu_categories|favorite_menus|meal_period|meal_source/.test(message)) {
+  if (/weight_records/.test(message)) {
+    return "体重のテーブルがありません。マイグレーションを適用してください。";
+  }
+  if (/meal_records|menu_categories|favorite_menus|meal_period|meal_source|kcal_source/.test(message)) {
     return "食事記録のテーブルがありません。マイグレーションを適用してください。";
   }
   return message.length > 180 ? `${message.slice(0, 180)}…` : message;
@@ -76,6 +93,27 @@ function readName(formData: FormData, field: string, maxLength: number) {
   return String(formData.get(field) ?? "").trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
 
+function readMealChoice(formData: FormData) {
+  const mealPeriod = parseMealPeriod(String(formData.get("mealPeriod") ?? ""));
+  if (!mealPeriod) {
+    return { error: "時間帯を1つ選んでください。" as const };
+  }
+  const mealSource =
+    mealPeriod === "間食" ? null : parseMealSource(String(formData.get("mealSource") ?? ""));
+  if (mealPeriod !== "間食" && !mealSource) {
+    return { error: "外食・内食・中食のいずれかを選んでください。" as const };
+  }
+  return { mealPeriod, mealSource };
+}
+
+function refreshMeasuredDay(pageDate: string, measuredAt: string) {
+  refreshDay(pageDate);
+  const measuredDate = tokyoDateFromInstant(measuredAt);
+  if (measuredDate && measuredDate !== pageDate) {
+    refreshDay(measuredDate);
+  }
+}
+
 export async function addMeal(
   _previous: MealFormState,
   formData: FormData,
@@ -88,19 +126,20 @@ export async function addMeal(
   if (!name) {
     return { error: "料理名を入力してください。", savedAt: null };
   }
-  const mealPeriod = parseMealPeriod(String(formData.get("mealPeriod") ?? ""));
-  if (!mealPeriod) {
-    return { error: "時間帯を1つ選んでください。", savedAt: null };
+  const choice = readMealChoice(formData);
+  if ("error" in choice && choice.error) {
+    return { error: choice.error, savedAt: null };
   }
-  const mealSource =
-    mealPeriod === "間食" ? null : parseMealSource(String(formData.get("mealSource") ?? ""));
-  if (mealPeriod !== "間食" && !mealSource) {
-    return { error: "外食・内食・中食のいずれかを選んでください。", savedAt: null };
+  const rawKcal = String(formData.get("kcal") ?? "").trim();
+  const manualKcal = rawKcal === "" ? null : parseManualKcal(rawKcal);
+  if (rawKcal !== "" && manualKcal === null) {
+    return { error: "カロリーは0〜10000の整数で入力してください。", savedAt: null };
   }
 
   try {
     const userId = await ensureUserId();
-    const kcal = await estimateDishKcal(name);
+    const kcal = manualKcal ?? (await estimateDishKcal(name));
+    const kcalSource = manualKcal === null ? "ai" : "manual";
     let favoriteId: string | null = null;
 
     if (formData.get("saveFavorite") === "on") {
@@ -122,7 +161,16 @@ export async function addMeal(
       });
     }
 
-    await insertMeal({ userId, date, name, kcal, favoriteId, mealPeriod, mealSource });
+    await insertMeal({
+      userId,
+      date,
+      name,
+      kcal,
+      favoriteId,
+      mealPeriod: choice.mealPeriod,
+      mealSource: choice.mealSource,
+      kcalSource,
+    });
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -154,6 +202,7 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
         favoriteId,
         mealPeriod,
         mealSource: mealPeriod === "間食" ? null : "内食",
+        kcalSource: "ai",
       });
     }
   } else {
@@ -200,4 +249,159 @@ export async function updateFavoriteCategory(formData: FormData) {
   const userId = await ensureUserId();
   await moveFavorite(userId, favoriteId, categoryId);
   refreshDay(date);
+}
+
+export async function updateMealRecord(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const date = readDate(formData);
+  const id = String(formData.get("id") ?? "");
+  const name = readName(formData, "name", 80);
+  const kcal = parseManualKcal(String(formData.get("kcal") ?? ""));
+  if (!date || !UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+  if (!name) {
+    return { error: "料理名を入力してください。", savedAt: null };
+  }
+  if (kcal === null) {
+    return { error: "カロリーは0〜10000の整数で入力してください。", savedAt: null };
+  }
+  const choice = readMealChoice(formData);
+  if ("error" in choice && choice.error) {
+    return { error: choice.error, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    const existing = await getMeal(userId, id);
+    if (!existing || existing.recordedOn !== date) {
+      return { error: "記録が見つかりません。", savedAt: null };
+    }
+    await updateMeal({
+      userId,
+      id,
+      name,
+      kcal,
+      mealPeriod: choice.mealPeriod,
+      mealSource: choice.mealSource,
+      kcalSource: kcal === existing.kcal ? existing.kcalSource : "manual",
+    });
+    refreshDay(date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export async function deleteMealRecord(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const date = readDate(formData);
+  const id = String(formData.get("id") ?? "");
+  if (!date || !UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    const existing = await getMeal(userId, id);
+    if (!existing || existing.recordedOn !== date) {
+      return { error: "記録が見つかりません。", savedAt: null };
+    }
+    await deleteMeal(userId, id);
+    refreshDay(date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+function readWeightFields(formData: FormData) {
+  const date = readDate(formData);
+  const weightKg = parseWeightKg(String(formData.get("weightKg") ?? ""));
+  const measuredAt = parseTokyoDateTimeLocal(String(formData.get("measuredAt") ?? ""));
+  if (!date) {
+    return { error: "日付が不正です。" as const };
+  }
+  if (weightKg === null) {
+    return { error: "体重は20〜300kgで、小数第1位まで入力してください。" as const };
+  }
+  if (!measuredAt) {
+    return { error: "測定日時が不正です。" as const };
+  }
+  return { date, weightKg, measuredAt };
+}
+
+export async function addWeight(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const fields = readWeightFields(formData);
+  if ("error" in fields && fields.error) {
+    return { error: fields.error, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await insertManualWeight({
+      userId,
+      measuredAt: fields.measuredAt,
+      weightKg: fields.weightKg,
+    });
+    refreshMeasuredDay(fields.date, fields.measuredAt);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export async function updateWeightRecord(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const id = String(formData.get("id") ?? "");
+  const fields = readWeightFields(formData);
+  if (!UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+  if ("error" in fields && fields.error) {
+    return { error: fields.error, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await updateManualWeight({
+      userId,
+      id,
+      measuredAt: fields.measuredAt,
+      weightKg: fields.weightKg,
+    });
+    refreshMeasuredDay(fields.date, fields.measuredAt);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export async function deleteWeightRecord(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const date = readDate(formData);
+  const id = String(formData.get("id") ?? "");
+  if (!date || !UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await deleteManualWeight(userId, id);
+    refreshDay(date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
 }
