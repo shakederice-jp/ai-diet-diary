@@ -1,5 +1,5 @@
 import { weekBounds, type WeekStart } from "@/lib/calendar";
-import type { MealPeriod, MealSource } from "@/lib/meal-slot";
+import type { KcalSource, MealPeriod, MealSource } from "@/lib/meal-slot";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const DEFAULT_MENU_CATEGORIES = [
@@ -19,6 +19,7 @@ export type MealEntry = {
   favoriteId: string | null;
   mealPeriod: MealPeriod;
   mealSource: MealSource | null;
+  kcalSource: KcalSource;
 };
 
 export type MenuCategory = {
@@ -40,6 +41,7 @@ type MealRow = {
   favorite_id: string | null;
   meal_period: MealPeriod;
   meal_source: MealSource | null;
+  kcal_source: KcalSource | null;
   recorded_on?: string;
 };
 
@@ -64,6 +66,7 @@ function mapMeal(row: MealRow): MealEntry {
     favoriteId: row.favorite_id,
     mealPeriod: row.meal_period,
     mealSource: row.meal_source,
+    kcalSource: row.kcal_source === "manual" ? "manual" : "ai",
   };
 }
 
@@ -71,7 +74,7 @@ export async function listMeals(userId: string, date: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("meal_records")
-    .select("id, name, kcal, favorite_id, meal_period, meal_source")
+    .select("id, name, kcal, favorite_id, meal_period, meal_source, kcal_source")
     .eq("user_id", userId)
     .eq("recorded_on", date)
     .order("created_at", { ascending: true });
@@ -99,6 +102,29 @@ export async function listMealKcalBetween(userId: string, start: string, end: st
   return (data ?? []) as Array<{ recorded_on: string; kcal: number }>;
 }
 
+export async function getMeal(userId: string, id: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .select("id, name, kcal, favorite_id, meal_period, meal_source, kcal_source, recorded_on")
+    .eq("user_id", userId)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load meal: ${error.message}`);
+  }
+  if (!data) {
+    return null;
+  }
+
+  const row = data as MealRow;
+  return {
+    ...mapMeal(row),
+    recordedOn: row.recorded_on ?? "",
+  };
+}
+
 export async function insertMeal(input: {
   userId: string;
   date: string;
@@ -107,6 +133,7 @@ export async function insertMeal(input: {
   favoriteId: string | null;
   mealPeriod: MealPeriod;
   mealSource: MealSource | null;
+  kcalSource: KcalSource;
 }) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("meal_records").insert({
@@ -117,10 +144,59 @@ export async function insertMeal(input: {
     favorite_id: input.favoriteId,
     meal_period: input.mealPeriod,
     meal_source: input.mealPeriod === "間食" ? null : input.mealSource,
+    kcal_source: input.kcalSource,
   });
 
   if (error) {
     throw new Error(`Failed to save meal: ${error.message}`);
+  }
+}
+
+export async function updateMeal(input: {
+  userId: string;
+  id: string;
+  name: string;
+  kcal: number;
+  mealPeriod: MealPeriod;
+  mealSource: MealSource | null;
+  kcalSource: KcalSource;
+}) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .update({
+      name: input.name,
+      kcal: input.kcal,
+      meal_period: input.mealPeriod,
+      meal_source: input.mealPeriod === "間食" ? null : input.mealSource,
+      kcal_source: input.kcalSource,
+    })
+    .eq("user_id", input.userId)
+    .eq("id", input.id)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to update meal: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("記録が見つかりません。");
+  }
+}
+
+export async function deleteMeal(userId: string, id: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete meal: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("記録が見つかりません。");
   }
 }
 
