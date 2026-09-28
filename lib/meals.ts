@@ -1,4 +1,5 @@
 import { weekBounds, type WeekStart } from "@/lib/calendar";
+import type { MealPeriod, MealSource } from "@/lib/meal-slot";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const DEFAULT_MENU_CATEGORIES = [
@@ -16,6 +17,8 @@ export type MealEntry = {
   name: string;
   kcal: number;
   favoriteId: string | null;
+  mealPeriod: MealPeriod;
+  mealSource: MealSource | null;
 };
 
 export type MenuCategory = {
@@ -35,6 +38,8 @@ type MealRow = {
   name: string;
   kcal: number;
   favorite_id: string | null;
+  meal_period: MealPeriod;
+  meal_source: MealSource | null;
   recorded_on?: string;
 };
 
@@ -57,6 +62,8 @@ function mapMeal(row: MealRow): MealEntry {
     name: row.name,
     kcal: row.kcal,
     favoriteId: row.favorite_id,
+    mealPeriod: row.meal_period,
+    mealSource: row.meal_source,
   };
 }
 
@@ -64,7 +71,7 @@ export async function listMeals(userId: string, date: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("meal_records")
-    .select("id, name, kcal, favorite_id")
+    .select("id, name, kcal, favorite_id, meal_period, meal_source")
     .eq("user_id", userId)
     .eq("recorded_on", date)
     .order("created_at", { ascending: true });
@@ -98,6 +105,8 @@ export async function insertMeal(input: {
   name: string;
   kcal: number;
   favoriteId: string | null;
+  mealPeriod: MealPeriod;
+  mealSource: MealSource | null;
 }) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("meal_records").insert({
@@ -106,6 +115,8 @@ export async function insertMeal(input: {
     name: input.name,
     kcal: input.kcal,
     favorite_id: input.favoriteId,
+    meal_period: input.mealPeriod,
+    meal_source: input.mealPeriod === "間食" ? null : input.mealSource,
   });
 
   if (error) {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
 import { MealEntryForm } from "@/components/meal-entry-form";
 import {
@@ -16,7 +17,8 @@ import {
   parseIsoDate,
   parseWeekStart,
 } from "@/lib/calendar";
-import { getWeeklyCalorieGoal } from "@/lib/goals";
+import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
+import { mealPeriodForTokyoHour, mealTone, tokyoHour } from "@/lib/meal-slot";
 import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals";
 import { readUserIdFromCookies } from "@/lib/session";
 
@@ -55,12 +57,14 @@ export default async function DayPage({
       favorites = screen.favorites;
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      loadError = /meal_records|menu_categories|favorite_menus/.test(message)
+      loadError = /meal_records|menu_categories|favorite_menus|meal_period|meal_source/.test(message)
         ? "食事記録のテーブルがありません。マイグレーションを適用してください。"
         : "食事記録を読み込めませんでした。";
     }
   }
 
+  const dailyGoal = dailyCalorieGoalFromWeekly(goal);
+  const initialPeriod = mealPeriodForTokyoHour(tokyoHour());
   const percent = goal > 0 ? Math.round((weekTotal / goal) * 100) : 0;
   const barWidth = Math.min(100, Math.max(0, percent));
   const loggedFavoriteIds = new Set(
@@ -68,8 +72,8 @@ export default async function DayPage({
   );
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 dark:bg-black">
-      <main className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-sm sm:p-8 dark:bg-zinc-950">
+    <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 dark:bg-black">
+      <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8 dark:bg-zinc-950">
         <Link
           href={`/?month=${formatMonthParam(parsed.year, parsed.month)}`}
           className="text-sm font-medium text-[#F5821F]"
@@ -81,7 +85,7 @@ export default async function DayPage({
           {formatJapaneseDate(parsed.date)}
         </h1>
 
-        <section className="mt-6 rounded-2xl bg-[#FFF4EB] p-5">
+        <section className="mt-6 rounded-2xl bg-[#E7DCC8] p-5">
           <p className="text-sm text-zinc-600">この日の合計</p>
           <p className={`mt-1 text-4xl font-semibold text-[#F5821F] ${kcalFigure}`}>
             {formatKcal(dayTotal)}
@@ -118,17 +122,27 @@ export default async function DayPage({
           </p>
         ) : null}
 
-        <MealEntryForm date={parsed.date} />
+        <MealEntryForm date={parsed.date} initialPeriod={initialPeriod} />
 
         <section className="mt-8">
           <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
             この日の記録
           </h2>
+          <DailyCalorieBand meals={meals} dailyGoal={dailyGoal} />
           {meals.length > 0 ? (
             <ul className="mt-3 divide-y divide-[#F5821F]/20">
               {meals.map((meal) => (
-                <li key={meal.id} className="flex items-center justify-between py-2 text-sm">
-                  <span>{meal.name}</span>
+                <li key={meal.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <span>
+                    {meal.name}
+                    <span
+                      className="ml-2 text-xs"
+                      style={{ color: mealTone(meal.mealPeriod, meal.mealSource) }}
+                    >
+                      {meal.mealPeriod}
+                      {meal.mealSource ? `・${meal.mealSource}` : ""}
+                    </span>
+                  </span>
                   <span className={`font-medium text-[#F5821F] ${kcalFigure}`}>
                     {formatKcal(meal.kcal)}
                   </span>

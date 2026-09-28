@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { parseIsoDate } from "@/lib/calendar";
+import {
+  mealPeriodForTokyoHour,
+  parseMealPeriod,
+  parseMealSource,
+  tokyoHour,
+} from "@/lib/meal-slot";
 import { classifyDishCategory, estimateDishKcal } from "@/lib/claude";
 import { getHealthPlanetClientSecret } from "@/lib/env";
 import {
@@ -55,7 +61,7 @@ function failureMessage(error: unknown) {
   if (message.includes("ANTHROPIC_API_KEY") || message.includes("HEALTHPLANET_CLIENT_SECRET")) {
     return "APIキーの環境変数を設定してください。";
   }
-  if (message.includes("meal_records") || message.includes("menu_categories") || message.includes("favorite_menus")) {
+  if (/meal_records|menu_categories|favorite_menus|meal_period|meal_source/.test(message)) {
     return "食事記録のテーブルがありません。マイグレーションを適用してください。";
   }
   return message.length > 180 ? `${message.slice(0, 180)}…` : message;
@@ -82,6 +88,15 @@ export async function addMeal(
   if (!name) {
     return { error: "料理名を入力してください。", savedAt: null };
   }
+  const mealPeriod = parseMealPeriod(String(formData.get("mealPeriod") ?? ""));
+  if (!mealPeriod) {
+    return { error: "時間帯を1つ選んでください。", savedAt: null };
+  }
+  const mealSource =
+    mealPeriod === "間食" ? null : parseMealSource(String(formData.get("mealSource") ?? ""));
+  if (mealPeriod !== "間食" && !mealSource) {
+    return { error: "外食・内食・中食のいずれかを選んでください。", savedAt: null };
+  }
 
   try {
     const userId = await ensureUserId();
@@ -107,7 +122,7 @@ export async function addMeal(
       });
     }
 
-    await insertMeal({ userId, date, name, kcal, favoriteId });
+    await insertMeal({ userId, date, name, kcal, favoriteId, mealPeriod, mealSource });
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -130,12 +145,15 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
     const meals = await listMeals(userId, date);
     const alreadyLogged = meals.some((meal) => meal.favoriteId === favoriteId);
     if (!alreadyLogged) {
+      const mealPeriod = mealPeriodForTokyoHour(tokyoHour());
       await insertMeal({
         userId,
         date,
         name: favorite.name,
         kcal: favorite.kcal,
         favoriteId,
+        mealPeriod,
+        mealSource: mealPeriod === "間食" ? null : "内食",
       });
     }
   } else {
