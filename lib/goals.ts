@@ -4,3 +4,7 @@ export const DEFAULT_WEEKLY_KCAL_GOAL = 14_000;
 export async function getWeeklyCalorieGoal(_userId: string) {
   return DEFAULT_WEEKLY_KCAL_GOAL;
 }
+
+export function dailyCalorieGoalFromWeekly(weeklyGoal: number) {
+  return weeklyGoal / 7;
+}
