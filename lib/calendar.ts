@@ -16,7 +16,7 @@ export type CalendarDay = {
 
 export type CalendarWeek = {
   days: CalendarDay[];
-  totalKcal: number;
+  averageKcal: number | null;
 };
 
 export type MonthCalendarModel = {
@@ -25,7 +25,7 @@ export type MonthCalendarModel = {
   title: string;
   weekdayLabels: string[];
   weeks: CalendarWeek[];
-  weekdayTotals: number[];
+  weekdayAverages: Array<number | null>;
   monthTotalKcal: number;
   averageKcal: number | null;
 };
@@ -102,11 +102,14 @@ export function formatJapaneseDate(date: string) {
   return `${parsed.year}年${parsed.month}月${parsed.day}日（${weekday}）`;
 }
 
-export function formatKcal(value: number) {
+export function formatKcalAmount(value: number) {
   const rounded = Math.round(value);
   const digits = String(Number.isFinite(rounded) ? rounded : 0);
-  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${grouped}kcal`;
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+export function formatKcal(value: number) {
+  return `${formatKcalAmount(value)}kcal`;
 }
 
 export function weekBounds(date: string, weekStartsOn: WeekStart) {
@@ -140,6 +143,19 @@ function shiftUtcDate(year: number, month: number, day: number, deltaDays: numbe
 
 function weekdayIndex(year: number, month: number, day: number) {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function averageRecordedKcal(days: CalendarDay[]) {
+  let sum = 0;
+  let count = 0;
+  for (const day of days) {
+    if (!day.recorded) {
+      continue;
+    }
+    sum += day.kcal;
+    count += 1;
+  }
+  return count === 0 ? null : sum / count;
 }
 
 export function buildMonthCalendar(input: {
@@ -190,20 +206,17 @@ export function buildMonthCalendar(input: {
     const weekDays = days.slice(index, index + 7);
     weeks.push({
       days: weekDays,
-      totalKcal: weekDays.reduce(
-        (sum, day) => sum + (day.inMonth ? day.kcal : 0),
-        0,
-      ),
+      averageKcal: averageRecordedKcal(weekDays),
     });
   }
 
-  const weekdayTotals = labels.map((_, column) =>
-    weeks.reduce((sum, week) => {
-      const day = week.days[column];
-      return sum + (day?.inMonth ? day.kcal : 0);
-    }, 0),
+  const weekdayAverages = labels.map((_, column) =>
+    averageRecordedKcal(weeks.map((week) => week.days[column]).filter((day) => day != null)),
   );
-  const monthTotalKcal = weekdayTotals.reduce((sum, total) => sum + total, 0);
+  const monthTotalKcal = days.reduce(
+    (sum, day) => sum + (day.inMonth ? day.kcal : 0),
+    0,
+  );
 
   let recordedSum = 0;
   let recordedCount = 0;
@@ -225,7 +238,7 @@ export function buildMonthCalendar(input: {
     title,
     weekdayLabels: labels,
     weeks,
-    weekdayTotals,
+    weekdayAverages,
     monthTotalKcal,
     averageKcal: recordedCount === 0 ? null : recordedSum / recordedCount,
   };
