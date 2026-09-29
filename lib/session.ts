@@ -103,3 +103,17 @@ export async function readUserIdFromCookies() {
     return null;
   }
 }
+
+export async function ensureUserIdFromCookies() {
+  const store = await cookies();
+  const secret = getHealthPlanetClientSecret();
+  const existing = store.get(USER_COOKIE)?.value;
+  const current = existing ? verifySignedValue(existing, secret) : null;
+  if (current) {
+    return current;
+  }
+
+  const userId = crypto.randomUUID();
+  store.set(USER_COOKIE, signedValue(userId, secret), userCookieOptions());
+  return userId;
+}
