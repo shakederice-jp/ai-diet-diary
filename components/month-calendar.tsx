@@ -1,16 +1,43 @@
 import Link from "next/link";
 import { setWeekStart } from "@/app/calendar/actions";
-import { AppNav } from "@/components/app-nav";
 import {
   addMonths,
   formatKcal,
+  formatKcalAmount,
   formatMonthParam,
   type MonthCalendarModel,
   type WeekStart,
 } from "@/lib/calendar";
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
-const orangeBox = `rounded-lg border-2 border-[#F5821F] px-1 py-2 text-center text-xs font-semibold text-[#F5821F] sm:text-sm ${kcalFigure}`;
+const orangeBox = `rounded-lg border-2 border-[#F5821F] bg-[#FBF6EE] px-0.5 py-1.5 text-center text-[11px] font-semibold leading-tight text-[#F5821F] sm:text-xs ${kcalFigure}`;
+const orangeBadge = `inline-flex items-center rounded-full border-2 border-[#F5821F] bg-[#FBF6EE] px-3 py-1 text-sm font-semibold text-[#F5821F] ${kcalFigure}`;
+
+function KcalStack({
+  value,
+  className = "",
+}: {
+  value: number | null;
+  className?: string;
+}) {
+  if (value === null) {
+    return <span className={kcalFigure}>—</span>;
+  }
+
+  return (
+    <span className={`flex flex-col items-center leading-none ${kcalFigure} ${className}`}>
+      <span>{formatKcalAmount(value)}</span>
+      <span className="mt-0.5 text-[10px] font-medium leading-none">kcal</span>
+    </span>
+  );
+}
+
+function daySurface(recorded: boolean, kcal: number, dailyGoal: number) {
+  if (recorded && dailyGoal > 0 && kcal > dailyGoal) {
+    return "bg-[#F6C9A0] hover:bg-[#F0B888]";
+  }
+  return "bg-[#FBF6EE] hover:bg-[#F3E6D4]";
+}
 
 type MonthCalendarProps = {
   model: MonthCalendarModel;
@@ -54,15 +81,27 @@ export function MonthCalendar({
   const next = addMonths(model.year, model.month, 1);
   const averageLabel =
     model.averageKcal === null ? "平均 —" : `平均 ${formatKcal(model.averageKcal)}`;
+  const dailyGoal = weeklyGoal / 7;
 
   return (
-    <section className="w-full rounded-3xl bg-white p-4 shadow-sm sm:p-6 dark:bg-zinc-950">
-      <AppNav current="home" />
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+    <section className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
+      <div className="flex justify-end">
+        <Link
+          href="/mypage"
+          aria-label="マイページ"
+          className="inline-flex size-9 items-center justify-center rounded-full text-[#F5821F] hover:bg-[#E7DCC8]"
+        >
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.25" />
+            <path d="M5 19.25c1.35-3.1 3.9-4.65 7-4.65s5.65 1.55 7 4.65" strokeLinecap="round" />
+          </svg>
+        </Link>
+      </div>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={monthHref(previous.year, previous.month, today, preserved)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#FFF4EB]"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="前の月"
           >
             ‹
@@ -70,28 +109,21 @@ export function MonthCalendar({
           <h1 className="text-3xl font-semibold tracking-tight text-[#F5821F]">
             {model.title}
           </h1>
-          <span
-            className={`inline-flex items-center rounded-full border-2 border-[#F5821F] px-3 py-1 text-sm font-semibold text-[#F5821F] ${kcalFigure}`}
-          >
-            {averageLabel}
-          </span>
+          <span className={orangeBadge}>{averageLabel}</span>
           <Link
             href={monthHref(next.year, next.month, today, preserved)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#FFF4EB]"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="次の月"
           >
             ›
           </Link>
-          <Link
-            href="/goals"
-            className={`inline-flex items-center rounded-full border-2 border-[#F5821F] px-3 py-1 text-sm font-semibold text-[#F5821F] hover:bg-[#FFF4EB] ${kcalFigure}`}
-          >
+          <Link href="/goals" className={`${orangeBadge} hover:bg-[#E7DCC8]`}>
             週の目標 {formatKcal(weeklyGoal)}
           </Link>
         </div>
 
         <form action={setWeekStart} className="flex items-center gap-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">週の始まり</span>
+          <span className="text-sm text-zinc-600">週の始まり</span>
           {(["sunday", "monday"] as const).map((value) => {
             const selected = weekStartsOn === value;
             return (
@@ -104,7 +136,7 @@ export function MonthCalendar({
                 className={
                   selected
                     ? "rounded-full bg-[#F5821F] px-3 py-1.5 text-sm font-medium text-white"
-                    : "rounded-full border border-[#F5821F] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#FFF4EB]"
+                    : "rounded-full border border-[#F5821F] bg-[#FBF6EE] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
                 }
               >
                 {value === "sunday" ? "日曜" : "月曜"}
@@ -114,8 +146,8 @@ export function MonthCalendar({
         </form>
       </div>
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[640px] border-separate border-spacing-1">
+      <div className="mt-6">
+        <table className="w-full table-fixed border-separate border-spacing-0.5 sm:border-spacing-1">
           <caption className="sr-only">
             {model.year}年{model.month}月の摂取カロリー
           </caption>
@@ -132,12 +164,9 @@ export function MonthCalendar({
               ))}
               <th
                 scope="col"
-                className="pb-2 text-center text-sm font-medium text-[#F5821F]"
+                className="pb-2 text-center text-xs font-medium text-[#F5821F] sm:text-sm"
               >
-                <span className="block">週計</span>
-                <span className={`block text-[11px] font-normal ${kcalFigure}`}>
-                  目標 {formatKcal(weeklyGoal)}
-                </span>
+                週平均
               </th>
             </tr>
           </thead>
@@ -151,44 +180,47 @@ export function MonthCalendar({
                         href={`/days/${day.date}`}
                         className={
                           day.date === today.date
-                            ? "flex min-h-20 flex-col rounded-xl bg-[#FFF4EB] px-2 py-2 ring-2 ring-[#F5821F] hover:bg-[#FFE8D4]"
-                            : "flex min-h-20 flex-col rounded-xl px-2 py-2 hover:bg-[#FFF4EB]"
+                            ? "flex min-h-16 flex-col items-center rounded-lg bg-[#F5821F] px-0.5 py-1 text-white hover:bg-[#E06E0C]"
+                            : `flex min-h-16 flex-col items-center rounded-lg px-0.5 py-1 text-zinc-950 ${daySurface(day.recorded, day.kcal, dailyGoal)}`
                         }
                       >
-                        <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                          {day.day}
-                        </span>
-                        <span
-                          className={`mt-auto text-xs text-zinc-600 dark:text-zinc-400 ${kcalFigure}`}
-                        >
-                          {formatKcal(day.kcal)}
+                        <span className="text-xs font-medium sm:text-sm">{day.day}</span>
+                        <span className="mt-auto">
+                          <KcalStack
+                            value={day.kcal}
+                            className={
+                              day.date === today.date
+                                ? "text-[11px] text-white sm:text-xs"
+                                : "text-[11px] text-zinc-700 sm:text-xs"
+                            }
+                          />
                         </span>
                       </Link>
                     ) : (
-                      <div className="flex min-h-20 flex-col px-2 py-2">
-                        <span className="text-sm text-zinc-300 dark:text-zinc-700">
-                          {day.day}
-                        </span>
+                      <div className="flex min-h-16 flex-col items-center px-0.5 py-1">
+                        <span className="text-xs text-[#C4B39A] sm:text-sm">{day.day}</span>
                       </div>
                     )}
                   </td>
                 ))}
                 <td className="align-middle">
-                  <div className={orangeBox}>{formatKcal(week.totalKcal)}</div>
+                  <div className={orangeBox} aria-label="この週の平均">
+                    <KcalStack value={week.averageKcal} />
+                  </div>
                 </td>
               </tr>
             ))}
             <tr>
-              {model.weekdayTotals.map((total, index) => (
+              {model.weekdayAverages.map((average, index) => (
                 <td key={model.weekdayLabels[index]}>
-                  <div className={orangeBox} aria-label={`${model.weekdayLabels[index]}曜日の累計`}>
-                    {formatKcal(total)}
+                  <div className={orangeBox} aria-label={`${model.weekdayLabels[index]}曜日の平均`}>
+                    <KcalStack value={average} />
                   </div>
                 </td>
               ))}
               <td>
                 <div className={orangeBox} aria-label="月間合計">
-                  {formatKcal(model.monthTotalKcal)}
+                  <KcalStack value={model.monthTotalKcal} />
                 </div>
               </td>
             </tr>

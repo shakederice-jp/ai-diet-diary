@@ -8,7 +8,13 @@ const ITEMS = [
 
 export type AppSection = (typeof ITEMS)[number]["id"];
 
-export function AppNav({ current }: { current: AppSection }) {
+export function AppNav({
+  current,
+  sand = false,
+}: {
+  current: AppSection;
+  sand?: boolean;
+}) {
   return (
     <nav className="flex flex-wrap gap-2" aria-label="画面">
       {ITEMS.map((item) => {
@@ -21,7 +27,9 @@ export function AppNav({ current }: { current: AppSection }) {
             className={
               selected
                 ? "rounded-full bg-[#F5821F] px-3 py-1.5 text-sm font-medium text-white"
-                : "rounded-full border border-[#F5821F] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#FFF4EB]"
+                : sand
+                  ? "rounded-full border border-[#F5821F] bg-[#FBF6EE] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
+                  : "rounded-full border border-[#F5821F] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#FFF4EB]"
             }
           >
             {item.label}

@@ -162,7 +162,7 @@ export default async function Home({
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans sm:px-6 dark:bg-black">
+    <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans sm:px-6">
       <main className="flex w-full max-w-4xl flex-col gap-8">
         <MonthCalendar
           model={calendar}
@@ -174,12 +174,12 @@ export default async function Home({
             reason: params.reason,
           }}
         />
-        <section className="w-full rounded-3xl bg-white p-8 shadow-sm dark:bg-zinc-950">
+        <section className="w-full rounded-3xl bg-[#F3EBDD] p-8 shadow-sm">
         <p className="text-sm font-medium text-[#F5821F]">AI Diet Diary</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">
           Health Planet 連携
         </h2>
-        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 text-sm leading-6 text-zinc-600">
           タニタ Health Planet の体組成・血圧・歩数データを取り込むために、アカウント連携を開始します。
         </p>
 
@@ -191,7 +191,7 @@ export default async function Home({
 
         {status.connected ? (
           <section className="mt-6">
-            <h3 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+            <h3 className="text-sm font-medium text-zinc-950">
               体重
             </h3>
             {syncError ? (
@@ -199,32 +199,32 @@ export default async function Home({
                 体重の取得に失敗しました: {syncError}
               </p>
             ) : saved !== null && saved > 0 ? (
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-3 text-sm text-zinc-600">
                 体重を {saved} 件保存しました。
               </p>
             ) : saved === 0 && records.length > 0 ? (
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-3 text-sm text-zinc-600">
                 新しい体重データはありません。
               </p>
             ) : null}
             {records.length > 0 ? (
-              <ul className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-800">
+              <ul className="mt-3 divide-y divide-[#E4D7C6]">
                 {records.map((record) => (
                   <li
                     key={record.measured_at}
                     className="flex items-center justify-between py-2 text-sm"
                   >
-                    <span className="text-zinc-600 dark:text-zinc-400">
+                    <span className="text-zinc-600">
                       {weightDateFormatter.format(new Date(record.measured_at))}
                     </span>
-                    <span className="font-medium text-zinc-950 dark:text-zinc-50">
+                    <span className="font-medium text-zinc-950">
                       {formatWeightKg(record.weight_kg)}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : syncError ? null : (
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-3 text-sm text-zinc-600">
                 まだ体重の記録がありません。
               </p>
             )}
