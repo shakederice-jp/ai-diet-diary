@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { setWeekStart } from "@/app/calendar/actions";
+import { AppNav } from "@/components/app-nav";
 import {
   addMonths,
   formatKcal,
@@ -14,6 +15,7 @@ const orangeBox = `rounded-lg border-2 border-[#F5821F] px-1 py-2 text-center te
 type MonthCalendarProps = {
   model: MonthCalendarModel;
   weekStartsOn: WeekStart;
+  weeklyGoal: number;
   today: { year: number; month: number; date: string };
   preserved: {
     healthplanet?: string;
@@ -44,6 +46,7 @@ function monthHref(
 export function MonthCalendar({
   model,
   weekStartsOn,
+  weeklyGoal,
   today,
   preserved,
 }: MonthCalendarProps) {
@@ -54,7 +57,8 @@ export function MonthCalendar({
 
   return (
     <section className="w-full rounded-3xl bg-white p-4 shadow-sm sm:p-6 dark:bg-zinc-950">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <AppNav current="home" />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={monthHref(previous.year, previous.month, today, preserved)}
@@ -77,6 +81,12 @@ export function MonthCalendar({
             aria-label="次の月"
           >
             ›
+          </Link>
+          <Link
+            href="/goals"
+            className={`inline-flex items-center rounded-full border-2 border-[#F5821F] px-3 py-1 text-sm font-semibold text-[#F5821F] hover:bg-[#FFF4EB] ${kcalFigure}`}
+          >
+            週の目標 {formatKcal(weeklyGoal)}
           </Link>
         </div>
 
@@ -124,7 +134,10 @@ export function MonthCalendar({
                 scope="col"
                 className="pb-2 text-center text-sm font-medium text-[#F5821F]"
               >
-                週計
+                <span className="block">週計</span>
+                <span className={`block text-[11px] font-normal ${kcalFigure}`}>
+                  目標 {formatKcal(weeklyGoal)}
+                </span>
               </th>
             </tr>
           </thead>

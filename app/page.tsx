@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { MonthCalendar } from "@/components/month-calendar";
 import { getMealCalorieRecords } from "@/lib/calories";
+import { getWeeklyCalorieGoal } from "@/lib/goals";
 import {
   WEEK_START_COOKIE,
   buildMonthCalendar,
@@ -127,6 +128,7 @@ export default async function Home({
   const store = await cookies();
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
   const mealUserId = await readUserIdFromCookies();
+  const weeklyGoal = await getWeeklyCalorieGoal(mealUserId ?? "local");
   const calorieRecords = mealUserId
     ? await getMealCalorieRecords(mealUserId, month.year, month.month).catch(() => [])
     : [];
@@ -165,6 +167,7 @@ export default async function Home({
         <MonthCalendar
           model={calendar}
           weekStartsOn={weekStartsOn}
+          weeklyGoal={weeklyGoal}
           today={today}
           preserved={{
             healthplanet: params.healthplanet,

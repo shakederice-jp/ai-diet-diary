@@ -108,7 +108,12 @@ export default async function DayPage({
           </p>
           <div className="mt-5">
             <div className="flex items-center justify-between gap-3 text-sm text-zinc-700">
-              <span>今週の目標</span>
+              <span className="flex items-center gap-2">
+                今週の目標
+                <Link href="/goals" className="text-xs font-medium text-[#F5821F]">
+                  変更
+                </Link>
+              </span>
               <span className={kcalFigure}>
                 {formatKcal(weekTotal)} / {formatKcal(goal)}
               </span>
