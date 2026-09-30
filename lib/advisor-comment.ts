@@ -11,6 +11,7 @@ import {
   upsertAdvisorComment,
 } from "@/lib/advisor-store";
 import { generateAdvisorComment } from "@/lib/claude";
+import { affectionStage, countAffection, type AffectionStage } from "@/lib/engagement";
 import type { MealEntry } from "@/lib/meals";
 
 export type AdvisorCommentView =
@@ -18,6 +19,14 @@ export type AdvisorCommentView =
   | { kind: "empty"; advisorId: AdvisorId; text: string }
   | { kind: "comment"; advisorId: AdvisorId; text: string; cached: boolean }
   | { kind: "error"; message: string };
+
+async function loadBond(userId: string, advisorId: AdvisorId): Promise<AffectionStage> {
+  try {
+    return affectionStage(await countAffection(userId, advisorId));
+  } catch {
+    return "initial";
+  }
+}
 
 function failureView(error: unknown): AdvisorCommentView {
   const message = error instanceof Error ? error.message : "";
@@ -59,9 +68,11 @@ export async function loadAdvisorComment(input: {
     return { kind: "empty", advisorId, text: advisor.emptyLine };
   }
 
+  const bond = await loadBond(input.userId, advisorId);
   const recordHash = advisorRecordHash({
     advisorId,
     dailyGoal: input.dailyGoal,
+    bond,
     meals: input.meals,
   });
 
@@ -81,6 +92,7 @@ export async function loadAdvisorComment(input: {
         advisor,
         date: input.date,
         dailyGoal: input.dailyGoal,
+        bond,
         meals: input.meals,
       }),
     );

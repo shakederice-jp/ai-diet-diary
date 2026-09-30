@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { parseManualKcal } from "@/lib/calories";
 import { parseIsoDate } from "@/lib/calendar";
+import { syncDayEngagement } from "@/lib/engagement";
 import {
   mealPeriodForTokyoHour,
   parseMealPeriod,
@@ -68,6 +69,15 @@ async function ensureUserId() {
 function refreshDay(date: string) {
   revalidatePath(`/days/${date}`);
   revalidatePath("/");
+  revalidatePath("/mypage");
+}
+
+async function rememberEngagement(userId: string, date: string) {
+  try {
+    await syncDayEngagement(userId, date);
+  } catch {
+    // The meal or weight row is already saved. The panel reports a missing table.
+  }
 }
 
 function failureMessage(error: unknown) {
@@ -171,6 +181,7 @@ export async function addMeal(
       mealSource: choice.mealSource,
       kcalSource,
     });
+    await rememberEngagement(userId, date);
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -209,6 +220,7 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
     await deleteFavoriteMealsOnDate(userId, date, favoriteId);
   }
 
+  await rememberEngagement(userId, date);
   refreshDay(date);
 }
 
@@ -312,6 +324,7 @@ export async function deleteMealRecord(
       return { error: "記録が見つかりません。", savedAt: null };
     }
     await deleteMeal(userId, id);
+    await rememberEngagement(userId, date);
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -351,6 +364,7 @@ export async function addWeight(
       measuredAt: fields.measuredAt,
       weightKg: fields.weightKg,
     });
+    await rememberEngagement(userId, tokyoDateFromInstant(fields.measuredAt) ?? fields.date);
     refreshMeasuredDay(fields.date, fields.measuredAt);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -379,6 +393,11 @@ export async function updateWeightRecord(
       measuredAt: fields.measuredAt,
       weightKg: fields.weightKg,
     });
+    await rememberEngagement(userId, fields.date);
+    const measuredDate = tokyoDateFromInstant(fields.measuredAt);
+    if (measuredDate && measuredDate !== fields.date) {
+      await rememberEngagement(userId, measuredDate);
+    }
     refreshMeasuredDay(fields.date, fields.measuredAt);
     return { error: null, savedAt: Date.now() };
   } catch (error) {
@@ -399,6 +418,7 @@ export async function deleteWeightRecord(
   try {
     const userId = await ensureUserId();
     await deleteManualWeight(userId, id);
+    await rememberEngagement(userId, date);
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {

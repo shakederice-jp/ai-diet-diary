@@ -76,10 +76,23 @@ const COMMON_RULES = `①共通ルール（絶対厳守）
 - コメント本文だけを、2〜4文、200字以内で書く。Markdown、見出し、日付の復唱は書かない。
 - ②で指定した語尾と文体を守り、丁寧な解説口調に戻らない。`;
 
+export type AdvisorBond = "initial" | "familiar" | "lasting";
+
+function bondNote(bond: AdvisorBond) {
+  if (bond === "familiar") {
+    return "\nユーザーとの関係が深まっている（慣れてきた段階）。①は絶対に守ったまま、口調を少しだけ砕き、親しみのある短い一言を一つ混ぜる。";
+  }
+  if (bond === "lasting") {
+    return "\nユーザーとの関係が深まっている（長続きの段階）。①は絶対に守ったまま、より砕けた口調と、いつもの相手への短い親しみを一言混ぜる。";
+  }
+  return "";
+}
+
 export function buildAdvisorPrompt(input: {
   advisor: Advisor;
   date: string;
   dailyGoal: number;
+  bond?: AdvisorBond;
   meals: Array<{
     name: string;
     kcal: number;
@@ -104,7 +117,7 @@ export function buildAdvisorPrompt(input: {
 
 ②キャラごとの口調
 次の口調で、①の範囲内で言い方だけを変える。①と矛盾する表現はしない。
-${input.advisor.voice}
+${input.advisor.voice}${bondNote(input.bond ?? "initial")}
 
 ③今日の記録
 日付: ${input.date}
@@ -117,6 +130,7 @@ ${lines.join("\n")}`;
 export function advisorRecordHash(input: {
   advisorId: AdvisorId;
   dailyGoal: number;
+  bond?: AdvisorBond;
   meals: Array<{
     id: string;
     name: string;
@@ -128,6 +142,7 @@ export function advisorRecordHash(input: {
   const payload = {
     advisorId: input.advisorId,
     dailyGoal: Math.round(input.dailyGoal),
+    bond: input.bond ?? "initial",
     meals: [...input.meals]
       .sort((left, right) => left.id.localeCompare(right.id))
       .map((meal) => ({

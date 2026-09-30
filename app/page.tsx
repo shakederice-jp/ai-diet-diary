@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import { EngagementPanel } from "@/components/engagement-panel";
 import { MonthCalendar } from "@/components/month-calendar";
 import { getMealCalorieRecords } from "@/lib/calories";
 import { getWeeklyCalorieGoal } from "@/lib/goals";
@@ -164,6 +165,7 @@ export default async function Home({
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans sm:px-6">
       <main className="flex w-full max-w-4xl flex-col gap-8">
+        <EngagementPanel surface="home" />
         <MonthCalendar
           model={calendar}
           weekStartsOn={weekStartsOn}

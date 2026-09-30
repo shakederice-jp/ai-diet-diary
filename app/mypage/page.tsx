@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdvisorPicker } from "@/components/advisor-picker";
+import { EngagementPanel } from "@/components/engagement-panel";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { readUserIdFromCookies } from "@/lib/session";
 import { storageErrorMessage } from "@/lib/user-settings";
@@ -46,6 +47,9 @@ export default async function MyPage() {
           <Link href="/goals" className={outlineLink}>
             目標設定
           </Link>
+        </div>
+        <div className="mt-6">
+          <EngagementPanel surface="mypage" />
         </div>
         {loadError ? (
           <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
