@@ -7,6 +7,7 @@ import {
   updateWeightRecord,
   type MealFormState,
 } from "@/app/days/[date]/actions";
+import { RecordReaction } from "@/components/record-reaction";
 import {
   formatTokyoDateTime,
   formatWeightKg,
@@ -112,7 +113,11 @@ function WeightEntryForm({
           {pending ? "保存しています…" : "記録する"}
         </button>
       </div>
-      {state.error ? <p className="mt-2 text-sm text-red-700">{state.error}</p> : null}
+      {state.error ? (
+        <p className="mt-2 text-sm text-red-700">{state.error}</p>
+      ) : (
+        <RecordReaction reaction={state.reaction} />
+      )}
     </form>
   );
 }

@@ -1,4 +1,5 @@
 import { FreezeChoice } from "@/components/freeze-choice";
+import { RankingSwitch } from "@/components/ranking-switch";
 import {
   affectionStageLabel,
   formatMonthDay,
@@ -31,7 +32,7 @@ export async function EngagementPanel({ surface }: { surface: "home" | "mypage" 
   }
 
   const showStreak = snapshot.streakDays > 0 && (snapshot.atRisk || snapshot.offerDate || surface === "mypage");
-  if (surface === "home" && !snapshot.atRisk && !snapshot.offerDate) {
+  if (surface === "home" && !snapshot.atRisk && !snapshot.offerDate && !snapshot.compareEnabled) {
     return null;
   }
 
@@ -50,6 +51,12 @@ export async function EngagementPanel({ surface }: { surface: "home" | "mypage" 
       {snapshot.offerDate ? (
         <FreezeChoice missedOn={snapshot.offerDate} label={formatMonthDay(snapshot.offerDate)} />
       ) : null}
+      {snapshot.compareEnabled && snapshot.rankingText ? (
+        <p className="mt-2 text-sm leading-6 text-zinc-900">
+          連続記録は、全ユーザーの{snapshot.rankingText}です。
+        </p>
+      ) : null}
+      {surface === "mypage" ? <RankingSwitch initialEnabled={snapshot.compareEnabled} /> : null}
       {surface === "mypage" ? <AffectionLine snapshot={snapshot} /> : null}
     </section>
   );

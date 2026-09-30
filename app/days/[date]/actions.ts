@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { parseManualKcal } from "@/lib/calories";
 import { parseIsoDate } from "@/lib/calendar";
+import { getAdvisor } from "@/lib/advisors";
+import { getAdvisorPreference } from "@/lib/advisor-store";
+import { pickReaction } from "@/lib/reactions";
 import { syncDayEngagement } from "@/lib/engagement";
 import {
   mealPeriodForTokyoHour,
@@ -50,6 +53,7 @@ const UUID_PATTERN =
 export type MealFormState = {
   error: string | null;
   savedAt: number | null;
+  reaction?: { advisorName: string; line: string } | null;
 };
 
 async function ensureUserId() {
@@ -72,6 +76,17 @@ function refreshDay(date: string) {
   revalidatePath("/mypage");
 }
 
+async function reactionFor(userId: string) {
+  try {
+    const advisorId = await getAdvisorPreference(userId);
+    if (!advisorId) {
+      return null;
+    }
+    return { advisorName: getAdvisor(advisorId).name, line: pickReaction(advisorId) };
+  } catch {
+    return null;
+  }
+}
 async function rememberEngagement(userId: string, date: string) {
   try {
     await syncDayEngagement(userId, date);
@@ -183,7 +198,7 @@ export async function addMeal(
     });
     await rememberEngagement(userId, date);
     refreshDay(date);
-    return { error: null, savedAt: Date.now() };
+    return { error: null, savedAt: Date.now(), reaction: await reactionFor(userId) };
   } catch (error) {
     return { error: failureMessage(error), savedAt: null };
   }
@@ -200,6 +215,7 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
     return;
   }
 
+  let created = false;
   if (checked) {
     const meals = await listMeals(userId, date);
     const alreadyLogged = meals.some((meal) => meal.favoriteId === favoriteId);
@@ -215,6 +231,7 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
         mealSource: mealPeriod === "間食" ? null : "内食",
         kcalSource: "ai",
       });
+      created = true;
     }
   } else {
     await deleteFavoriteMealsOnDate(userId, date, favoriteId);
@@ -222,6 +239,7 @@ export async function setFavoriteOnDay(date: string, favoriteId: string, checked
 
   await rememberEngagement(userId, date);
   refreshDay(date);
+  return { reaction: created ? await reactionFor(userId) : null };
 }
 
 export async function createCategory(formData: FormData) {
@@ -366,7 +384,7 @@ export async function addWeight(
     });
     await rememberEngagement(userId, tokyoDateFromInstant(fields.measuredAt) ?? fields.date);
     refreshMeasuredDay(fields.date, fields.measuredAt);
-    return { error: null, savedAt: Date.now() };
+    return { error: null, savedAt: Date.now(), reaction: await reactionFor(userId) };
   } catch (error) {
     return { error: failureMessage(error), savedAt: null };
   }

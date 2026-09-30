@@ -22,6 +22,8 @@ export type EngagementSnapshot = {
   advisorName: string | null;
   affectionPoints: number;
   affectionStage: AffectionStage;
+  compareEnabled: boolean;
+  rankingText: string | null;
 };
 
 export function affectionStage(points: number): AffectionStage {
@@ -228,6 +230,9 @@ export async function loadEngagement(userId: string, now = new Date()): Promise<
   });
   const affectionPoints = advisorId ? await countAffection(userId, advisorId) : 0;
   const stage = affectionStage(affectionPoints);
+  await saveStreakSnapshot(userId, streak.streakDays);
+  const compareEnabled = await getCompareEnabled(userId);
+  const rankingText = compareEnabled ? await rankingTextFor(streak.streakDays) : null;
 
   return {
     today,
@@ -236,6 +241,8 @@ export async function loadEngagement(userId: string, now = new Date()): Promise<
     advisorName: advisorId ? getAdvisor(advisorId).name : null,
     affectionPoints,
     affectionStage: stage,
+    compareEnabled,
+    rankingText,
   };
 }
 
@@ -316,4 +323,73 @@ export async function declineFreezeForDate(userId: string, missedOn: string) {
   if (error) {
     throw new Error(`Failed to save streak freeze choice: ${error.message}`);
   }
+}
+
+export function rankingBucket(higher: number, total: number) {
+  if (total <= 0) {
+    return null;
+  }
+  const raw = Math.ceil((higher / total) * 100);
+  return Math.min(100, Math.max(10, Math.ceil(raw / 10) * 10));
+}
+
+async function saveStreakSnapshot(userId: string, streakDays: number) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("user_streaks").upsert(
+    {
+      user_id: userId,
+      streak_days: streakDays,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) {
+    throw new Error(`Failed to save streak snapshot: ${error.message}`);
+  }
+}
+
+export async function getCompareEnabled(userId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("ranking_preferences")
+    .select("compare_enabled")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Failed to load ranking preference: ${error.message}`);
+  }
+  return data?.compare_enabled === true;
+}
+
+export async function saveCompareEnabled(userId: string, enabled: boolean) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("ranking_preferences").upsert(
+    {
+      user_id: userId,
+      compare_enabled: enabled,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) {
+    throw new Error(`Failed to save ranking preference: ${error.message}`);
+  }
+}
+
+async function rankingTextFor(streakDays: number) {
+  const supabase = createAdminClient();
+  const higherQuery = supabase
+    .from("user_streaks")
+    .select("user_id", { count: "exact", head: true })
+    .gt("streak_days", streakDays);
+  const totalQuery = supabase.from("user_streaks").select("user_id", { count: "exact", head: true });
+  const [higher, total] = await Promise.all([higherQuery, totalQuery]);
+  if (higher.error) {
+    throw new Error(`Failed to rank streaks: ${higher.error.message}`);
+  }
+  if (total.error) {
+    throw new Error(`Failed to rank streaks: ${total.error.message}`);
+  }
+  const bucket = rankingBucket(higher.count ?? 0, total.count ?? 0);
+  return bucket === null ? null : `上位${bucket}%`;
 }

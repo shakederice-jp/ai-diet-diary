@@ -3,9 +3,10 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addMeal, type MealFormState } from "@/app/days/[date]/actions";
 import { ExclusiveChecks } from "@/components/exclusive-checks";
+import { RecordReaction } from "@/components/record-reaction";
 import { MEAL_PERIODS, MEAL_SOURCES, type MealPeriod, type MealSource } from "@/lib/meal-slot";
 
-const initialState: MealFormState = { error: null, savedAt: null };
+const initialState: MealFormState = { error: null, savedAt: null, reaction: null };
 
 export function MealEntryForm({
   date,
@@ -99,7 +100,9 @@ export function MealEntryForm({
       </button>
       {state.error ? (
         <p className="mt-3 text-sm text-red-700 dark:text-red-300">{state.error}</p>
-      ) : null}
+      ) : (
+        <RecordReaction reaction={state.reaction} />
+      )}
     </form>
   );
 }

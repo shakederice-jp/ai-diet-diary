@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { isAdvisorId } from "@/lib/advisors";
 import { upsertAdvisorPreference } from "@/lib/advisor-store";
+import { saveCompareEnabled } from "@/lib/engagement";
 import { ensureUserIdFromCookies } from "@/lib/session";
 import { storageErrorMessage } from "@/lib/user-settings";
 
@@ -31,5 +32,21 @@ export async function saveAdvisor(
       error: storageErrorMessage(error, "保存に失敗しました。"),
       savedAt: null,
     };
+  }
+}
+
+export async function setRankingVisible(enabled: boolean) {
+  if (typeof enabled !== "boolean") {
+    return { error: "設定を保存できませんでした。" };
+  }
+
+  try {
+    const userId = await ensureUserIdFromCookies();
+    await saveCompareEnabled(userId, enabled);
+    revalidatePath("/mypage");
+    revalidatePath("/");
+    return { error: null };
+  } catch (error) {
+    return { error: storageErrorMessage(error, "比較表示の保存に失敗しました。") };
   }
 }
