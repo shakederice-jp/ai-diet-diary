@@ -78,6 +78,16 @@ export async function estimateDishKcal(dishName: string) {
   return kcal;
 }
 
+export async function generateAdvisorComment(prompt: string) {
+  const text = (await askClaude(prompt, 400))
+    .replace(/^(?:#+\s.*\n+)+/, "")
+    .trim();
+  if (!text) {
+    throw new Error("コメントを読み取れませんでした。");
+  }
+  return text.slice(0, 500);
+}
+
 export async function classifyDishCategory(dishName: string, categoryNames: string[]) {
   if (categoryNames.length === 0) {
     return null;

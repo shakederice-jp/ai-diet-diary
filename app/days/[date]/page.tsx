@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
 import { MealEntryForm } from "@/components/meal-entry-form";
@@ -19,6 +20,7 @@ import {
   parseIsoDate,
   parseWeekStart,
 } from "@/lib/calendar";
+import { loadAdvisorComment, type AdvisorCommentView } from "@/lib/advisor-comment";
 import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
 import { mealPeriodForTokyoHour, tokyoHour } from "@/lib/meal-slot";
 import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals";
@@ -80,6 +82,15 @@ export default async function DayPage({
   }
 
   const dailyGoal = dailyCalorieGoalFromWeekly(goal);
+  let advisorView: AdvisorCommentView = { kind: "choose" };
+  if (userId && !loadError) {
+    advisorView = await loadAdvisorComment({
+      userId,
+      date: parsed.date,
+      meals,
+      dailyGoal,
+    });
+  }
   const initialPeriod = mealPeriodForTokyoHour(tokyoHour());
   const percent = goal > 0 ? Math.round((weekTotal / goal) * 100) : 0;
   const barWidth = Math.min(100, Math.max(0, percent));
@@ -151,6 +162,7 @@ export default async function DayPage({
           </h2>
           {loadError ? null : (
             <>
+              <AdvisorNote view={advisorView} />
               <DailyCalorieBand meals={meals} dailyGoal={dailyGoal} />
               <MealRecordList date={parsed.date} meals={meals} />
             </>

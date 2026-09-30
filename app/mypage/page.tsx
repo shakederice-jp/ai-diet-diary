@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdvisorPicker } from "@/components/advisor-picker";
+import { getAdvisorPreference } from "@/lib/advisor-store";
+import { readUserIdFromCookies } from "@/lib/session";
+import { storageErrorMessage } from "@/lib/user-settings";
+import type { AdvisorId } from "@/lib/advisors";
 
 export const metadata: Metadata = {
   title: "マイページ | AI Diet Diary",
@@ -10,7 +15,19 @@ const filledLink =
 const outlineLink =
   "inline-flex h-12 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-6 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]";
 
-export default function MyPage() {
+export default async function MyPage() {
+  const userId = await readUserIdFromCookies();
+  let advisorId: AdvisorId | null = null;
+  let loadError: string | null = null;
+
+  if (userId) {
+    try {
+      advisorId = await getAdvisorPreference(userId);
+    } catch (error) {
+      loadError = storageErrorMessage(error, "アドバイザーを読み込めませんでした。");
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans">
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">
@@ -30,6 +47,11 @@ export default function MyPage() {
             目標設定
           </Link>
         </div>
+        {loadError ? (
+          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
+        ) : (
+          <AdvisorPicker initialId={advisorId} />
+        )}
       </main>
     </div>
   );
