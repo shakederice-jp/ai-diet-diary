@@ -8,6 +8,7 @@ import { getAdvisor } from "@/lib/advisors";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { pickReaction } from "@/lib/reactions";
 import { syncDayEngagement } from "@/lib/engagement";
+import { parseDistanceKm, parseSteps, saveManualSteps, updateManualSteps, deleteManualSteps } from "@/lib/steps";
 import {
   mealPeriodForTokyoHour,
   parseMealPeriod,
@@ -105,6 +106,9 @@ function failureMessage(error: unknown) {
   }
   if (/meal_records|menu_categories|favorite_menus|meal_period|meal_source|kcal_source/.test(message)) {
     return "食事記録のテーブルがありません。マイグレーションを適用してください。";
+  }
+  if (/step_records/.test(message)) {
+    return "歩数のテーブルがありません。マイグレーションを適用してください。";
   }
   return message.length > 180 ? `${message.slice(0, 180)}…` : message;
 }
@@ -437,6 +441,96 @@ export async function deleteWeightRecord(
     const userId = await ensureUserId();
     await deleteManualWeight(userId, id);
     await rememberEngagement(userId, date);
+    refreshDay(date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+function readStepInput(formData: FormData):
+  | { error: string }
+  | { date: string; steps: number; distanceKm: number | null } {
+  const date = readDate(formData);
+  if (!date) {
+    return { error: "日付が不正です。" as const };
+  }
+  const steps = parseSteps(String(formData.get("steps") ?? ""));
+  if (steps === null) {
+    return { error: "歩数は0〜200000の整数で入力してください。" as const };
+  }
+  const distance = parseDistanceKm(String(formData.get("distanceKm") ?? ""));
+  if (!distance.ok) {
+    return { error: distance.error };
+  }
+  return { date, steps, distanceKm: distance.distanceKm };
+}
+
+export async function addSteps(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const fields = readStepInput(formData);
+  if ("error" in fields) {
+    return { error: fields.error, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await saveManualSteps({
+      userId,
+      date: fields.date,
+      steps: fields.steps,
+      distanceKm: fields.distanceKm,
+    });
+    refreshDay(fields.date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export async function updateSteps(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const id = String(formData.get("id") ?? "");
+  const fields = readStepInput(formData);
+  if (!UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+  if ("error" in fields) {
+    return { error: fields.error, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await updateManualSteps({
+      userId,
+      id,
+      steps: fields.steps,
+      distanceKm: fields.distanceKm,
+    });
+    refreshDay(fields.date);
+    return { error: null, savedAt: Date.now() };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export async function deleteSteps(
+  _previous: MealFormState,
+  formData: FormData,
+): Promise<MealFormState> {
+  const date = readDate(formData);
+  const id = String(formData.get("id") ?? "");
+  if (!date || !UUID_PATTERN.test(id)) {
+    return { error: "記録が見つかりません。", savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await deleteManualSteps(userId, id);
     refreshDay(date);
     return { error: null, savedAt: Date.now() };
   } catch (error) {

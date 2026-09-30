@@ -7,6 +7,7 @@ import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
 import { MealEntryForm } from "@/components/meal-entry-form";
 import { MealRecordList } from "@/components/meal-record-list";
 import { WeightRecordPanel } from "@/components/weight-record-panel";
+import { StepRecordPanel } from "@/components/step-record-panel";
 import {
   createCategory,
   updateCategoryName,
@@ -27,6 +28,7 @@ import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals
 import { readUserIdFromCookies } from "@/lib/session";
 import { dateTimeLocalOnPageDate, type WeightDayRecord } from "@/lib/weight-format";
 import { listWeightsOnDate } from "@/lib/weights";
+import { listStepOnDate, type StepDayRecord } from "@/lib/steps";
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 
@@ -53,6 +55,8 @@ export default async function DayPage({
   let favorites: FavoriteMenu[] = [];
   let weights: WeightDayRecord[] = [];
   let weightError: string | null = null;
+  let steps: StepDayRecord | null = null;
+  let stepError: string | null = null;
   const goal = await getWeeklyCalorieGoal(userId ?? "local");
 
   if (userId) {
@@ -78,6 +82,14 @@ export default async function DayPage({
       weightError = /weight_records/.test(message)
         ? "体重のテーブルがありません。マイグレーションを適用してください。"
         : "体重を読み込めませんでした。";
+    }
+    try {
+      steps = await listStepOnDate(userId, parsed.date);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      stepError = /step_records/.test(message)
+        ? "歩数のテーブルがありません。マイグレーションを適用してください。"
+        : "歩数を読み込めませんでした。";
     }
   }
 
@@ -175,6 +187,8 @@ export default async function DayPage({
           records={weights}
           loadError={weightError}
         />
+
+        <StepRecordPanel date={parsed.date} record={steps} loadError={stepError} />
 
         <section className="mt-8">
           <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">

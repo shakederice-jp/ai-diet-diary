@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { MonthCalendar } from "@/components/month-calendar";
 import { getMealCalorieRecords } from "@/lib/calories";
+import { listStepsInMonth } from "@/lib/steps";
 import { getWeeklyCalorieGoal } from "@/lib/goals";
 import {
   WEEK_START_COOKIE,
@@ -133,11 +134,15 @@ export default async function Home({
   const calorieRecords = mealUserId
     ? await getMealCalorieRecords(mealUserId, month.year, month.month).catch(() => [])
     : [];
+  const stepRecords = mealUserId
+    ? await listStepsInMonth(mealUserId, month.year, month.month).catch(() => [])
+    : [];
   const calendar = buildMonthCalendar({
     year: month.year,
     month: month.month,
     weekStartsOn,
     records: calorieRecords,
+    steps: stepRecords,
     today,
   });
   const status = await getConnectionStatus();

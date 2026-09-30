@@ -195,6 +195,17 @@ export function MonthCalendar({
                             }
                           />
                         </span>
+                        {day.steps == null ? null : (
+                          <span
+                            className={
+                              day.date === today.date
+                                ? "mt-0.5 text-[9px] leading-none text-white"
+                                : "mt-0.5 text-[9px] leading-none text-zinc-500"
+                            }
+                          >
+                            {formatKcalAmount(day.steps)}歩
+                          </span>
+                        )}
                       </Link>
                     ) : (
                       <div className="flex min-h-16 flex-col items-center px-0.5 py-1">

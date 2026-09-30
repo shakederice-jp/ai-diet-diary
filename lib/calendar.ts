@@ -12,6 +12,7 @@ export type CalendarDay = {
   inMonth: boolean;
   kcal: number;
   recorded: boolean;
+  steps: number | null;
 };
 
 export type CalendarWeek = {
@@ -163,6 +164,7 @@ export function buildMonthCalendar(input: {
   month: number;
   weekStartsOn: WeekStart;
   records: DailyCalorieRecord[];
+  steps?: Array<{ date: string; steps: number }>;
   today?: { year: number; month: number };
 }): MonthCalendarModel {
   const totals = new Map<string, number>();
@@ -171,6 +173,13 @@ export function buildMonthCalendar(input: {
       continue;
     }
     totals.set(record.date, (totals.get(record.date) ?? 0) + record.totalKcal);
+  }
+  const stepsByDate = new Map<string, number>();
+  for (const record of input.steps ?? []) {
+    if (!Number.isFinite(record.steps)) {
+      continue;
+    }
+    stepsByDate.set(record.date, record.steps);
   }
 
   const daysInMonth = new Date(Date.UTC(input.year, input.month, 0)).getUTCDate();
@@ -198,6 +207,7 @@ export function buildMonthCalendar(input: {
       inMonth,
       kcal: recorded ? totals.get(date)! : 0,
       recorded,
+      steps: inMonth && stepsByDate.has(date) ? stepsByDate.get(date)! : null,
     });
   }
 
