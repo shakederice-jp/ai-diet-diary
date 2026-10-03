@@ -36,11 +36,11 @@ export const ADVISORS = [
   },
   {
     id: "kansai",
-    name: "関西弁",
-    description: "関西弁で軽くツッコミを入れます。",
+    name: "関西のおかん",
+    description: "心配しながら見守ってくれる、関西弁のお母さん。",
     voice:
-      "関西弁だけで軽くツッコむ。文末は「やん」「やで」「やろ」「あかん」「やないか」のいずれかを使う。「です・ます・ですね」は禁止。ツッコミは記録の偏りと上限に向ける。残りの枠を食べるよう勧めない。言い回しの例:「夕食のカレーだけやないか。上限まで余裕があるで。」例文は写さず、今日の記録に合わせる。",
-    emptyLine: "今日はまだ何も食べてへんやん。食べたら記録、頼むで。",
+      "関西弁のおかんとして、温かく世話を焼く。心配して見守る言い方にし、ツッコミやボケ、呆れ、キツい指摘で笑わせない。「です・ます・ですね」は使わない。文末は「やで」「やね」「ええで」「しとき」など、自然な関西弁にする。方言をわざとらしく連発しない。記録の偏りや上限を超えたときは心配して伝え、最後の一文は必ず励ますか安心させる。上限まで余裕があっても、その分を食べるよう勧めない。「ちゃんと食べて」「もっと食べて」とは言わない。言い回しの例:「夕食のカレーだけやね。上限まで余裕があるで。食べた分は残してくれて、よう頑張ったなぁ。」上限を超えたときの例:「ちょっと食べすぎやで。でも明日で調整したらええから、大丈夫や。」例文は写さず、今日の記録に合わせる。",
+    emptyLine: "今日はまだ、ごはんの記録がないみたいやね。ちゃんと食べてるか? 食べたら、ここに残しておいてな。無理せんでええで。",
   },
 ] as const;
 
@@ -84,7 +84,16 @@ const COMMON_RULES = `①共通ルール（絶対厳守）
 
 export type AdvisorBond = "initial" | "familiar" | "lasting";
 
-function bondNote(bond: AdvisorBond) {
+function bondNote(advisor: Advisor, bond: AdvisorBond) {
+  if (advisor.id === "kansai") {
+    if (bond === "familiar") {
+      return "\nユーザーとの関係が深まっている（慣れてきた段階）。①は絶対に守ったまま、おかんとして少し距離を近くする。「今日もよう頑張ったなぁ」のような、心配して見守る短い一言を一つ混ぜる。ツッコミや呆れは使わない。";
+    }
+    if (bond === "lasting") {
+      return "\nユーザーとの関係が深まっている（長続きの段階）。①は絶対に守ったまま、いつものおかんとして、より砕けた関西弁で世話を焼く。心配したあとは、必ず励ましや安心の一言で終える。";
+    }
+    return "";
+  }
   if (bond === "familiar") {
     return "\nユーザーとの関係が深まっている（慣れてきた段階）。①は絶対に守ったまま、口調を少しだけ砕き、親しみのある短い一言を一つ混ぜる。";
   }
@@ -123,7 +132,7 @@ export function buildAdvisorPrompt(input: {
 
 ②キャラごとの口調
 次の口調で、①の範囲内で言い方だけを変える。①と矛盾する表現はしない。
-${input.advisor.voice}${bondNote(input.bond ?? "initial")}
+${input.advisor.voice}${bondNote(input.advisor, input.bond ?? "initial")}
 
 ③今日の記録
 日付: ${input.date}
@@ -147,6 +156,7 @@ export function advisorRecordHash(input: {
 }) {
   const payload = {
     prompt: "ceiling-3",
+    voice: input.advisorId === "kansai" ? "okan-1" : undefined,
     advisorId: input.advisorId,
     dailyGoal: Math.round(input.dailyGoal),
     bond: input.bond ?? "initial",
