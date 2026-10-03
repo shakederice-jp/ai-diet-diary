@@ -92,6 +92,27 @@ export function isPeriodUnit(value: string): value is PeriodUnit {
   return value === "weeks" || value === "months";
 }
 
+export const BIRTH_YEAR_SPAN = 120;
+export const BIRTH_YEAR_ANCHOR = 1985;
+
+export function daysInMonth(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+export function birthYearOptions(todayYear: number) {
+  const newest = todayYear;
+  const oldest = todayYear - BIRTH_YEAR_SPAN;
+  const anchor = Math.min(newest, Math.max(oldest, BIRTH_YEAR_ANCHOR));
+  const years: number[] = [];
+  for (let year = anchor; year >= oldest; year -= 1) {
+    years.push(year);
+  }
+  for (let year = anchor + 1; year <= newest; year += 1) {
+    years.push(year);
+  }
+  return years;
+}
+
 export function isoYearsBefore(today: CalendarDay, years: number) {
   const year = today.year - years;
   const lastDay = new Date(Date.UTC(year, today.month, 0)).getUTCDate();

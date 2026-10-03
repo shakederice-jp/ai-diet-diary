@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
 import { SettingsFrame } from "@/components/settings-frame";
-import { decimalInputValue, isoYearsBefore, type ActivityLevel, type Gender } from "@/lib/calorie-plan";
+import { decimalInputValue, type ActivityLevel, type Gender } from "@/lib/calorie-plan";
 import { tokyoToday } from "@/lib/calendar";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { getProfile, storageErrorMessage } from "@/lib/user-settings";
@@ -49,8 +49,7 @@ export default async function SettingsPage() {
       ) : null}
       <ProfileForm
         initial={{ heightCm, birthDate, gender, activityLevel }}
-        minBirthDate={isoYearsBefore(today, 101)}
-        maxBirthDate={isoYearsBefore(today, 15)}
+        todayYear={today.year}
       />
     </SettingsFrame>
   );
