@@ -7,7 +7,9 @@ import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
 import { navPrimary, navQuiet, navSecondary } from "@/components/nav-styles";
+import { ShareCardList } from "@/components/share-card-list";
 import { getAdvisorPreference } from "@/lib/advisor-store";
+import { listOwnShareCards } from "@/lib/share-store";
 import { redirect } from "next/navigation";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { storageErrorMessage } from "@/lib/user-settings";
@@ -57,6 +59,9 @@ export default async function MyPage({
         <Suspense fallback={<p className="mt-6 text-sm text-zinc-600">アドバイザーを読み込んでいます…</p>}>
           <AdvisorSection userId={userId} />
         </Suspense>
+        <Suspense fallback={null}>
+          <OwnShareCards userId={userId} />
+        </Suspense>
         <form action={signOut} className="mt-8">
           <SubmitButton
             pendingLabel="ログアウトしています…"
@@ -69,6 +74,15 @@ export default async function MyPage({
       </main>
     </div>
   );
+}
+
+async function OwnShareCards({ userId }: { userId: string }) {
+  try {
+    const cards = await listOwnShareCards(userId);
+    return <ShareCardList cards={cards} />;
+  } catch {
+    return null;
+  }
 }
 
 async function AdvisorSection({ userId }: { userId: string }) {

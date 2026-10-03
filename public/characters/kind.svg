@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="two circles">
+  <rect width="512" height="512" rx="80" fill="#FBF6EE"/>
+  <circle cx="220" cy="250" r="110" fill="#E7DCC8"/>
+  <circle cx="300" cy="270" r="90" fill="#F5821F"/>
+  <circle cx="300" cy="250" r="14" fill="#FFF8F3"/>
+</svg>

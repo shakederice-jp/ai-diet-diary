@@ -1,9 +1,10 @@
 import { InstantLink } from "@/components/instant-link";
+import { ShareCardButton } from "@/components/share-card-button";
 import { navSecondary } from "@/components/nav-styles";
 import { ADVISOR_DISCLAIMER, getAdvisor } from "@/lib/advisors";
 import type { AdvisorCommentView } from "@/lib/advisor-comment";
 
-export function AdvisorNote({ view }: { view: AdvisorCommentView }) {
+export function AdvisorNote({ view, date }: { view: AdvisorCommentView; date: string }) {
   const advisorName = advisorNameOf(view);
 
   return (
@@ -11,6 +12,7 @@ export function AdvisorNote({ view }: { view: AdvisorCommentView }) {
       <p className="text-sm font-medium text-[#F5821F]">健康アドバイザーAI</p>
       {advisorName ? <p className="mt-1 text-xs font-medium text-zinc-700">{advisorName}</p> : null}
       <AdvisorBody view={view} />
+      {view.kind === "comment" ? <ShareCardButton date={date} /> : null}
       <p className="mt-3 text-xs leading-5 text-zinc-600">{ADVISOR_DISCLAIMER}</p>
     </section>
   );

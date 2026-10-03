@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="apron">
+  <rect width="512" height="512" rx="80" fill="#FBF6EE"/>
+  <circle cx="256" cy="190" r="78" fill="#F5821F"/>
+  <path d="M150 300 H362 L330 430 H182 Z" fill="#E7DCC8"/>
+  <path d="M206 300 H306 L290 390 H222 Z" fill="#F5821F"/>
+</svg>

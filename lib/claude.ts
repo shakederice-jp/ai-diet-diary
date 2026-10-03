@@ -78,8 +78,8 @@ export async function estimateDishKcal(dishName: string) {
   return kcal;
 }
 
-export async function generateAdvisorComment(prompt: string) {
-  const text = (await askClaude(prompt, 400))
+export async function generateAdvisorComment(prompt: string, maxTokens = 400) {
+  const text = (await askClaude(prompt, maxTokens))
     .replace(/^(?:#+\s.*\n+)+/, "")
     .trim();
   if (!text) {

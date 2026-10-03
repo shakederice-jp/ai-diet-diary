@@ -57,14 +57,16 @@ function stepErrorMessage(error: unknown) {
 
 async function DayComment({
   commentPromise,
+  date,
 }: {
   commentPromise: Promise<AdvisorCommentView | null>;
+  date: string;
 }) {
   const view = await commentPromise;
   if (!view) {
     return null;
   }
-  return <AdvisorNote view={view} />;
+  return <AdvisorNote view={view} date={date} />;
 }
 
 export async function DayBody({
@@ -171,7 +173,7 @@ export async function DayBody({
                 </p>
               }
             >
-              <DayComment commentPromise={commentPromise} />
+              <DayComment commentPromise={commentPromise} date={date} />
             </Suspense>
             <DailyCalorieBand meals={meals} dailyGoal={dailyCalorieGoalFromWeekly(goal)} />
             <MealRecordList date={date} meals={meals} />
