@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getAuthUserId();
     if (!userId) {
-      return NextResponse.redirect(new URL("/", request.nextUrl.origin));
+      return NextResponse.redirect(new URL("/login", request.nextUrl.origin));
     }
     const state = crypto.randomUUID();
     const url = buildAuthorizationUrl(request.nextUrl.origin, state);
@@ -17,12 +17,10 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(url);
     attachOAuthStateCookie(response, state);
     return response;
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Health Planet authorization failed";
-    const destination = new URL("/", request.nextUrl.origin);
+  } catch {
+    const destination = new URL("/mypage", request.nextUrl.origin);
     destination.searchParams.set("healthplanet", "error");
-    destination.searchParams.set("reason", message);
+    destination.searchParams.set("reason", "failed");
     return NextResponse.redirect(destination);
   }
 }

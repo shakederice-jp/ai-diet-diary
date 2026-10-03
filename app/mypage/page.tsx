@@ -5,6 +5,7 @@ import { InstantLink } from "@/components/instant-link";
 import { SubmitButton } from "@/components/submit-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
+import { HealthPlanetSettings } from "@/components/health-planet-settings";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { redirect } from "next/navigation";
 import { getAuthUserId } from "@/lib/supabase/server";
@@ -20,7 +21,12 @@ const filledLink =
 const outlineLink =
   "inline-flex h-12 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-6 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]";
 
-export default async function MyPage() {
+export default async function MyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ healthplanet?: string; reason?: string }>;
+}) {
+  const params = await searchParams;
   const userId = await getAuthUserId();
   if (!userId) {
     redirect("/login");
@@ -63,6 +69,7 @@ export default async function MyPage() {
             ログアウト
           </SubmitButton>
         </form>
+        <HealthPlanetSettings userId={userId} status={params.healthplanet} reason={params.reason} />
       </main>
     </div>
   );

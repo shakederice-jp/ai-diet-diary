@@ -10,14 +10,14 @@ import { getAuthUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-function redirectHome(
+function redirectMypage(
   origin: string,
   status: "connected" | "error",
   reason?: string,
 ) {
-  const destination = new URL("/", origin);
+  const destination = new URL("/mypage", origin);
   destination.searchParams.set("healthplanet", status);
-  if (reason) {
+  if (status === "error" && reason) {
     destination.searchParams.set("reason", reason);
   }
   const response = NextResponse.redirect(destination);
@@ -41,25 +41,25 @@ export async function GET(request: NextRequest) {
   const oauthError = request.nextUrl.searchParams.get("error");
 
   if (oauthError) {
-    return redirectHome(origin, "error", oauthError);
+    return redirectMypage(origin, "error", oauthError === "access_denied" ? "cancelled" : "failed");
   }
 
   try {
     const expectedState = readStateFromRequest(request);
     if (!code || !expectedState) {
-      return redirectHome(origin, "error", "invalid_oauth_state");
+      return redirectMypage(origin, "error", "invalid_oauth_state");
     }
 
     // Health Planet often redirects with only `code` and drops `state`.
     // When the parameter comes back, it still has to match the cookie.
     if (state && !statesMatch(expectedState, state)) {
-      return redirectHome(origin, "error", "invalid_oauth_state");
+      return redirectMypage(origin, "error", "invalid_oauth_state");
     }
 
     const tokens = await exchangeAuthorizationCode(origin, code);
     const userId = await getAuthUserId();
     if (!userId) {
-      return redirectHome(origin, "error", "login_required");
+      return redirectMypage(origin, "error", "login_required");
     }
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
@@ -71,10 +71,8 @@ export async function GET(request: NextRequest) {
       scope: HEALTHPLANET_SCOPE,
     });
 
-    return redirectHome(origin, "connected");
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Health Planet callback failed";
-    return redirectHome(origin, "error", message);
+    return redirectMypage(origin, "connected");
+  } catch {
+    return redirectMypage(origin, "error", "failed");
   }
 }

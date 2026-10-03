@@ -44,30 +44,13 @@ type MonthCalendarProps = {
   weekStartsOn: WeekStart;
   weeklyGoal: number;
   today: { year: number; month: number; date: string };
-  preserved: {
-    healthplanet?: string;
-    reason?: string;
-  };
 };
 
-function monthHref(
-  year: number,
-  month: number,
-  today: { year: number; month: number },
-  preserved: MonthCalendarProps["preserved"],
-) {
-  const search = new URLSearchParams();
-  if (!(year === today.year && month === today.month)) {
-    search.set("month", formatMonthParam(year, month));
+function monthHref(year: number, month: number, today: { year: number; month: number }) {
+  if (year === today.year && month === today.month) {
+    return "/";
   }
-  if (preserved.healthplanet) {
-    search.set("healthplanet", preserved.healthplanet);
-  }
-  if (preserved.reason) {
-    search.set("reason", preserved.reason);
-  }
-  const query = search.toString();
-  return query ? `/?${query}` : "/";
+  return `/?month=${formatMonthParam(year, month)}`;
 }
 
 export function MonthCalendar({
@@ -75,7 +58,6 @@ export function MonthCalendar({
   weekStartsOn,
   weeklyGoal,
   today,
-  preserved,
 }: MonthCalendarProps) {
   const previous = addMonths(model.year, model.month, -1);
   const next = addMonths(model.year, model.month, 1);
@@ -100,7 +82,7 @@ export function MonthCalendar({
       <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <InstantLink
-            href={monthHref(previous.year, previous.month, today, preserved)}
+            href={monthHref(previous.year, previous.month, today)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="前の月"
           >
@@ -111,7 +93,7 @@ export function MonthCalendar({
           </h1>
           <span className={orangeBadge}>{averageLabel}</span>
           <InstantLink
-            href={monthHref(next.year, next.month, today, preserved)}
+            href={monthHref(next.year, next.month, today)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="次の月"
           >

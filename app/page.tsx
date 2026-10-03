@@ -13,8 +13,6 @@ import { redirect } from "next/navigation";
 
 type HomeSearchParams = Promise<{
   month?: string;
-  healthplanet?: string;
-  reason?: string;
   login?: string;
   claim?: string;
   error?: string;
@@ -65,20 +63,10 @@ export default async function Home({
             month={month.month}
             weekStartsOn={weekStartsOn}
             today={today}
-            preserved={{
-              healthplanet: params.healthplanet,
-              reason: params.reason,
-            }}
           />
         </Suspense>
-        <Suspense
-          fallback={
-            <div className="h-40 animate-pulse rounded-3xl bg-[#F3EBDD]" aria-busy="true">
-              <p className="p-8 text-sm text-zinc-600">Health Planet の体重を確認しています…</p>
-            </div>
-          }
-        >
-          <HomeHealth userId={userId} healthplanet={params.healthplanet} reason={params.reason} />
+        <Suspense fallback={null}>
+          <HomeHealth userId={userId} />
         </Suspense>
       </main>
     </div>
