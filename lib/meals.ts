@@ -392,9 +392,9 @@ export async function moveFavorite(
 }
 
 export async function loadDayScreen(userId: string, date: string, weekStartsOn: WeekStart) {
-  const categories = await ensureDefaultCategories(userId);
   const bounds = weekBounds(date, weekStartsOn);
-  const [meals, weekRows, favorites] = await Promise.all([
+  const [categories, meals, weekRows, favorites] = await Promise.all([
+    ensureDefaultCategories(userId),
     listMeals(userId, date),
     listMealKcalBetween(userId, bounds.start, bounds.end),
     listFavorites(userId),

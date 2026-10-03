@@ -5,7 +5,7 @@ import { declineStreakFreeze, useStreakFreeze, type FreezeFormState } from "@/ap
 
 const initialState: FreezeFormState = { error: null };
 const button =
-  "inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-medium disabled:opacity-60";
+  "inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-medium disabled:brightness-90";
 
 export function FreezeChoice({ missedOn, label }: { missedOn: string; label: string }) {
   const [useState, useAction, usePending] = useActionState(useStreakFreeze, initialState);

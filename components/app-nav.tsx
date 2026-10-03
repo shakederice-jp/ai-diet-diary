@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { InstantLink } from "@/components/instant-link";
 
 const ITEMS = [
   { id: "home", href: "/", label: "カレンダー" },
@@ -20,7 +20,7 @@ export function AppNav({
       {ITEMS.map((item) => {
         const selected = item.id === current;
         return (
-          <Link
+          <InstantLink
             key={item.id}
             href={item.href}
             aria-current={selected ? "page" : undefined}
@@ -33,7 +33,7 @@ export function AppNav({
             }
           >
             {item.label}
-          </Link>
+          </InstantLink>
         );
       })}
     </nav>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { InstantLink } from "@/components/instant-link";
 import { ADVISOR_DISCLAIMER, getAdvisor } from "@/lib/advisors";
 import type { AdvisorCommentView } from "@/lib/advisor-comment";
 
@@ -27,9 +27,9 @@ function AdvisorBody({ view }: { view: AdvisorCommentView }) {
     return (
       <p className="mt-3 text-sm leading-6 text-zinc-800">
         マイページでアドバイザーを選ぶと、この日の食事へのコメントが表示されます。
-        <Link href="/mypage" className="ml-2 font-medium text-[#F5821F]">
+        <InstantLink href="/mypage" className="ml-2 font-medium text-[#F5821F]">
           マイページへ
-        </Link>
+        </InstantLink>
       </p>
     );
   }

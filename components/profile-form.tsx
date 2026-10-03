@@ -83,7 +83,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:opacity-60 sm:w-auto"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90 sm:w-auto"
       >
         {pending ? "保存しています…" : "保存する"}
       </button>

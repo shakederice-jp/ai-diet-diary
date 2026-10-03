@@ -47,7 +47,7 @@ export function AdvisorPicker({ initialId }: { initialId: AdvisorId | null }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:opacity-60"
+        className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90"
       >
         {pending ? "保存しています…" : "このアドバイザーを使う"}
       </button>

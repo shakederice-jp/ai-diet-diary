@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
 import { signOut } from "@/app/login/actions";
+import { InstantLink } from "@/components/instant-link";
+import { SubmitButton } from "@/components/submit-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { getAdvisorPreference } from "@/lib/advisor-store";
@@ -23,53 +25,64 @@ export default async function MyPage() {
   if (!userId) {
     redirect("/");
   }
-  let advisorId: AdvisorId | null = null;
-  let loadError: string | null = null;
-
-  if (userId) {
-    try {
-      advisorId = await getAdvisorPreference(userId);
-    } catch (error) {
-      loadError = storageErrorMessage(error, "アドバイザーを読み込めませんでした。");
-    }
-  }
 
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans">
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">
-        <Link href="/" className="text-sm font-medium text-[#F5821F]">
+        <InstantLink href="/" className="text-sm font-medium text-[#F5821F]">
           カレンダーに戻る
-        </Link>
+        </InstantLink>
         <p className="mt-6 text-sm font-medium text-[#F5821F]">マイページ</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">設定</h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">
           プロフィールと目標カロリーをここから開きます。
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Link href="/settings" className={filledLink}>
+          <InstantLink href="/settings" className={filledLink}>
             プロフィール
-          </Link>
-          <Link href="/goals" className={outlineLink}>
+          </InstantLink>
+          <InstantLink href="/goals" className={outlineLink}>
             目標設定
-          </Link>
+          </InstantLink>
         </div>
         <div className="mt-6">
-          <EngagementPanel surface="mypage" />
+          <Suspense
+            fallback={<p className="text-sm text-zinc-600">連続記録を読み込んでいます…</p>}
+          >
+            <EngagementPanel surface="mypage" />
+          </Suspense>
         </div>
-        {loadError ? (
-          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
-        ) : (
-          <AdvisorPicker initialId={advisorId} />
-        )}
+        <Suspense fallback={<p className="mt-6 text-sm text-zinc-600">アドバイザーを読み込んでいます…</p>}>
+          <AdvisorSection userId={userId} />
+        </Suspense>
         <form action={signOut} className="mt-8">
-          <button
-            type="submit"
+          <SubmitButton
+            pendingLabel="ログアウトしています…"
             className="inline-flex h-12 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-6 text-sm font-medium text-zinc-700 hover:bg-[#E7DCC8]"
           >
             ログアウト
-          </button>
+          </SubmitButton>
         </form>
       </main>
+    </div>
+  );
+}
+
+async function AdvisorSection({ userId }: { userId: string }) {
+  let advisorId: AdvisorId | null = null;
+  let loadError: string | null = null;
+  try {
+    advisorId = await getAdvisorPreference(userId);
+  } catch (error) {
+    loadError = storageErrorMessage(error, "アドバイザーを読み込めませんでした。");
+  }
+
+  if (loadError) {
+    return <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>;
+  }
+  return (
+    <div className="mt-6">
+      <AdvisorPicker initialId={advisorId} />
     </div>
   );
 }

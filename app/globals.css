@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+button,
+a {
+  -webkit-tap-highlight-color: rgba(245, 130, 31, 0.35);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}

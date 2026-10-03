@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { InstantLink } from "@/components/instant-link";
 import { setWeekStart } from "@/app/calendar/actions";
 import {
   addMonths,
@@ -86,7 +86,7 @@ export function MonthCalendar({
   return (
     <section className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
       <div className="flex justify-end">
-        <Link
+        <InstantLink
           href="/mypage"
           aria-label="マイページ"
           className="inline-flex size-9 items-center justify-center rounded-full text-[#F5821F] hover:bg-[#E7DCC8]"
@@ -95,31 +95,31 @@ export function MonthCalendar({
             <circle cx="12" cy="8" r="3.25" />
             <path d="M5 19.25c1.35-3.1 3.9-4.65 7-4.65s5.65 1.55 7 4.65" strokeLinecap="round" />
           </svg>
-        </Link>
+        </InstantLink>
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <Link
+          <InstantLink
             href={monthHref(previous.year, previous.month, today, preserved)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="前の月"
           >
             ‹
-          </Link>
+          </InstantLink>
           <h1 className="text-3xl font-semibold tracking-tight text-[#F5821F]">
             {model.title}
           </h1>
           <span className={orangeBadge}>{averageLabel}</span>
-          <Link
+          <InstantLink
             href={monthHref(next.year, next.month, today, preserved)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
             aria-label="次の月"
           >
             ›
-          </Link>
-          <Link href="/goals" className={`${orangeBadge} hover:bg-[#E7DCC8]`}>
+          </InstantLink>
+          <InstantLink href="/goals" className={`${orangeBadge} hover:bg-[#E7DCC8]`}>
             週の目標 {formatKcal(weeklyGoal)}
-          </Link>
+          </InstantLink>
         </div>
 
         <form action={setWeekStart} className="flex items-center gap-2">
@@ -176,7 +176,7 @@ export function MonthCalendar({
                 {week.days.map((day) => (
                   <td key={day.date} className="align-top">
                     {day.inMonth ? (
-                      <Link
+                      <InstantLink
                         href={`/days/${day.date}`}
                         className={
                           day.date === today.date
@@ -206,7 +206,7 @@ export function MonthCalendar({
                             {formatKcalAmount(day.steps)}歩
                           </span>
                         )}
-                      </Link>
+                      </InstantLink>
                     ) : (
                       <div className="flex min-h-16 flex-col items-center px-0.5 py-1">
                         <span className="text-xs text-[#C4B39A] sm:text-sm">{day.day}</span>

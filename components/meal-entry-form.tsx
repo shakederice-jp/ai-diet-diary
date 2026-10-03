@@ -90,7 +90,7 @@ export function MealEntryForm({
       <button
         type="submit"
         disabled={pending}
-        className="mt-3 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:opacity-60"
+        className="mt-3 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90"
       >
         {pending
           ? manualKcal.trim()

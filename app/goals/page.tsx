@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { InstantLink } from "@/components/instant-link";
 import { redirect } from "next/navigation";
 import { GoalForm } from "@/components/goal-form";
 import { SettingsFrame } from "@/components/settings-frame";
@@ -37,11 +37,26 @@ export default async function GoalsPage() {
   let suggestedWeight = "";
 
   if (userId) {
-    try {
-      profile = await getProfile(userId);
-      goal = await getCalorieGoal(userId);
-    } catch (error) {
-      loadError = storageErrorMessage(error, "目標を読み込めませんでした。");
+    const [profileResult, goalResult] = await Promise.all([
+      getProfile(userId).then(
+        (value) => ({ ok: true as const, value }),
+        (error: unknown) => ({ ok: false as const, error }),
+      ),
+      getCalorieGoal(userId).then(
+        (value) => ({ ok: true as const, value }),
+        (error: unknown) => ({ ok: false as const, error }),
+      ),
+    ]);
+    const failure = !profileResult.ok
+      ? profileResult.error
+      : !goalResult.ok
+        ? goalResult.error
+        : null;
+    if (failure) {
+      loadError = storageErrorMessage(failure, "目標を読み込めませんでした。");
+    } else if (profileResult.ok && goalResult.ok) {
+      profile = profileResult.value;
+      goal = goalResult.value;
     }
 
     if (!loadError && profile && !goal) {
@@ -83,12 +98,12 @@ export default async function GoalsPage() {
           <p className="text-sm leading-6 text-zinc-700">
             目安カロリーを計算するには、先に身長・生年月日・性別・活動量を設定してください。
           </p>
-          <Link
+          <InstantLink
             href="/settings"
             className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C]"
           >
             プロフィールを設定する
-          </Link>
+          </InstantLink>
         </div>
       ) : null}
 

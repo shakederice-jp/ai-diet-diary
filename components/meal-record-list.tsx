@@ -31,7 +31,7 @@ export type MealRecordItem = {
 };
 
 const outlineButton =
-  "inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:opacity-60";
+  "inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:brightness-90";
 
 export function MealRecordList({ date, meals }: { date: string; meals: MealRecordItem[] }) {
   if (meals.length === 0) {
@@ -170,7 +170,7 @@ function MealEditor({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:brightness-90"
         >
           {pending ? "保存しています…" : "保存"}
         </button>
@@ -208,7 +208,7 @@ function DeleteConfirm({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-medium text-white disabled:brightness-90"
         >
           {pending ? "削除しています…" : "削除する"}
         </button>

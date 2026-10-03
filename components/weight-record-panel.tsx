@@ -20,7 +20,7 @@ const initialState: MealFormState = { error: null, savedAt: null };
 const fieldClass =
   "h-12 w-full rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 text-sm outline-none focus:border-[#F5821F]";
 const outlineButton =
-  "inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:opacity-60";
+  "inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:brightness-90";
 
 export function WeightRecordPanel({
   date,
@@ -108,7 +108,7 @@ function WeightEntryForm({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:brightness-90"
         >
           {pending ? "保存しています…" : "記録する"}
         </button>
@@ -231,7 +231,7 @@ function WeightEditor({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-[#F5821F] px-5 text-sm font-medium text-white disabled:brightness-90"
         >
           {pending ? "保存しています…" : "保存"}
         </button>
@@ -271,7 +271,7 @@ function WeightDeleteConfirm({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-medium text-white disabled:brightness-90"
         >
           {pending ? "削除しています…" : "削除する"}
         </button>
