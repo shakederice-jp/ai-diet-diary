@@ -16,7 +16,7 @@ export function AppNav({
   sand?: boolean;
 }) {
   return (
-    <nav className="flex flex-wrap gap-2" aria-label="画面">
+    <nav className="flex flex-wrap gap-3" aria-label="画面">
       {ITEMS.map((item) => {
         const selected = item.id === current;
         return (
@@ -26,10 +26,10 @@ export function AppNav({
             aria-current={selected ? "page" : undefined}
             className={
               selected
-                ? "rounded-full bg-[#F5821F] px-3 py-1.5 text-sm font-medium text-white"
+                ? "inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#F5821F] px-5 text-base font-medium text-white"
                 : sand
-                  ? "rounded-full border border-[#F5821F] bg-[#FBF6EE] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
-                  : "rounded-full border border-[#F5821F] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#FFF4EB]"
+                  ? "inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
+                  : "inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] px-5 text-base font-medium text-[#F5821F] hover:bg-[#FFF4EB]"
             }
           >
             {item.label}

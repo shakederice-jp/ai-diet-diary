@@ -3,19 +3,15 @@
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { useRouter } from "next/navigation";
-import type { ComponentProps, ReactNode } from "react";
+import { useRef, type ComponentProps, type ReactNode } from "react";
+import { NavPending } from "@/components/nav-anchor";
 
 function PendingShade() {
   const { pending } = useLinkStatus();
   if (!pending) {
     return null;
   }
-  return (
-    <span
-      className="pointer-events-none absolute inset-0 z-10 rounded-[inherit] bg-black/10"
-      aria-hidden="true"
-    />
-  );
+  return <NavPending />;
 }
 
 export function InstantLink({
@@ -27,6 +23,7 @@ export function InstantLink({
   ...props
 }: ComponentProps<typeof Link> & { children: ReactNode }) {
   const router = useRouter();
+  const lastClick = useRef(0);
 
   function warm() {
     if (typeof href === "string") {
@@ -38,7 +35,16 @@ export function InstantLink({
     <Link
       {...props}
       href={href}
-      className={`relative transition active:scale-[0.98] active:brightness-95 ${className}`}
+      className={`relative transition active:scale-[0.98] active:brightness-90 ${className}`}
+      onClick={(event) => {
+        const now = Date.now();
+        if (now - lastClick.current < 700) {
+          event.preventDefault();
+          return;
+        }
+        lastClick.current = now;
+        props.onClick?.(event);
+      }}
       onMouseEnter={(event) => {
         warm();
         onMouseEnter?.(event);

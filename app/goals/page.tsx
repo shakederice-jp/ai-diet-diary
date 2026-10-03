@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { InstantLink } from "@/components/instant-link";
+import { navPrimary } from "@/components/nav-styles";
 import { redirect } from "next/navigation";
 import { GoalForm } from "@/components/goal-form";
 import { SettingsFrame } from "@/components/settings-frame";
@@ -100,7 +101,7 @@ export default async function GoalsPage() {
           </p>
           <InstantLink
             href="/settings"
-            className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C]"
+            className={`mt-4 ${navPrimary}`}
           >
             プロフィールを設定する
           </InstantLink>

@@ -1,4 +1,5 @@
 import { InstantLink } from "@/components/instant-link";
+import { navSecondary } from "@/components/nav-styles";
 import { ADVISOR_DISCLAIMER, getAdvisor } from "@/lib/advisors";
 import type { AdvisorCommentView } from "@/lib/advisor-comment";
 
@@ -25,12 +26,14 @@ function advisorNameOf(view: AdvisorCommentView) {
 function AdvisorBody({ view }: { view: AdvisorCommentView }) {
   if (view.kind === "choose") {
     return (
-      <p className="mt-3 text-sm leading-6 text-zinc-800">
-        マイページでアドバイザーを選ぶと、この日の食事へのコメントが表示されます。
-        <InstantLink href="/mypage" className="ml-2 font-medium text-[#F5821F]">
+      <>
+        <p className="mt-3 text-base leading-7 text-zinc-800">
+          マイページでアドバイザーを選ぶと、この日の食事へのコメントが表示されます。
+        </p>
+        <InstantLink href="/mypage" className={`mt-3 ${navSecondary}`}>
           マイページへ
         </InstantLink>
-      </p>
+      </>
     );
   }
 

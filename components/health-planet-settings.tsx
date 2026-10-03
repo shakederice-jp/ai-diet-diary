@@ -1,7 +1,6 @@
+import { NavAnchor } from "@/components/nav-anchor";
+import { navQuiet } from "@/components/nav-styles";
 import { getHealthPlanetConnection } from "@/lib/supabase/admin";
-
-const connectClass =
-  "inline-flex min-h-11 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-4 text-xs font-medium text-zinc-700 hover:bg-[#E7DCC8]";
 
 function statusMessage(status?: string, reason?: string) {
   if (status === "connected") {
@@ -48,19 +47,19 @@ export async function HealthPlanetSettings({
         </p>
       ) : null}
       {connected ? (
-        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600">
-          <span>Health Planet:連携済み</span>
-          <a href="/api/auth/healthplanet" className="inline-flex min-h-11 items-center text-xs text-zinc-500 underline underline-offset-2">
+        <div className="mt-3 flex flex-col gap-3">
+          <p className="text-base text-zinc-600">Health Planet:連携済み</p>
+          <NavAnchor href="/api/auth/healthplanet" className={`${navQuiet} w-full sm:w-auto`}>
             連携し直す
-          </a>
-        </p>
+          </NavAnchor>
+        </div>
       ) : (
-        <p className="mt-2 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
-          <span>Health Planet:未連携</span>
-          <a href="/api/auth/healthplanet" className={connectClass}>
+        <div className="mt-3 flex flex-col gap-3">
+          <p className="text-base text-zinc-600">Health Planet:未連携</p>
+          <NavAnchor href="/api/auth/healthplanet" className={`${navQuiet} w-full sm:w-auto`}>
             連携する
-          </a>
-        </p>
+          </NavAnchor>
+        </div>
       )}
     </section>
   );

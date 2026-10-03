@@ -28,8 +28,11 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: rgba(245, 130, 31, 0.35);
+  transition: transform 120ms ease, filter 120ms ease, background-color 120ms ease;
 }
 
+a:active,
 button:active:not(:disabled) {
   transform: scale(0.98);
+  filter: brightness(0.92);
 }

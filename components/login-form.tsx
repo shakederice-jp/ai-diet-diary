@@ -34,7 +34,7 @@ export function LoginForm({ notice = null }: { notice?: string | null }) {
           {state.error}
         </p>
       ) : null}
-      <div className="mt-6 flex flex-col items-start gap-1">
+      <div className="mt-6 flex flex-col gap-4">
         <InstantLink href="/signup" className={authLinkClass}>
           新規登録はこちら
         </InstantLink>

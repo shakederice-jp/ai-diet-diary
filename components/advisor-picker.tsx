@@ -14,7 +14,7 @@ export function AdvisorPicker({ initialId }: { initialId: AdvisorId | null }) {
     <form action={formAction} className="mt-8">
       <p className="text-sm font-medium text-[#F5821F]">健康アドバイザーAI</p>
       <p className="mt-1 text-xs leading-5 text-zinc-600">{ADVISOR_DISCLAIMER}</p>
-      <fieldset className="mt-4 space-y-2">
+      <fieldset className="mt-4 space-y-3">
         <legend className="text-sm font-medium text-zinc-950">使うアドバイザー</legend>
         {ADVISORS.map((advisor) => {
           const selected = advisorId === advisor.id;
@@ -23,8 +23,8 @@ export function AdvisorPicker({ initialId }: { initialId: AdvisorId | null }) {
               key={advisor.id}
               className={
                 selected
-                  ? "flex cursor-pointer flex-col rounded-2xl border-2 border-[#F5821F] bg-[#FBF6EE] px-4 py-3"
-                  : "flex cursor-pointer flex-col rounded-2xl border border-[#E4D7C6] bg-[#FBF6EE] px-4 py-3"
+                ? "flex min-h-[52px] cursor-pointer flex-col rounded-2xl border-2 border-[#F5821F] bg-[#FBF6EE] px-4 py-4 transition active:scale-[0.98] active:brightness-95"
+                : "flex min-h-[52px] cursor-pointer flex-col rounded-2xl border border-[#E4D7C6] bg-[#FBF6EE] px-4 py-4 transition active:scale-[0.98] active:brightness-95"
               }
             >
               <span className="flex items-center gap-2">
@@ -37,7 +37,7 @@ export function AdvisorPicker({ initialId }: { initialId: AdvisorId | null }) {
                   onChange={() => setAdvisorId(advisor.id)}
                   className="accent-[#F5821F]"
                 />
-                <span className="text-sm font-medium text-zinc-950">{advisor.name}</span>
+                <span className="text-base font-medium text-zinc-950">{advisor.name}</span>
               </span>
               <span className="mt-1 pl-6 text-xs leading-5 text-zinc-600">{advisor.description}</span>
             </label>
@@ -47,7 +47,7 @@ export function AdvisorPicker({ initialId }: { initialId: AdvisorId | null }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90"
+        className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-[#F5821F] px-6 text-base font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90 sm:w-auto"
       >
         {pending ? "保存しています…" : "このアドバイザーを使う"}
       </button>

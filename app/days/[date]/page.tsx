@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { DayBody } from "@/components/day-body";
 import { InstantLink } from "@/components/instant-link";
+import { navQuiet } from "@/components/nav-styles";
 import { MealEntryForm } from "@/components/meal-entry-form";
 import {
   WEEK_START_COOKIE,
@@ -39,7 +40,7 @@ export default async function DayPage({
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8 dark:bg-zinc-950">
         <InstantLink
           href={`/?month=${formatMonthParam(parsed.year, parsed.month)}`}
-          className="text-sm font-medium text-[#F5821F]"
+          className={navQuiet}
         >
           カレンダーに戻る
         </InstantLink>

@@ -1,4 +1,5 @@
 import { InstantLink } from "@/components/instant-link";
+import { navIcon } from "@/components/nav-styles";
 import { setWeekStart } from "@/app/calendar/actions";
 import {
   addMonths,
@@ -11,7 +12,7 @@ import {
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 const orangeBox = `rounded-lg border-2 border-[#F5821F] bg-[#FBF6EE] px-0.5 py-1.5 text-center text-[11px] font-semibold leading-tight text-[#F5821F] sm:text-xs ${kcalFigure}`;
-const orangeBadge = `inline-flex items-center rounded-full border-2 border-[#F5821F] bg-[#FBF6EE] px-3 py-1 text-sm font-semibold text-[#F5821F] ${kcalFigure}`;
+const orangeBadge = `inline-flex min-h-8 items-center rounded-full border-2 border-[#F5821F] bg-[#FBF6EE] px-3 py-1 text-sm font-semibold text-[#F5821F] ${kcalFigure}`;
 
 function KcalStack({
   value,
@@ -71,9 +72,9 @@ export function MonthCalendar({
         <InstantLink
           href="/mypage"
           aria-label="マイページ"
-          className="inline-flex size-9 items-center justify-center rounded-full text-[#F5821F] hover:bg-[#E7DCC8]"
+          className={navIcon}
         >
-          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="12" cy="8" r="3.25" />
             <path d="M5 19.25c1.35-3.1 3.9-4.65 7-4.65s5.65 1.55 7 4.65" strokeLinecap="round" />
           </svg>
@@ -83,7 +84,7 @@ export function MonthCalendar({
         <div className="flex flex-wrap items-center gap-3">
           <InstantLink
             href={monthHref(previous.year, previous.month, today)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
+            className={navIcon}
             aria-label="前の月"
           >
             ‹
@@ -94,18 +95,21 @@ export function MonthCalendar({
           <span className={orangeBadge}>{averageLabel}</span>
           <InstantLink
             href={monthHref(next.year, next.month, today)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-lg text-[#F5821F] hover:bg-[#E7DCC8]"
+            className={navIcon}
             aria-label="次の月"
           >
             ›
           </InstantLink>
-          <InstantLink href="/goals" className={`${orangeBadge} hover:bg-[#E7DCC8]`}>
+          <InstantLink
+            href="/goals"
+            className={`inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-semibold text-[#F5821F] hover:bg-[#E7DCC8] ${kcalFigure}`}
+          >
             週の目標 {formatKcal(weeklyGoal)}
           </InstantLink>
         </div>
 
-        <form action={setWeekStart} className="flex items-center gap-2">
-          <span className="text-sm text-zinc-600">週の始まり</span>
+        <form action={setWeekStart} className="flex flex-wrap items-center gap-3">
+          <span className="text-base text-zinc-600">週の始まり</span>
           {(["sunday", "monday"] as const).map((value) => {
             const selected = weekStartsOn === value;
             return (
@@ -117,8 +121,8 @@ export function MonthCalendar({
                 aria-pressed={selected}
                 className={
                   selected
-                    ? "rounded-full bg-[#F5821F] px-3 py-1.5 text-sm font-medium text-white"
-                    : "rounded-full border border-[#F5821F] bg-[#FBF6EE] px-3 py-1.5 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
+                  ? "inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#F5821F] px-5 text-base font-medium text-white"
+                  : "inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
                 }
               >
                 {value === "sunday" ? "日曜" : "月曜"}

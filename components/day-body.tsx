@@ -3,6 +3,7 @@ import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
 import { InstantLink } from "@/components/instant-link";
+import { navSecondary } from "@/components/nav-styles";
 import { MealRecordList } from "@/components/meal-record-list";
 import { StepRecordPanel } from "@/components/step-record-panel";
 import { SubmitButton } from "@/components/submit-button";
@@ -130,16 +131,16 @@ export async function DayBody({
           {formatKcal(dayTotal)}
         </p>
         <div className="mt-5">
-          <div className="flex items-center justify-between gap-3 text-sm text-zinc-700">
-            <span className="flex items-center gap-2">
-              今週の目標
-              <InstantLink href="/goals" className="text-xs font-medium text-[#F5821F]">
-                変更
-              </InstantLink>
+          <div className="flex flex-col gap-3 text-base text-zinc-700">
+            <span className="flex items-center justify-between gap-3">
+              <span>今週の目標</span>
+              <span className={kcalFigure}>
+                {formatKcal(weekTotal)} / {formatKcal(goal)}
+              </span>
             </span>
-            <span className={kcalFigure}>
-              {formatKcal(weekTotal)} / {formatKcal(goal)}
-            </span>
+            <InstantLink href="/goals" className={navSecondary}>
+              変更
+            </InstantLink>
           </div>
           <div
             className="mt-2 h-3 overflow-hidden rounded-full bg-white"

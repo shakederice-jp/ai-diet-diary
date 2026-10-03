@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { InstantLink } from "@/components/instant-link";
+import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
 import { getMealCalorieRecords } from "@/lib/calories";
 import {
@@ -91,13 +92,8 @@ export async function HomeHealth({ userId }: { userId: string }) {
   }
 
   return (
-    <p className="text-sm">
-      <InstantLink
-        href="/mypage"
-        className="inline-flex min-h-11 items-center text-zinc-500 underline-offset-2 hover:underline"
-      >
-        体重の自動取り込みを設定する
-      </InstantLink>
-    </p>
+    <InstantLink href="/mypage" className={navSecondary}>
+      体重の自動取り込みを設定する
+    </InstantLink>
   );
 }

@@ -6,6 +6,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
+import { navPrimary, navQuiet, navSecondary } from "@/components/nav-styles";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { redirect } from "next/navigation";
 import { getAuthUserId } from "@/lib/supabase/server";
@@ -15,11 +16,6 @@ import type { AdvisorId } from "@/lib/advisors";
 export const metadata: Metadata = {
   title: "マイページ | AI Diet Diary",
 };
-
-const filledLink =
-  "inline-flex h-12 items-center justify-center rounded-full bg-[#F5821F] px-6 text-sm font-medium text-white hover:bg-[#E06E0C]";
-const outlineLink =
-  "inline-flex h-12 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-6 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]";
 
 export default async function MyPage({
   searchParams,
@@ -35,7 +31,7 @@ export default async function MyPage({
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans">
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">
-        <InstantLink href="/" className="text-sm font-medium text-[#F5821F]">
+        <InstantLink href="/" className={navQuiet}>
           カレンダーに戻る
         </InstantLink>
         <p className="mt-6 text-sm font-medium text-[#F5821F]">マイページ</p>
@@ -43,11 +39,11 @@ export default async function MyPage({
         <p className="mt-3 text-sm leading-6 text-zinc-600">
           プロフィールと目標カロリーをここから開きます。
         </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <InstantLink href="/settings" className={filledLink}>
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row">
+          <InstantLink href="/settings" className={navPrimary}>
             プロフィール
           </InstantLink>
-          <InstantLink href="/goals" className={outlineLink}>
+          <InstantLink href="/goals" className={navSecondary}>
             目標設定
           </InstantLink>
         </div>
@@ -64,7 +60,7 @@ export default async function MyPage({
         <form action={signOut} className="mt-8">
           <SubmitButton
             pendingLabel="ログアウトしています…"
-            className="inline-flex h-12 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-6 text-sm font-medium text-zinc-700 hover:bg-[#E7DCC8]"
+            className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-6 text-base font-medium text-zinc-700 hover:bg-[#E7DCC8]"
           >
             ログアウト
           </SubmitButton>
