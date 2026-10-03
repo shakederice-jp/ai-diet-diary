@@ -228,10 +228,12 @@ export async function loadEngagement(userId: string, now = new Date()): Promise<
     freezeDates,
     declineDates,
   });
-  const affectionPoints = advisorId ? await countAffection(userId, advisorId) : 0;
+  const [affectionPoints, compareEnabled] = await Promise.all([
+    advisorId ? countAffection(userId, advisorId) : Promise.resolve(0),
+    getCompareEnabled(userId),
+  ]);
   const stage = affectionStage(affectionPoints);
   await saveStreakSnapshot(userId, streak.streakDays);
-  const compareEnabled = await getCompareEnabled(userId);
   const rankingText = compareEnabled ? await rankingTextFor(streak.streakDays) : null;
 
   return {

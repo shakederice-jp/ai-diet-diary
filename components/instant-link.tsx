@@ -20,10 +20,14 @@ export function InstantLink({
   children,
   onMouseEnter,
   onTouchStart,
+  prefetch,
   ...props
 }: ComponentProps<typeof Link> & { children: ReactNode }) {
   const router = useRouter();
   const lastClick = useRef(0);
+  const path = typeof href === "string" ? href : (href.pathname ?? "");
+  const skipsFullPrefetch = path.startsWith("/days/") || path === "/" || path.startsWith("/?");
+  const resolvedPrefetch = prefetch ?? (skipsFullPrefetch ? undefined : true);
 
   function warm() {
     if (typeof href === "string") {
@@ -35,6 +39,7 @@ export function InstantLink({
     <Link
       {...props}
       href={href}
+      prefetch={resolvedPrefetch}
       className={`relative transition active:scale-[0.98] active:brightness-90 ${className}`}
       onClick={(event) => {
         const now = Date.now();

@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
@@ -79,7 +80,8 @@ export async function HomeHealth({ userId }: { userId: string }) {
       if (stored) {
         const syncedAt = stored.weight_synced_at ? new Date(stored.weight_synced_at).getTime() : 0;
         if (!(Number.isFinite(syncedAt) && Date.now() - syncedAt < FRESH_SYNC_MS)) {
-          await syncHealthPlanetWeights(userId, await requestOrigin());
+          const origin = await requestOrigin();
+          after(() => syncHealthPlanetWeights(userId, origin).catch(() => undefined));
         }
       }
     } catch {
