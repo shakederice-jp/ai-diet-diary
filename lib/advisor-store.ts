@@ -1,5 +1,5 @@
 import { isAdvisorId, type AdvisorId } from "@/lib/advisors";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDataClient } from "@/lib/supabase/server";
 
 export type StoredAdvisorComment = {
   advisorId: AdvisorId;
@@ -8,7 +8,7 @@ export type StoredAdvisorComment = {
 };
 
 export async function getAdvisorPreference(userId: string): Promise<AdvisorId | null> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("advisor_preferences")
     .select("advisor_id")
@@ -25,7 +25,7 @@ export async function getAdvisorPreference(userId: string): Promise<AdvisorId | 
 }
 
 export async function upsertAdvisorPreference(userId: string, advisorId: AdvisorId) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("advisor_preferences").upsert(
     {
       user_id: userId,
@@ -44,7 +44,7 @@ export async function getAdvisorComment(
   userId: string,
   date: string,
 ): Promise<StoredAdvisorComment | null> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("advisor_comments")
     .select("advisor_id, record_hash, comment")
@@ -79,7 +79,7 @@ export async function upsertAdvisorComment(input: {
   recordHash: string;
   comment: string;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("advisor_comments").upsert(
     {
       user_id: input.userId,
@@ -98,7 +98,7 @@ export async function upsertAdvisorComment(input: {
 }
 
 export async function deleteAdvisorComment(userId: string, date: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase
     .from("advisor_comments")
     .delete()

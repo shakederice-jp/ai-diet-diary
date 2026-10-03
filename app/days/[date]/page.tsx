@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
@@ -25,7 +25,7 @@ import { loadAdvisorComment, type AdvisorCommentView } from "@/lib/advisor-comme
 import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
 import { mealPeriodForTokyoHour, tokyoHour } from "@/lib/meal-slot";
 import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals";
-import { readUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { dateTimeLocalOnPageDate, type WeightDayRecord } from "@/lib/weight-format";
 import { listWeightsOnDate } from "@/lib/weights";
 import { listStepOnDate, type StepDayRecord } from "@/lib/steps";
@@ -45,7 +45,10 @@ export default async function DayPage({
 
   const store = await cookies();
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
-  const userId = await readUserIdFromCookies();
+  const userId = await getAuthUserId();
+  if (!userId) {
+    redirect("/");
+  }
 
   let loadError: string | null = null;
   let dayTotal = 0;

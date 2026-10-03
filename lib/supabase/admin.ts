@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/env";
+import { createDataClient } from "@/lib/supabase/server";
 
 export function createAdminClient() {
   return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
@@ -19,7 +20,7 @@ export type HealthPlanetTokenRow = {
 };
 
 export async function upsertHealthPlanetTokens(row: HealthPlanetTokenRow) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("healthplanet_tokens").upsert(
     {
       ...row,
@@ -34,7 +35,7 @@ export async function upsertHealthPlanetTokens(row: HealthPlanetTokenRow) {
 }
 
 export async function getHealthPlanetConnection(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("healthplanet_tokens")
     .select("expires_at, updated_at")
@@ -59,7 +60,7 @@ export type StoredHealthPlanetToken = {
 export async function getHealthPlanetToken(
   userId: string,
 ): Promise<StoredHealthPlanetToken | null> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("healthplanet_tokens")
     .select("access_token, refresh_token, expires_at, scope, weight_synced_at")
@@ -74,7 +75,7 @@ export async function getHealthPlanetToken(
 }
 
 export async function updateWeightSyncedAt(userId: string, syncedAt: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase
     .from("healthplanet_tokens")
     .update({
@@ -100,7 +101,7 @@ export async function upsertWeightRecords(rows: WeightRecordInsert[]) {
     return;
   }
 
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("weight_records").upsert(rows, {
     onConflict: "user_id,measured_at",
   });
@@ -119,7 +120,7 @@ export async function listRecentWeightRecords(
   userId: string,
   limit = 10,
 ): Promise<WeightRecordSummary[]> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("weight_records")
     .select("measured_at, weight_kg")

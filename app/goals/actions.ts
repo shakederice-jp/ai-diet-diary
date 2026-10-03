@@ -7,7 +7,7 @@ import {
   parseGoalInput,
 } from "@/lib/calorie-plan";
 import { tokyoToday } from "@/lib/calendar";
-import { ensureUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import {
   getProfile,
   storageErrorMessage,
@@ -29,7 +29,13 @@ export async function saveGoal(
   formData: FormData,
 ): Promise<GoalFormState> {
   try {
-    const userId = await ensureUserIdFromCookies();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return {
+        error: "ログインしてください。",
+        savedAt: null,
+      };
+    }
     const profile = await getProfile(userId);
     if (!profile) {
       return {

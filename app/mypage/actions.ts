@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { isAdvisorId } from "@/lib/advisors";
 import { upsertAdvisorPreference } from "@/lib/advisor-store";
 import { saveCompareEnabled } from "@/lib/engagement";
-import { ensureUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { storageErrorMessage } from "@/lib/user-settings";
 
 export type AdvisorFormState = {
@@ -22,7 +22,10 @@ export async function saveAdvisor(
   }
 
   try {
-    const userId = await ensureUserIdFromCookies();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return { error: "ログインしてください。", savedAt: null };
+    }
     await upsertAdvisorPreference(userId, advisorId);
     revalidatePath("/mypage");
     revalidatePath("/", "layout");
@@ -41,7 +44,10 @@ export async function setRankingVisible(enabled: boolean) {
   }
 
   try {
-    const userId = await ensureUserIdFromCookies();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return { error: "ログインしてください。" };
+    }
     await saveCompareEnabled(userId, enabled);
     revalidatePath("/mypage");
     revalidatePath("/");

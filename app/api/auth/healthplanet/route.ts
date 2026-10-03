@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAuthorizationUrl } from "@/lib/healthplanet";
-import {
-  attachOAuthStateCookie,
-  attachUserIdCookie,
-  readUserIdFromRequest,
-} from "@/lib/session";
+import { attachOAuthStateCookie } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId, needsNew } = readUserIdFromRequest(request);
-    const resolvedUserId = userId ?? crypto.randomUUID();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return NextResponse.redirect(new URL("/", request.nextUrl.origin));
+    }
     const state = crypto.randomUUID();
     const url = buildAuthorizationUrl(request.nextUrl.origin, state);
 
     const response = NextResponse.redirect(url);
-    if (needsNew) {
-      attachUserIdCookie(response, resolvedUserId);
-    }
     attachOAuthStateCookie(response, state);
     return response;
   } catch (error) {

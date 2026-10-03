@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDataClient } from "@/lib/supabase/server";
 import {
   tokyoDayRange,
   type WeightDayRecord,
@@ -31,7 +31,7 @@ function isUniqueViolation(error: { code?: string; message?: string }) {
 
 export async function listWeightsOnDate(userId: string, date: string) {
   const range = tokyoDayRange(date);
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("weight_records")
     .select("id, measured_at, weight_kg, source")
@@ -52,7 +52,7 @@ export async function insertManualWeight(input: {
   measuredAt: string;
   weightKg: number;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("weight_records").insert({
     user_id: input.userId,
     measured_at: input.measuredAt,
@@ -75,7 +75,7 @@ export async function updateManualWeight(input: {
   measuredAt: string;
   weightKg: number;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("weight_records")
     .update({
@@ -99,7 +99,7 @@ export async function updateManualWeight(input: {
 }
 
 export async function deleteManualWeight(userId: string, id: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("weight_records")
     .delete()

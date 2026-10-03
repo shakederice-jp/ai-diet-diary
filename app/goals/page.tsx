@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { GoalForm } from "@/components/goal-form";
 import { SettingsFrame } from "@/components/settings-frame";
 import {
@@ -9,7 +10,7 @@ import {
   type PeriodUnit,
 } from "@/lib/calorie-plan";
 import { formatKcal } from "@/lib/calendar";
-import { readUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { listRecentWeightRecords } from "@/lib/supabase/admin";
 import {
   getCalorieGoal,
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 
 export default async function GoalsPage() {
-  const userId = await readUserIdFromCookies();
+  const userId = await getAuthUserId();
+  if (!userId) {
+    redirect("/");
+  }
   let profile: StoredProfile | null = null;
   let goal: StoredCalorieGoal | null = null;
   let loadError: string | null = null;

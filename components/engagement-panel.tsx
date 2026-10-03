@@ -6,7 +6,7 @@ import {
   loadEngagement,
   type EngagementSnapshot,
 } from "@/lib/engagement";
-import { readUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 
 function engagementErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : "";
@@ -17,7 +17,7 @@ function engagementErrorMessage(error: unknown) {
 }
 
 export async function EngagementPanel({ surface }: { surface: "home" | "mypage" }) {
-  const userId = await readUserIdFromCookies();
+  const userId = await getAuthUserId();
   if (!userId) {
     return null;
   }

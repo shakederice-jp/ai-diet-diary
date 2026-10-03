@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { addSteps, deleteSteps, updateSteps, type MealFormState } from "@/app/days/[date]/actions";
 import { formatKcalAmount } from "@/lib/calendar";
-import { stepSourceLabel, type StepDayRecord } from "@/lib/steps";
+import { stepSourceLabel, type StepDayRecord } from "@/lib/step-fields";
 
 const initialState: MealFormState = { error: null, savedAt: null };
 const fieldClass =

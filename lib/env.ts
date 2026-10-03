@@ -18,6 +18,10 @@ export function getSupabaseUrl() {
   return required("NEXT_PUBLIC_SUPABASE_URL");
 }
 
+export function getSupabaseAnonKey() {
+  return required("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+}
+
 export function getSupabaseServiceRoleKey() {
   return required("SUPABASE_SERVICE_ROLE_KEY");
 }

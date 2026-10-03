@@ -7,7 +7,7 @@ import {
   type ProfileInput,
 } from "./calorie-plan";
 import { parseIsoDate } from "./calendar";
-import { createAdminClient } from "./supabase/admin";
+import { createDataClient } from "@/lib/supabase/server";
 
 export type StoredProfile = ProfileInput;
 
@@ -60,7 +60,7 @@ export function storageErrorMessage(error: unknown, fallback: string) {
 }
 
 export async function getProfile(userId: string): Promise<StoredProfile | null> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("height_cm, birth_date, gender, activity_level")
@@ -78,7 +78,7 @@ export async function getProfile(userId: string): Promise<StoredProfile | null> 
 }
 
 export async function upsertProfile(userId: string, profile: ProfileInput) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("profiles").upsert(
     {
       user_id: userId,
@@ -97,7 +97,7 @@ export async function upsertProfile(userId: string, profile: ProfileInput) {
 }
 
 export async function getCalorieGoal(userId: string): Promise<StoredCalorieGoal | null> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("calorie_goals")
     .select(
@@ -121,7 +121,7 @@ export async function upsertCalorieGoal(
   input: GoalInput,
   plan: CaloriePlan,
 ) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("calorie_goals").upsert(
     {
       user_id: userId,

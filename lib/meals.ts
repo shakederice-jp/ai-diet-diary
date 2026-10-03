@@ -1,6 +1,6 @@
 import { weekBounds, type WeekStart } from "@/lib/calendar";
 import type { KcalSource, MealPeriod, MealSource } from "@/lib/meal-slot";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDataClient } from "@/lib/supabase/server";
 
 export const DEFAULT_MENU_CATEGORIES = [
   "和食",
@@ -71,7 +71,7 @@ function mapMeal(row: MealRow): MealEntry {
 }
 
 export async function listMeals(userId: string, date: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .select("id, name, kcal, favorite_id, meal_period, meal_source, kcal_source")
@@ -87,7 +87,7 @@ export async function listMeals(userId: string, date: string) {
 }
 
 export async function listMealKcalBetween(userId: string, start: string, end: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .select("recorded_on, kcal")
@@ -103,7 +103,7 @@ export async function listMealKcalBetween(userId: string, start: string, end: st
 }
 
 export async function getMeal(userId: string, id: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .select("id, name, kcal, favorite_id, meal_period, meal_source, kcal_source, recorded_on")
@@ -135,7 +135,7 @@ export async function insertMeal(input: {
   mealSource: MealSource | null;
   kcalSource: KcalSource;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("meal_records").insert({
     user_id: input.userId,
     recorded_on: input.date,
@@ -161,7 +161,7 @@ export async function updateMeal(input: {
   mealSource: MealSource | null;
   kcalSource: KcalSource;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .update({
@@ -184,7 +184,7 @@ export async function updateMeal(input: {
 }
 
 export async function deleteMeal(userId: string, id: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .delete()
@@ -205,7 +205,7 @@ export async function deleteFavoriteMealsOnDate(
   date: string,
   favoriteId: string,
 ) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase
     .from("meal_records")
     .delete()
@@ -219,7 +219,7 @@ export async function deleteFavoriteMealsOnDate(
 }
 
 export async function listCategories(userId: string): Promise<MenuCategory[]> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("menu_categories")
     .select("id, name, sort_order")
@@ -242,7 +242,7 @@ export async function ensureDefaultCategories(userId: string) {
     return existing;
   }
 
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("menu_categories").insert(
     DEFAULT_MENU_CATEGORIES.map((name, index) => ({
       user_id: userId,
@@ -264,7 +264,7 @@ export async function ensureDefaultCategories(userId: string) {
 
 export async function addCategory(userId: string, name: string) {
   const existing = await listCategories(userId);
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("menu_categories").insert({
     user_id: userId,
     name,
@@ -277,7 +277,7 @@ export async function addCategory(userId: string, name: string) {
 }
 
 export async function renameCategory(userId: string, categoryId: string, name: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase
     .from("menu_categories")
     .update({ name })
@@ -290,7 +290,7 @@ export async function renameCategory(userId: string, categoryId: string, name: s
 }
 
 export async function listFavorites(userId: string): Promise<FavoriteMenu[]> {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("favorite_menus")
     .select("id, name, kcal, category_id")
@@ -315,7 +315,7 @@ export async function upsertFavorite(input: {
   kcal: number;
   categoryId: string;
 }) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("favorite_menus")
     .upsert(
@@ -338,7 +338,7 @@ export async function upsertFavorite(input: {
 }
 
 export async function getFavorite(userId: string, favoriteId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("favorite_menus")
     .select("id, name, kcal, category_id")
@@ -368,7 +368,7 @@ export async function moveFavorite(
   favoriteId: string,
   categoryId: string,
 ) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data: category, error: categoryError } = await supabase
     .from("menu_categories")
     .select("id")

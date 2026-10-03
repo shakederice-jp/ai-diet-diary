@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
 import { SettingsFrame } from "@/components/settings-frame";
 import { decimalInputValue, isoYearsBefore, type ActivityLevel, type Gender } from "@/lib/calorie-plan";
 import { tokyoToday } from "@/lib/calendar";
-import { readUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { getProfile, storageErrorMessage } from "@/lib/user-settings";
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   const today = tokyoToday();
-  const userId = await readUserIdFromCookies();
+  const userId = await getAuthUserId();
+  if (!userId) {
+    redirect("/");
+  }
   let heightCm = "";
   let birthDate = "";
   let gender: Gender | "" = "";

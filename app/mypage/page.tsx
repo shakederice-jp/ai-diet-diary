@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { signOut } from "@/app/login/actions";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { getAdvisorPreference } from "@/lib/advisor-store";
-import { readUserIdFromCookies } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { storageErrorMessage } from "@/lib/user-settings";
 import type { AdvisorId } from "@/lib/advisors";
 
@@ -17,7 +19,10 @@ const outlineLink =
   "inline-flex h-12 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-6 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8]";
 
 export default async function MyPage() {
-  const userId = await readUserIdFromCookies();
+  const userId = await getAuthUserId();
+  if (!userId) {
+    redirect("/");
+  }
   let advisorId: AdvisorId | null = null;
   let loadError: string | null = null;
 
@@ -56,6 +61,14 @@ export default async function MyPage() {
         ) : (
           <AdvisorPicker initialId={advisorId} />
         )}
+        <form action={signOut} className="mt-8">
+          <button
+            type="submit"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-6 text-sm font-medium text-zinc-700 hover:bg-[#E7DCC8]"
+          >
+            ログアウト
+          </button>
+        </form>
       </main>
     </div>
   );

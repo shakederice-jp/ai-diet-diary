@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
+import { LoginScreen } from "@/components/login-screen";
 import { MonthCalendar } from "@/components/month-calendar";
 import { getMealCalorieRecords } from "@/lib/calories";
 import { listStepsInMonth } from "@/lib/steps";
@@ -17,12 +18,14 @@ import {
   listRecentWeightRecords,
   type WeightRecordSummary,
 } from "@/lib/supabase/admin";
-import { readUserIdFromCookies, USER_COOKIE, verifySignedValue } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 
 type HomeSearchParams = Promise<{
   month?: string;
   healthplanet?: string;
   reason?: string;
+  login?: string;
+  claim?: string;
 }>;
 
 const weightDateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -60,7 +63,7 @@ async function getRequestOrigin() {
   return `${proto}://${host}`;
 }
 
-async function getConnectionStatus() {
+async function getConnectionStatus(userId: string) {
   const clientId = process.env.HEALTHPLANET_CLIENT_ID;
   const clientSecret = process.env.HEALTHPLANET_CLIENT_SECRET;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -70,25 +73,6 @@ async function getConnectionStatus() {
       connected: false as const,
       configured: false as const,
       userId: null as string | null,
-    };
-  }
-
-  const store = await cookies();
-  const raw = store.get(USER_COOKIE)?.value;
-  if (!raw) {
-    return {
-      connected: false as const,
-      configured: true as const,
-      userId: null,
-    };
-  }
-
-  const userId = verifySignedValue(raw, clientSecret);
-  if (!userId) {
-    return {
-      connected: false as const,
-      configured: true as const,
-      userId: null,
     };
   }
 
@@ -103,7 +87,7 @@ async function getConnectionStatus() {
     return {
       connected: false as const,
       configured: true as const,
-      userId: null,
+      userId,
     };
   }
 }
@@ -125,12 +109,24 @@ export default async function Home({
   searchParams: HomeSearchParams;
 }) {
   const params = await searchParams;
+  const userId = await getAuthUserId();
+  if (!userId) {
+    return (
+      <LoginScreen
+        notice={
+          params.login === "error"
+            ? "リンクの有効期限が切れているか、別のブラウザで開かれました。もう一度送信してください。"
+            : null
+        }
+      />
+    );
+  }
   const today = tokyoToday();
   const month = parseMonthParam(params.month, today);
   const store = await cookies();
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
-  const mealUserId = await readUserIdFromCookies();
-  const weeklyGoal = await getWeeklyCalorieGoal(mealUserId ?? "local");
+  const mealUserId = userId;
+  const weeklyGoal = await getWeeklyCalorieGoal(mealUserId);
   const calorieRecords = mealUserId
     ? await getMealCalorieRecords(mealUserId, month.year, month.month).catch(() => [])
     : [];
@@ -145,7 +141,7 @@ export default async function Home({
     steps: stepRecords,
     today,
   });
-  const status = await getConnectionStatus();
+  const status = await getConnectionStatus(userId);
   const linked = params.healthplanet === "connected" || status.connected;
   const failed = params.healthplanet === "error";
 
@@ -171,6 +167,11 @@ export default async function Home({
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans sm:px-6">
       <main className="flex w-full max-w-4xl flex-col gap-8">
         <EngagementPanel surface="home" />
+        {params.claim === "error" ? (
+          <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
+            ログインはできましたが、以前の記録の引き継ぎに失敗しました。
+          </p>
+        ) : null}
         <MonthCalendar
           model={calendar}
           weekStartsOn={weekStartsOn}

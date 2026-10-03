@@ -2,12 +2,11 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeAuthorizationCode, HEALTHPLANET_SCOPE } from "@/lib/healthplanet";
 import {
-  attachUserIdCookie,
   clearOAuthStateCookie,
   readStateFromRequest,
-  readUserIdFromRequest,
 } from "@/lib/session";
 import { upsertHealthPlanetTokens } from "@/lib/supabase/admin";
+import { getAuthUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -58,23 +57,21 @@ export async function GET(request: NextRequest) {
     }
 
     const tokens = await exchangeAuthorizationCode(origin, code);
-    const { userId, needsNew } = readUserIdFromRequest(request);
-    const resolvedUserId = userId ?? crypto.randomUUID();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return redirectHome(origin, "error", "login_required");
+    }
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
     await upsertHealthPlanetTokens({
-      user_id: resolvedUserId,
+      user_id: userId,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: expiresAt,
       scope: HEALTHPLANET_SCOPE,
     });
 
-    const response = redirectHome(origin, "connected");
-    if (needsNew) {
-      attachUserIdCookie(response, resolvedUserId);
-    }
-    return response;
+    return redirectHome(origin, "connected");
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Health Planet callback failed";

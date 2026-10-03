@@ -2,7 +2,7 @@ import { getAdvisor, type AdvisorId } from "@/lib/advisors";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { tokyoToday } from "@/lib/calendar";
 import { listMeals } from "@/lib/meals";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDataClient } from "@/lib/supabase/server";
 import { tokyoDateFromInstant } from "@/lib/weight-format";
 import { listWeightsOnDate } from "@/lib/weights";
 
@@ -132,7 +132,7 @@ function countRecordedStreak(endDate: string, records: Set<string>, freezes: Set
 }
 
 async function listMealDates(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("meal_records")
     .select("recorded_on")
@@ -148,7 +148,7 @@ async function listMealDates(userId: string) {
 }
 
 async function listWeightDates(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("weight_records")
     .select("measured_at")
@@ -166,7 +166,7 @@ async function listWeightDates(userId: string) {
 }
 
 async function listFreezeDates(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("streak_freezes")
     .select("frozen_on")
@@ -180,7 +180,7 @@ async function listFreezeDates(userId: string) {
 }
 
 async function listDeclineDates(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("streak_freeze_declines")
     .select("missed_on")
@@ -194,7 +194,7 @@ async function listDeclineDates(userId: string) {
 }
 
 async function listAffectionDates(userId: string, advisorId: AdvisorId) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("advisor_affection_days")
     .select("recorded_on")
@@ -256,7 +256,7 @@ async function dayHasRecord(userId: string, date: string) {
 
 export async function syncDayEngagement(userId: string, date: string) {
   const recorded = await dayHasRecord(userId, date);
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   if (!recorded) {
     const { error } = await supabase
       .from("advisor_affection_days")
@@ -293,7 +293,7 @@ export async function useFreezeForDate(userId: string, missedOn: string) {
     throw new Error("この日にはフリーズを使えません。");
   }
 
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("streak_freezes").upsert(
     {
       user_id: userId,
@@ -312,7 +312,7 @@ export async function declineFreezeForDate(userId: string, missedOn: string) {
     throw new Error("この日のフリーズは、もう選べません。");
   }
 
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("streak_freeze_declines").upsert(
     {
       user_id: userId,
@@ -334,7 +334,7 @@ export function rankingBucket(higher: number, total: number) {
 }
 
 async function saveStreakSnapshot(userId: string, streakDays: number) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("user_streaks").upsert(
     {
       user_id: userId,
@@ -349,7 +349,7 @@ async function saveStreakSnapshot(userId: string, streakDays: number) {
 }
 
 export async function getCompareEnabled(userId: string) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("ranking_preferences")
     .select("compare_enabled")
@@ -362,7 +362,7 @@ export async function getCompareEnabled(userId: string) {
 }
 
 export async function saveCompareEnabled(userId: string, enabled: boolean) {
-  const supabase = createAdminClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("ranking_preferences").upsert(
     {
       user_id: userId,
@@ -377,19 +377,14 @@ export async function saveCompareEnabled(userId: string, enabled: boolean) {
 }
 
 async function rankingTextFor(streakDays: number) {
-  const supabase = createAdminClient();
-  const higherQuery = supabase
-    .from("user_streaks")
-    .select("user_id", { count: "exact", head: true })
-    .gt("streak_days", streakDays);
-  const totalQuery = supabase.from("user_streaks").select("user_id", { count: "exact", head: true });
-  const [higher, total] = await Promise.all([higherQuery, totalQuery]);
-  if (higher.error) {
-    throw new Error(`Failed to rank streaks: ${higher.error.message}`);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("streak_rank", { my_streak: streakDays });
+  if (error) {
+    throw new Error(`Failed to rank streaks: ${error.message}`);
   }
-  if (total.error) {
-    throw new Error(`Failed to rank streaks: ${total.error.message}`);
-  }
-  const bucket = rankingBucket(higher.count ?? 0, total.count ?? 0);
+  const row = Array.isArray(data) ? data[0] : data;
+  const higher = Number(row?.higher_count ?? 0);
+  const total = Number(row?.total_count ?? 0);
+  const bucket = rankingBucket(higher, total);
   return bucket === null ? null : `上位${bucket}%`;
 }

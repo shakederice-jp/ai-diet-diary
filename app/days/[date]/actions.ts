@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { parseManualKcal } from "@/lib/calories";
 import { parseIsoDate } from "@/lib/calendar";
 import { getAdvisor } from "@/lib/advisors";
@@ -16,7 +15,7 @@ import {
   tokyoHour,
 } from "@/lib/meal-slot";
 import { classifyDishCategory, estimateDishKcal } from "@/lib/claude";
-import { getHealthPlanetClientSecret } from "@/lib/env";
+import { getAuthUserId } from "@/lib/supabase/server";
 import {
   addCategory,
   deleteFavoriteMealsOnDate,
@@ -41,12 +40,6 @@ import {
   insertManualWeight,
   updateManualWeight,
 } from "@/lib/weights";
-import {
-  USER_COOKIE,
-  signedValue,
-  userCookieOptions,
-  verifySignedValue,
-} from "@/lib/session";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -58,16 +51,10 @@ export type MealFormState = {
 };
 
 async function ensureUserId() {
-  const store = await cookies();
-  const secret = getHealthPlanetClientSecret();
-  const existing = store.get(USER_COOKIE)?.value;
-  const current = existing ? verifySignedValue(existing, secret) : null;
-  if (current) {
-    return current;
+  const userId = await getAuthUserId();
+  if (!userId) {
+    throw new Error("ログインしてください。");
   }
-
-  const userId = crypto.randomUUID();
-  store.set(USER_COOKIE, signedValue(userId, secret), userCookieOptions());
   return userId;
 }
 

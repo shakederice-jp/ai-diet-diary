@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { parseIsoDate } from "@/lib/calendar";
 import { declineFreezeForDate, useFreezeForDate } from "@/lib/engagement";
-import { ensureUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { storageErrorMessage } from "@/lib/user-settings";
 
 export type FreezeFormState = {
@@ -25,7 +25,10 @@ async function chooseFreeze(
   }
 
   try {
-    const userId = await ensureUserIdFromCookies();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return { error: "ログインしてください。" };
+    }
     await choose(userId, missedOn);
     refreshEngagement();
     return { error: null };

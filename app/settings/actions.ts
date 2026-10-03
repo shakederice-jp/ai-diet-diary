@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { parseProfileInput } from "@/lib/calorie-plan";
 import { tokyoToday } from "@/lib/calendar";
-import { ensureUserIdFromCookies } from "@/lib/session";
+import { getAuthUserId } from "@/lib/supabase/server";
 import { storageErrorMessage, upsertProfile } from "@/lib/user-settings";
 
 export type ProfileFormState = {
@@ -21,7 +21,10 @@ export async function saveProfile(
   formData: FormData,
 ): Promise<ProfileFormState> {
   try {
-    const userId = await ensureUserIdFromCookies();
+    const userId = await getAuthUserId();
+    if (!userId) {
+      return { error: "ログインしてください。", savedAt: null };
+    }
     const parsed = parseProfileInput({
       heightCm: readText(formData, "heightCm"),
       birthDate: readText(formData, "birthDate"),
