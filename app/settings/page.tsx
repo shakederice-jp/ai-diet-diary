@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   const today = tokyoToday();
   const userId = await getAuthUserId();
   if (!userId) {
-    redirect("/");
+    redirect("/login");
   }
   let heightCm = "";
   let birthDate = "";

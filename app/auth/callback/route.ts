@@ -41,21 +41,22 @@ export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type");
 
+  if (type === "recovery") {
+    destination.pathname = "/reset-password";
+  }
+
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      destination.searchParams.set("login", "error");
-      return NextResponse.redirect(destination);
+      return NextResponse.redirect(new URL("/login?error=link", origin));
     }
   } else if (tokenHash && isEmailOtpType(type)) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (error) {
-      destination.searchParams.set("login", "error");
-      return NextResponse.redirect(destination);
+      return NextResponse.redirect(new URL("/login?error=link", origin));
     }
   } else {
-    destination.searchParams.set("login", "error");
-    return NextResponse.redirect(destination);
+    return NextResponse.redirect(new URL("/login?error=link", origin));
   }
 
   const { error: claimError } = await supabase.rpc("claim_legacy_diary");

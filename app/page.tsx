@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HomeCalendar, HomeHealth } from "@/components/home-sections";
-import { LoginScreen } from "@/components/login-screen";
 import {
   WEEK_START_COOKIE,
   parseMonthParam,
@@ -10,6 +9,7 @@ import {
   tokyoToday,
 } from "@/lib/calendar";
 import { getAuthUserId } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 type HomeSearchParams = Promise<{
   month?: string;
@@ -17,6 +17,7 @@ type HomeSearchParams = Promise<{
   reason?: string;
   login?: string;
   claim?: string;
+  error?: string;
 }>;
 
 export default async function Home({
@@ -27,15 +28,10 @@ export default async function Home({
   const params = await searchParams;
   const userId = await getAuthUserId();
   if (!userId) {
-    return (
-      <LoginScreen
-        notice={
-          params.login === "error"
-            ? "リンクの有効期限が切れているか、別のブラウザで開かれました。もう一度送信してください。"
-            : null
-        }
-      />
-    );
+    if (params.login === "error" || params.error === "link") {
+      redirect("/login?error=link");
+    }
+    redirect("/login");
   }
 
   const today = tokyoToday();

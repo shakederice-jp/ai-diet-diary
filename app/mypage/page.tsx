@@ -23,7 +23,7 @@ const outlineLink =
 export default async function MyPage() {
   const userId = await getAuthUserId();
   if (!userId) {
-    redirect("/");
+    redirect("/login");
   }
 
   return (

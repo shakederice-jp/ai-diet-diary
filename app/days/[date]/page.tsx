@@ -29,7 +29,7 @@ export default async function DayPage({
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
   const userId = await getAuthUserId();
   if (!userId) {
-    redirect("/");
+    redirect("/login");
   }
 
   const initialPeriod = mealPeriodForTokyoHour(tokyoHour());

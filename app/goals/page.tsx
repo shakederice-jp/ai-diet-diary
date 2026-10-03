@@ -29,7 +29,7 @@ const kcalFigure = "font-mono tabular-nums slashed-zero";
 export default async function GoalsPage() {
   const userId = await getAuthUserId();
   if (!userId) {
-    redirect("/");
+    redirect("/login");
   }
   let profile: StoredProfile | null = null;
   let goal: StoredCalorieGoal | null = null;
