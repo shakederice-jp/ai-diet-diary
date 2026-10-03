@@ -134,3 +134,36 @@ export function tokyoDayRange(date: string) {
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
 }
+
+export function tokyoMonthRange(year: number, month: number) {
+  const startLabel = `${year}-${String(month).padStart(2, "0")}-01`;
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const endLabel = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+  const start = new Date(`${startLabel}T00:00:00+09:00`);
+  const end = new Date(`${endLabel}T00:00:00+09:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new Error(`Invalid month: ${year}-${month}`);
+  }
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+export function latestDailyWeights(
+  rows: Array<{ measuredAt: string; weightKg: number }>,
+) {
+  const sorted = [...rows].sort((left, right) => left.measuredAt.localeCompare(right.measuredAt));
+  const byDate = new Map<string, number>();
+  for (const row of sorted) {
+    if (!Number.isFinite(row.weightKg) || row.weightKg <= 0) {
+      continue;
+    }
+    const date = tokyoDateFromInstant(row.measuredAt);
+    if (!date) {
+      continue;
+    }
+    byDate.set(date, row.weightKg);
+  }
+  return [...byDate.entries()]
+    .map(([date, weightKg]) => ({ date, weightKg }))
+    .sort((left, right) => left.date.localeCompare(right.date));
+}

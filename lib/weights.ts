@@ -1,6 +1,8 @@
 import { createDataClient } from "@/lib/supabase/server";
 import {
+  latestDailyWeights,
   tokyoDayRange,
+  tokyoMonthRange,
   type WeightDayRecord,
 } from "@/lib/weight-format";
 
@@ -45,6 +47,30 @@ export async function listWeightsOnDate(userId: string, date: string) {
   }
 
   return ((data ?? []) as WeightRow[]).map(mapWeight);
+}
+
+export async function listWeightsInMonth(userId: string, year: number, month: number) {
+  const range = tokyoMonthRange(year, month);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("weight_records")
+    .select("measured_at, weight_kg")
+    .eq("user_id", userId)
+    .gte("measured_at", range.start)
+    .lt("measured_at", range.end)
+    .order("measured_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load monthly weights: ${error.message}`);
+  }
+
+  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  return latestDailyWeights(
+    ((data ?? []) as Array<{ measured_at: string; weight_kg: number | string }>).map((row) => ({
+      measuredAt: row.measured_at,
+      weightKg: asWeight(row.weight_kg),
+    })),
+  ).filter((row) => row.date.startsWith(`${monthKey}-`));
 }
 
 export async function insertManualWeight(input: {

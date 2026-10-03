@@ -1,19 +1,42 @@
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
-import { getMealCalorieRecords } from "@/lib/calories";
+import { MonthTrendChart } from "@/components/month-trend-chart";
+import { getMealCalorieRecords, type DailyCalorieRecord } from "@/lib/calories";
 import {
   buildMonthCalendar,
   type WeekStart,
 } from "@/lib/calendar";
-import { getWeeklyCalorieGoal } from "@/lib/goals";
+import { DEFAULT_WEEKLY_KCAL_GOAL } from "@/lib/goals";
+import { buildMonthTrend } from "@/lib/month-trend";
 import { listStepsInMonth } from "@/lib/steps";
 import { getHealthPlanetToken } from "@/lib/supabase/admin";
+import { getCalorieGoal, type StoredCalorieGoal } from "@/lib/user-settings";
 import { syncHealthPlanetWeights } from "@/lib/weight-sync";
+import { listWeightsInMonth } from "@/lib/weights";
 
 const FRESH_SYNC_MS = 15 * 60 * 1000;
+
+async function loadStoredGoal(userId: string) {
+  if (!userId || userId === "local") {
+    return null;
+  }
+  try {
+    return await getCalorieGoal(userId);
+  } catch {
+    return null;
+  }
+}
+
+function weeklyGoalFromStored(goal: StoredCalorieGoal | null) {
+  if (!goal || goal.weeklyKcal <= 0) {
+    return DEFAULT_WEEKLY_KCAL_GOAL;
+  }
+  return goal.weeklyKcal;
+}
 
 async function requestOrigin() {
   const headerList = await headers();
@@ -40,9 +63,9 @@ export async function HomeCalendar({
   weekStartsOn: WeekStart;
   today: { year: number; month: number; date: string };
 }) {
-  const [weeklyGoal, calorieRecords, stepRecords] = await Promise.all([
-    getWeeklyCalorieGoal(userId),
-    getMealCalorieRecords(userId, year, month).catch(() => []),
+  const [goal, calorieRecords, stepRecords] = await Promise.all([
+    loadStoredGoal(userId),
+    getMealCalorieRecords(userId, year, month).catch(() => [] as DailyCalorieRecord[]),
     listStepsInMonth(userId, year, month).catch(() => []),
   ]);
   const calendar = buildMonthCalendar({
@@ -55,13 +78,58 @@ export async function HomeCalendar({
   });
 
   return (
-    <MonthCalendar
-      model={calendar}
-      weekStartsOn={weekStartsOn}
-      weeklyGoal={weeklyGoal}
-      today={today}
-    />
+    <div className="flex w-full flex-col gap-8">
+      <MonthCalendar
+        model={calendar}
+        weekStartsOn={weekStartsOn}
+        weeklyGoal={weeklyGoalFromStored(goal)}
+        today={today}
+      />
+      <Suspense fallback={null}>
+        <HomeMonthTrend
+          userId={userId}
+          year={year}
+          month={month}
+          calories={calorieRecords}
+          goal={goal}
+          today={today.date}
+        />
+      </Suspense>
+    </div>
   );
+}
+
+async function HomeMonthTrend({
+  userId,
+  year,
+  month,
+  calories,
+  goal,
+  today,
+}: {
+  userId: string;
+  year: number;
+  month: number;
+  calories: DailyCalorieRecord[];
+  goal: StoredCalorieGoal | null;
+  today: string;
+}) {
+  const weights = await listWeightsInMonth(userId, year, month).catch(() => []);
+  const model = buildMonthTrend({
+    year,
+    month,
+    calories,
+    weights,
+    goal: goal
+      ? {
+          currentWeightKg: goal.currentWeightKg,
+          targetWeightKg: goal.targetWeightKg,
+          weeklyKcal: goal.weeklyKcal,
+        }
+      : null,
+    today,
+  });
+  return <MonthTrendChart model={model} />;
 }
 
 export async function HomeHealth({ userId }: { userId: string }) {
