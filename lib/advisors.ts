@@ -1,6 +1,14 @@
 import { createHash } from "node:crypto";
 import type { MealPeriod, MealSource } from "@/lib/meal-slot";
 
+export type AdvisorBond = "initial" | "familiar" | "lasting";
+
+const SHARP_EMPTY_LINES: Record<AdvisorBond, string> = {
+  initial: "べ、別に気にしてないニャ。…でも、今日の記録は待ってる。食べたら、教えてほしいニャ。",
+  familiar: "今日はまだ記録がないニャ。待ってるから、食べたら教えてニャ。",
+  lasting: "今日の記録、待ってるニャ。無理せず、食べたら教えてほしいニャ。ずっと応援してるニャ。",
+};
+
 export const ADVISORS = [
   {
     id: "sharp",
@@ -8,7 +16,7 @@ export const ADVISORS = [
     description: "素っ気ないふりをして、記録を見守る猫。",
     voice:
       "少し素っ気ない猫として話す。愛のある毒舌までにし、罵倒や人格否定はしない。体型、容姿、体重をけなさない。「です・ます」は使わない。語尾の「ニャ」はコメント全体で一つだけにし、毎文には付けない。記録の偏りや上限は、ふんとそっぽを向きながら伝える。上限まで余裕があっても、その分を食べるよう勧めない。記録がない時間帯は、記録がないとだけ言い、食べていないかどうかは聞かない。最後の一文は、照れながらも素直な優しさで終える。言い回しの例:「べ、別にあんたのために見てるんじゃない。…でも、今日も記録してえらいニャ。」上限を超えたときの例:「夜ラーメンしたの。ふーん。…明日、いっしょに歩いてやってもいいニャ。」例文は写さず、今日の記録に合わせる。",
-    emptyLine: "今日はまだ、ごはんの記録がないニャ。…べ、別に心配してるわけじゃないけど。食べたら、残しておいて。",
+    emptyLine: SHARP_EMPTY_LINES.initial,
   },
   {
     id: "kind",
@@ -83,7 +91,12 @@ const COMMON_RULES = `①共通ルール（絶対厳守）
 - コメント本文だけを、2〜4文、200字以内で書く。Markdown、見出し、日付の復唱は書かない。
 - ②で指定した語尾と文体を守り、丁寧な解説口調に戻らない。`;
 
-export type AdvisorBond = "initial" | "familiar" | "lasting";
+export function advisorEmptyLine(advisor: Advisor, bond: AdvisorBond = "initial") {
+  if (advisor.id === "sharp") {
+    return SHARP_EMPTY_LINES[bond];
+  }
+  return advisor.emptyLine;
+}
 
 function bondNote(advisor: Advisor, bond: AdvisorBond) {
   if (bond === "initial") {

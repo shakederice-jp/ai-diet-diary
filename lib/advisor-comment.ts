@@ -1,4 +1,5 @@
 import {
+  advisorEmptyLine,
   advisorRecordHash,
   buildAdvisorPrompt,
   getAdvisor,
@@ -65,7 +66,8 @@ export async function loadAdvisorComment(input: {
   const advisor = getAdvisor(advisorId);
   if (input.meals.length === 0) {
     await deleteAdvisorComment(input.userId, input.date).catch(() => undefined);
-    return { kind: "empty", advisorId, text: advisor.emptyLine };
+    const bond = advisorId === "sharp" ? await loadBond(input.userId, advisorId) : "initial";
+    return { kind: "empty", advisorId, text: advisorEmptyLine(advisor, bond) };
   }
 
   const bond = await loadBond(input.userId, advisorId);
