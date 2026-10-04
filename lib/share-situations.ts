@@ -91,7 +91,7 @@ export function shareEmoji(characterId: ShareCharacterId) {
 }
 
 export function sharePostText(situation: string, advisorName: string, characterId: ShareCharacterId) {
-  return `${situation}…。でも、${advisorName}に励まされた${shareEmoji(characterId)} #ダイエット記録 #ダイエット仲間 #AIダイエット手帳\n同じように頑張ってる人、一緒に続けよう`;
+  return `${situation}。でも、${advisorName}に励まされた${shareEmoji(characterId)}\n同じように頑張ってる人、一緒に続けよう\n#ダイエット記録 #ダイエット仲間 #AIダイエット手帳`;
 }
 
 export function shareReplyFallback(characterId: ShareCharacterId, situationId: ShareSituationId) {

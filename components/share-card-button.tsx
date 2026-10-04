@@ -252,7 +252,7 @@ export function ShareCardButton({ date }: { date: string }) {
                     className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
                     onClick={() => setShowStreak((current) => !current)}
                   >
-                    記録の日数 {showStreak ? "オン" : "オフ"}
+                    記録の日数を{showStreak ? "載せる" : "載せない"}
                   </button>
                   <button
                     type="button"
@@ -260,7 +260,7 @@ export function ShareCardButton({ date }: { date: string }) {
                     className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
                     onClick={() => setShowWeight((current) => !current)}
                   >
-                    体重の変化 {showWeight ? "オン" : "オフ"}
+                    体重の変化を{showWeight ? "載せる" : "載せない"}
                   </button>
                   {showWeight ? <p className="text-xs text-zinc-500">公開されます</p> : null}
                 </div>
