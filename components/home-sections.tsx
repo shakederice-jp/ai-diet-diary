@@ -81,7 +81,6 @@ export async function HomeCalendar({
     <div className="flex w-full flex-col gap-8">
       <MonthCalendar
         model={calendar}
-        weekStartsOn={weekStartsOn}
         weeklyGoal={weeklyGoalFromStored(goal)}
         today={today}
       />

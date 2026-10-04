@@ -1,13 +1,11 @@
 import { InstantLink } from "@/components/instant-link";
 import { navIcon } from "@/components/nav-styles";
-import { setWeekStart } from "@/app/calendar/actions";
 import {
   addMonths,
   formatKcal,
   formatKcalAmount,
   formatMonthParam,
   type MonthCalendarModel,
-  type WeekStart,
 } from "@/lib/calendar";
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
@@ -42,7 +40,6 @@ function daySurface(recorded: boolean, kcal: number, dailyGoal: number) {
 
 type MonthCalendarProps = {
   model: MonthCalendarModel;
-  weekStartsOn: WeekStart;
   weeklyGoal: number;
   today: { year: number; month: number; date: string };
 };
@@ -56,7 +53,6 @@ function monthHref(year: number, month: number, today: { year: number; month: nu
 
 export function MonthCalendar({
   model,
-  weekStartsOn,
   weeklyGoal,
   today,
 }: MonthCalendarProps) {
@@ -71,17 +67,13 @@ export function MonthCalendar({
       <div className="flex justify-end">
         <InstantLink
           href="/mypage"
-          aria-label="マイページ"
-          className={navIcon}
+          className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
         >
-          <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.25" />
-            <path d="M5 19.25c1.35-3.1 3.9-4.65 7-4.65s5.65 1.55 7 4.65" strokeLinecap="round" />
-          </svg>
+          マイページ
         </InstantLink>
       </div>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="flex items-center gap-1 sm:gap-3">
           <InstantLink
             href={monthHref(previous.year, previous.month, today)}
             className={navIcon}
@@ -92,7 +84,6 @@ export function MonthCalendar({
           <h1 className="text-3xl font-semibold tracking-tight text-[#F5821F]">
             {model.title}
           </h1>
-          <span className={orangeBadge}>{averageLabel}</span>
           <InstantLink
             href={monthHref(next.year, next.month, today)}
             className={navIcon}
@@ -100,36 +91,8 @@ export function MonthCalendar({
           >
             ›
           </InstantLink>
-          <InstantLink
-            href="/goals"
-            className={`inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-semibold text-[#F5821F] hover:bg-[#E7DCC8] ${kcalFigure}`}
-          >
-            週の目標 {formatKcal(weeklyGoal)}
-          </InstantLink>
         </div>
-
-        <form action={setWeekStart} className="flex flex-wrap items-center gap-3">
-          <span className="text-base text-zinc-600">週の始まり</span>
-          {(["sunday", "monday"] as const).map((value) => {
-            const selected = weekStartsOn === value;
-            return (
-              <button
-                key={value}
-                type="submit"
-                name="weekStart"
-                value={value}
-                aria-pressed={selected}
-                className={
-                  selected
-                  ? "inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#F5821F] px-5 text-base font-medium text-white"
-                  : "inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
-                }
-              >
-                {value === "sunday" ? "日曜" : "月曜"}
-              </button>
-            );
-          })}
-        </form>
+        <span className={orangeBadge}>{averageLabel}</span>
       </div>
 
       <div className="mt-6">

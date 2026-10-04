@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { signOut } from "@/app/login/actions";
 import { InstantLink } from "@/components/instant-link";
 import { SubmitButton } from "@/components/submit-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
+import { WeekStartForm } from "@/components/week-start-form";
+import { WEEK_START_COOKIE, parseWeekStart } from "@/lib/calendar";
 import { navPrimary, navQuiet, navSecondary } from "@/components/nav-styles";
 import { ShareCardList } from "@/components/share-card-list";
 import { getAdvisorPreference } from "@/lib/advisor-store";
@@ -29,6 +32,8 @@ export default async function MyPage({
   if (!userId) {
     redirect("/login");
   }
+  const store = await cookies();
+  const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
 
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans">
@@ -71,6 +76,7 @@ export default async function MyPage({
           </SubmitButton>
         </form>
         <HealthPlanetSettings userId={userId} status={params.healthplanet} reason={params.reason} />
+        <WeekStartForm weekStartsOn={weekStartsOn} />
       </main>
     </div>
   );

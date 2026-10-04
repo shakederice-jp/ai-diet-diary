@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { WEEK_START_COOKIE, parseWeekStart } from "@/lib/calendar";
 
@@ -18,4 +19,6 @@ export async function setWeekStart(formData: FormData) {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
   });
+  revalidatePath("/");
+  revalidatePath("/mypage");
 }

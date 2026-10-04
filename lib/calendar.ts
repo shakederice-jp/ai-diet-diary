@@ -221,7 +221,11 @@ export function buildMonthCalendar(input: {
   }
 
   const weekdayAverages = labels.map((_, column) =>
-    averageRecordedKcal(weeks.map((week) => week.days[column]).filter((day) => day != null)),
+    averageRecordedKcal(
+      weeks
+        .map((week) => week.days[column])
+        .filter((day) => day != null && day.inMonth),
+    ),
   );
   const monthTotalKcal = days.reduce(
     (sum, day) => sum + (day.inMonth ? day.kcal : 0),
