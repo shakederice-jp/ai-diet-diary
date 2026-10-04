@@ -14,7 +14,7 @@ export function FreezeChoice({ missedOn, label }: { missedOn: string; label: str
   const error = useState.error ?? skipState.error;
 
   return (
-    <div className="mt-3">
+    <div>
       <p className="text-sm leading-6 text-zinc-800">
         {label}は記録がありません。フリーズを使いますか？使うと、その日は記録がなくても連続記録が続きます。
       </p>

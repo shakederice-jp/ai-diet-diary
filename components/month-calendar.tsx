@@ -10,7 +10,6 @@ import {
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 const orangeBox = `rounded-lg border-2 border-[#F5821F] bg-[#FBF6EE] px-0.5 py-1.5 text-center text-[11px] font-semibold leading-tight text-[#F5821F] sm:text-xs ${kcalFigure}`;
-const orangeBadge = `inline-flex min-h-8 items-center rounded-full border-2 border-[#F5821F] bg-[#FBF6EE] px-3 py-1 text-sm font-semibold text-[#F5821F] ${kcalFigure}`;
 
 function KcalStack({
   value,
@@ -58,8 +57,7 @@ export function MonthCalendar({
 }: MonthCalendarProps) {
   const previous = addMonths(model.year, model.month, -1);
   const next = addMonths(model.year, model.month, 1);
-  const averageLabel =
-    model.averageKcal === null ? "平均 —" : `平均 ${formatKcal(model.averageKcal)}`;
+  const averageLabel = model.averageKcal === null ? "—" : formatKcal(model.averageKcal);
   const dailyGoal = weeklyGoal / 7;
 
   return (
@@ -92,7 +90,10 @@ export function MonthCalendar({
             ›
           </InstantLink>
         </div>
-        <span className={orangeBadge}>{averageLabel}</span>
+        <p className="flex items-baseline gap-1.5">
+          <span className="text-sm text-[#8A7360]">月平均</span>
+          <span className={`text-[17px] font-medium text-zinc-900 ${kcalFigure}`}>{averageLabel}</span>
+        </p>
       </div>
 
       <div className="mt-6">

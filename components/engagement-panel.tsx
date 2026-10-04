@@ -31,33 +31,31 @@ export async function EngagementPanel({ surface }: { surface: "home" | "mypage" 
     );
   }
 
-  const showStreak = snapshot.streakDays > 0 && (snapshot.atRisk || snapshot.offerDate || surface === "mypage");
-  if (surface === "home" && !snapshot.atRisk && !snapshot.offerDate && !snapshot.compareEnabled) {
-    return null;
+  if (surface === "home") {
+    if (!snapshot.offerDate) {
+      return null;
+    }
+    return (
+      <section className="rounded-2xl bg-[#F3EBDD] px-4 py-3" aria-label="フリーズの確認">
+        <FreezeChoice missedOn={snapshot.offerDate} label={formatMonthDay(snapshot.offerDate)} />
+      </section>
+    );
   }
 
   return (
-    <section className="rounded-2xl bg-[#E7DCC8] p-5" aria-label="記録の継続">
-      <p className="text-sm font-medium text-[#F5821F]">記録の継続</p>
-      {showStreak ? (
-        <p className="mt-2 text-sm leading-6 text-zinc-900">
-          連続記録 {snapshot.streakDays}日
-          {snapshot.atRisk ? "。今日はまだ記録がありません。" : "。"}
-        </p>
-      ) : surface === "mypage" ? (
-        <p className="mt-2 text-sm leading-6 text-zinc-800">連続記録はまだありません。</p>
-      ) : null}
-      <p className="mt-2 text-sm leading-6 text-zinc-800">今月のフリーズ残り {snapshot.freezeRemaining}回</p>
-      {snapshot.offerDate ? (
-        <FreezeChoice missedOn={snapshot.offerDate} label={formatMonthDay(snapshot.offerDate)} />
-      ) : null}
+    <section aria-label="記録の継続">
+      <h2 className="text-xs font-medium text-zinc-500">記録の継続</h2>
+      <p className="mt-2 text-sm leading-6 text-zinc-700">
+        {snapshot.streakDays > 0 ? `連続記録 ${snapshot.streakDays}日` : "連続記録はまだありません。"}
+      </p>
+      <p className="text-sm leading-6 text-zinc-700">今月のフリーズ残り {snapshot.freezeRemaining}回</p>
       {snapshot.compareEnabled && snapshot.rankingText ? (
-        <p className="mt-2 text-sm leading-6 text-zinc-900">
+        <p className="mt-2 text-sm leading-6 text-zinc-700">
           連続記録は、全ユーザーの{snapshot.rankingText}です。
         </p>
       ) : null}
-      {surface === "mypage" ? <RankingSwitch initialEnabled={snapshot.compareEnabled} /> : null}
-      {surface === "mypage" ? <AffectionLine snapshot={snapshot} /> : null}
+      <RankingSwitch initialEnabled={snapshot.compareEnabled} />
+      <AffectionLine snapshot={snapshot} />
     </section>
   );
 }
