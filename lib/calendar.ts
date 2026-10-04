@@ -146,11 +146,11 @@ function weekdayIndex(year: number, month: number, day: number) {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
-function averageRecordedKcal(days: CalendarDay[]) {
+function averageRecordedKcal(days: CalendarDay[], excludeDate?: string) {
   let sum = 0;
   let count = 0;
   for (const day of days) {
-    if (!day.recorded) {
+    if (!day.recorded || day.date === excludeDate) {
       continue;
     }
     sum += day.kcal;
@@ -165,7 +165,7 @@ export function buildMonthCalendar(input: {
   weekStartsOn: WeekStart;
   records: DailyCalorieRecord[];
   steps?: Array<{ date: string; steps: number }>;
-  today?: { year: number; month: number };
+  today?: { year: number; month: number; date?: string };
 }): MonthCalendarModel {
   const totals = new Map<string, number>();
   for (const record of input.records) {
@@ -211,12 +211,14 @@ export function buildMonthCalendar(input: {
     });
   }
 
+  const today = input.today ?? tokyoToday();
+  const todayDate = today.date ?? tokyoToday().date;
   const weeks: CalendarWeek[] = [];
   for (let index = 0; index < days.length; index += 7) {
     const weekDays = days.slice(index, index + 7);
     weeks.push({
       days: weekDays,
-      averageKcal: averageRecordedKcal(weekDays),
+      averageKcal: averageRecordedKcal(weekDays, todayDate),
     });
   }
 
@@ -225,6 +227,7 @@ export function buildMonthCalendar(input: {
       weeks
         .map((week) => week.days[column])
         .filter((day) => day != null && day.inMonth),
+      todayDate,
     ),
   );
   const monthTotalKcal = days.reduce(
@@ -235,14 +238,12 @@ export function buildMonthCalendar(input: {
   let recordedSum = 0;
   let recordedCount = 0;
   for (const day of days) {
-    if (!day.recorded) {
+    if (!day.recorded || day.date === todayDate) {
       continue;
     }
     recordedSum += day.kcal;
     recordedCount += 1;
   }
-
-  const today = input.today ?? tokyoToday();
   const title =
     input.year === today.year ? `${input.month}月` : `${input.year}年${input.month}月`;
 

@@ -90,10 +90,15 @@ export function MonthCalendar({
             ›
           </InstantLink>
         </div>
-        <p className="flex items-baseline gap-1.5">
-          <span className="text-sm text-[#8A7360]">月平均</span>
-          <span className={`text-[17px] font-medium text-zinc-900 ${kcalFigure}`}>{averageLabel}</span>
-        </p>
+        <div className="flex flex-col">
+          <p className="flex items-baseline gap-1.5">
+            <span className="text-sm text-[#8A7360]">月平均</span>
+            <span className={`text-[17px] font-medium text-zinc-900 ${kcalFigure}`}>{averageLabel}</span>
+          </p>
+          {model.year === today.year && model.month === today.month ? (
+            <p className="text-xs leading-4 text-[#8A7360]">今日は含みません</p>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-6">
