@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createShareCard, removeShareCard, type ShareActionState } from "@/app/share/actions";
+import { loadShareReply, prepareShare, publishShare, removeShareCard } from "@/app/share/actions";
+import { ShareChatCard } from "@/components/share-chat-card";
+import {
+  SHARE_SITUATIONS,
+  isShareCharacterId,
+  sharePostText,
+  shareSituationById,
+  visibleStreakDays,
+  type ShareSituationId,
+} from "@/lib/share-situations";
 
 const buttonClass =
   "inline-flex min-h-11 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-4 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8] disabled:opacity-60";
@@ -9,86 +18,189 @@ const buttonClass =
 const actionClass =
   "inline-flex min-h-[52px] items-center justify-center rounded-full px-5 text-base font-medium";
 
+const choiceClass =
+  "inline-flex min-h-[52px] w-full items-center justify-center rounded-full px-4 text-base font-medium";
+
 export function ShareCardButton({ date }: { date: string }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<ShareActionState | null>(null);
+  const [replyPending, setReplyPending] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [characterId, setCharacterId] = useState("sharp");
+  const [name, setName] = useState("");
+  const [situationId, setSituationId] = useState<ShareSituationId>("recorded");
+  const [showStreak, setShowStreak] = useState(true);
+  const [showWeight, setShowWeight] = useState(false);
+  const [streakDays, setStreakDays] = useState(0);
+  const [weightLabel, setWeightLabel] = useState<string | null>(null);
+  const [reply, setReply] = useState("");
+  const [card, setCard] = useState<{ id: string; pageUrl: string; imageUrl: string } | null>(null);
   const [canNativeShare, setCanNativeShare] = useState(false);
-  const creating = useRef(false);
+  const replyToken = useRef(0);
 
   useEffect(() => {
-    setResult(null);
     setOpen(false);
+    setError(null);
     setNotice(null);
+    setName("");
+    setCard(null);
+    setReply("");
   }, [date]);
+
+  async function fetchReply(nextSituation: ShareSituationId) {
+    const token = replyToken.current + 1;
+    replyToken.current = token;
+    setReplyPending(true);
+    const loaded = await loadShareReply(date, nextSituation);
+    if (token !== replyToken.current) {
+      return;
+    }
+    setReplyPending(false);
+    if (!loaded.ok) {
+      setError(loaded.error);
+      return;
+    }
+    setReply(loaded.text);
+  }
 
   async function openShare() {
     setOpen(true);
     setNotice(null);
+    setError(null);
     setCanNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
-    if (result?.ok || creating.current) {
+    if (name || pending) {
       return;
     }
-    creating.current = true;
     setPending(true);
-    try {
-      const next = await createShareCard(date);
-      setResult(next);
-    } finally {
-      creating.current = false;
-      setPending(false);
+    const prepared = await prepareShare(date);
+    setPending(false);
+    if (!prepared.ok) {
+      setError(prepared.error);
+      return;
     }
+    setCharacterId(prepared.characterId);
+    setName(prepared.name);
+    setStreakDays(prepared.streakDays);
+    setWeightLabel(prepared.weightLabel);
+    setShowStreak(prepared.showStreak);
+    setShowWeight(prepared.showWeight);
+    if (shareSituationById(prepared.situationId)) {
+      setSituationId(prepared.situationId as ShareSituationId);
+    }
+    if (prepared.cardId && prepared.pageUrl && prepared.imageUrl) {
+      setCard({ id: prepared.cardId, pageUrl: prepared.pageUrl, imageUrl: prepared.imageUrl });
+    }
+    if (prepared.reply) {
+      setReply(prepared.reply);
+      return;
+    }
+    const initial = shareSituationById(prepared.situationId)?.id ?? "recorded";
+    await fetchReply(initial);
+  }
+
+  async function chooseSituation(next: ShareSituationId) {
+    if (next === situationId) {
+      return;
+    }
+    setSituationId(next);
+    setNotice(null);
+    await fetchReply(next);
+  }
+
+  async function ensurePublished() {
+    if (!isShareCharacterId(characterId)) {
+      return null;
+    }
+    setPublishing(true);
+    const published = await publishShare(date, { situationId, showStreak, showWeight });
+    setPublishing(false);
+    if (!published.ok) {
+      setError(published.error);
+      return null;
+    }
+    setReply(published.text);
+    setName(published.name);
+    const next = { id: published.id, pageUrl: published.pageUrl, imageUrl: published.imageUrl };
+    setCard(next);
+    return published;
   }
 
   async function shareNative() {
-    if (!result?.ok) {
+    const published = await ensurePublished();
+    if (!published) {
       return;
     }
     try {
-      const response = await fetch(result.imageUrl);
+      const response = await fetch(`${published.imageUrl}?v=${Date.now()}`);
       const blob = await response.blob();
       const file = new File([blob], "ai-diet-share.png", { type: "image/png" });
-      const payload = { title: result.name, text: result.text, url: result.pageUrl };
+      const payload = { title: published.name, text: published.postText, url: published.pageUrl };
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ ...payload, files: [file] });
         return;
       }
       await navigator.share(payload);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") {
         return;
       }
       setNotice("この端末のシェアを完了できませんでした。");
     }
   }
 
-  async function copyLink() {
-    if (!result?.ok) {
+  async function shareOnX() {
+    const published = await ensurePublished();
+    if (!published) {
       return;
     }
-    await navigator.clipboard.writeText(result.pageUrl);
+    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(published.postText)}&url=${encodeURIComponent(published.pageUrl)}`;
+    window.open(xUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function copyLink() {
+    const published = await ensurePublished();
+    if (!published) {
+      return;
+    }
+    await navigator.clipboard.writeText(published.pageUrl);
     setNotice("リンクをコピーしました。");
   }
 
-  async function remove() {
-    if (!result?.ok) {
+  async function saveImage() {
+    const published = await ensurePublished();
+    if (!published) {
       return;
     }
-    setPending(true);
-    const removed = await removeShareCard(result.id);
-    setPending(false);
+    const link = document.createElement("a");
+    link.href = `${published.imageUrl}?v=${Date.now()}`;
+    link.download = "ai-diet-share.png";
+    link.click();
+  }
+
+  async function remove() {
+    if (!card) {
+      setOpen(false);
+      return;
+    }
+    setPublishing(true);
+    const removed = await removeShareCard(card.id);
+    setPublishing(false);
     if (!removed.ok) {
       setNotice(removed.error);
       return;
     }
-    setResult(null);
+    setCard(null);
     setOpen(false);
   }
 
-  const xUrl = result?.ok
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(result.text)}&url=${encodeURIComponent(result.pageUrl)}`
-    : "";
+  const situation = shareSituationById(situationId);
+  const postText =
+    situation && isShareCharacterId(characterId) ? sharePostText(situation.text, name, characterId) : "";
+  const shownStreak = visibleStreakDays(showStreak, streakDays);
+  const shownWeight = showWeight ? weightLabel : null;
+  const busy = pending || replyPending || publishing;
 
   return (
     <>
@@ -109,27 +221,76 @@ export function ShareCardButton({ date }: { date: string }) {
                 閉じる
               </button>
             </div>
-            {pending && !result?.ok ? <p className="mt-6 text-sm text-zinc-600">ひとことを作っています…</p> : null}
-            {result && !result.ok ? <p className="mt-6 text-sm text-red-800">{result.error}</p> : null}
-            {result?.ok ? (
+            {pending ? <p className="mt-6 text-sm text-zinc-600">カードを準備しています…</p> : null}
+            {error ? <p className="mt-4 text-sm text-red-800">{error}</p> : null}
+            {!pending && name && situation ? (
               <>
-                <img src={result.imageUrl} alt={`${result.name}のシェアカード。${result.text}`} className="mt-4 w-full rounded-2xl" />
+                <fieldset className="mt-4">
+                  <legend className="text-sm font-medium text-zinc-800">今日のわたし</legend>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {SHARE_SITUATIONS.map((item) => {
+                      const selected = item.id === situationId;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          aria-pressed={selected}
+                          className={`${choiceClass} ${selected ? "bg-[#F5821F] text-white" : "border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800"}`}
+                          onClick={() => chooseSituation(item.id)}
+                          disabled={busy}
+                        >
+                          {item.text}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+                <div className="mt-4 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    aria-pressed={showStreak}
+                    className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
+                    onClick={() => setShowStreak((current) => !current)}
+                  >
+                    記録の日数 {showStreak ? "オン" : "オフ"}
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={showWeight}
+                    className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
+                    onClick={() => setShowWeight((current) => !current)}
+                  >
+                    体重の変化 {showWeight ? "オン" : "オフ"}
+                  </button>
+                  {showWeight ? <p className="text-xs text-zinc-500">公開されます</p> : null}
+                </div>
+                <div className="mt-4">
+                  <ShareChatCard
+                    characterId={characterId}
+                    name={name}
+                    situation={situation.text}
+                    reply={replyPending ? "返事を書いています…" : reply}
+                    streakDays={shownStreak}
+                    weightLabel={shownWeight}
+                  />
+                </div>
+                <p className="mt-4 text-sm leading-6 whitespace-pre-wrap text-zinc-700">{postText}</p>
                 <div className="mt-4 flex flex-col gap-3">
                   {canNativeShare ? (
-                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareNative}>
+                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareNative} disabled={busy}>
                       この端末でシェア
                     </button>
                   ) : null}
-                  <a href={xUrl} target="_blank" rel="noopener noreferrer" className={`${actionClass} bg-[#F5821F] text-white`}>
+                  <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareOnX} disabled={busy}>
                     Xでシェア
-                  </a>
-                  <button type="button" className={`${actionClass} border border-[#F5821F] text-[#F5821F]`} onClick={copyLink}>
+                  </button>
+                  <button type="button" className={`${actionClass} border border-[#F5821F] text-[#F5821F]`} onClick={copyLink} disabled={busy}>
                     リンクをコピー
                   </button>
-                  <a href={result.imageUrl} download="ai-diet-share.png" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`}>
+                  <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={saveImage} disabled={busy}>
                     画像を保存
-                  </a>
-                  <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={remove} disabled={pending}>
+                  </button>
+                  <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={remove} disabled={busy}>
                     このカードを削除
                   </button>
                 </div>

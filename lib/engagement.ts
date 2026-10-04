@@ -213,6 +213,22 @@ export async function countAffection(userId: string, advisorId: AdvisorId) {
   return dates.length;
 }
 
+export async function loadStreakDays(userId: string, now = new Date()) {
+  const today = tokyoToday(now).date;
+  const [mealDates, weightDates, freezeDates, declineDates] = await Promise.all([
+    listMealDates(userId),
+    listWeightDates(userId),
+    listFreezeDates(userId),
+    listDeclineDates(userId),
+  ]);
+  return evaluateStreak({
+    today,
+    recordDates: [...mealDates, ...weightDates],
+    freezeDates,
+    declineDates,
+  }).streakDays;
+}
+
 export async function loadEngagement(userId: string, now = new Date()): Promise<EngagementSnapshot> {
   const today = tokyoToday(now).date;
   const [mealDates, weightDates, freezeDates, declineDates, advisorId] = await Promise.all([
