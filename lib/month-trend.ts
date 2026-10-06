@@ -1,3 +1,10 @@
+import {
+  chooseWeightAxisTicks,
+  goalWeightInAxis,
+  hasWeightOutsideRange,
+  type WeightAxisRange,
+} from "./weight-axis";
+
 export type MonthTrendGoal = {
   currentWeightKg: number;
   targetWeightKg: number;
@@ -27,6 +34,7 @@ export type MonthTrendModel = {
   days: MonthTrendDay[];
   weight: MonthTrendScale | null;
   calories: MonthTrendScale | null;
+  weightOutside: boolean;
 };
 
 type CalorieInput = {
@@ -103,7 +111,17 @@ export function chooseTicks(min: number, max: number, candidates: number[], maxL
 export function weightScale(
   goal: MonthTrendGoal | null,
   values: number[],
+  axis: WeightAxisRange | null = null,
 ): MonthTrendScale | null {
+  if (axis) {
+    return {
+      min: axis.minKg,
+      max: axis.maxKg,
+      ticks: chooseWeightAxisTicks(axis.minKg, axis.maxKg),
+      goal: goalWeightInAxis(goal?.targetWeightKg ?? null, axis.minKg, axis.maxKg),
+    };
+  }
+
   const finite = values.filter((value) => Number.isFinite(value));
   let min: number;
   let max: number;
@@ -176,6 +194,7 @@ export function buildMonthTrend(input: {
   weights: WeightInput[];
   goal: MonthTrendGoal | null;
   today: string;
+  axis?: WeightAxisRange | null;
 }): MonthTrendModel {
   const key = monthKey(input.year, input.month);
   const weightByDate = new Map<string, number>();
@@ -216,6 +235,13 @@ export function buildMonthTrend(input: {
       : null;
   const hasData = weightValues.length > 0 || kcalValues.length > 0;
   const dailyGoal = goal ? goal.weeklyKcal / 7 : null;
+  const axis =
+    input.axis &&
+    Number.isFinite(input.axis.minKg) &&
+    Number.isFinite(input.axis.maxKg) &&
+    input.axis.maxKg >= input.axis.minKg + 2
+      ? input.axis
+      : null;
 
   return {
     year: input.year,
@@ -224,7 +250,8 @@ export function buildMonthTrend(input: {
     goalSet: goal != null,
     todayIndex: days.findIndex((day) => day.date === input.today),
     days,
-    weight: hasData ? weightScale(goal, weightValues) : null,
+    weight: hasData ? weightScale(goal, weightValues, axis) : null,
     calories: hasData ? calorieScale(dailyGoal, kcalValues) : null,
+    weightOutside: axis ? hasWeightOutsideRange(weightValues, axis.minKg, axis.maxKg) : false,
   };
 }

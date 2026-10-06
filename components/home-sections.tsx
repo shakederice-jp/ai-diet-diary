@@ -14,7 +14,7 @@ import { DEFAULT_WEEKLY_KCAL_GOAL } from "@/lib/goals";
 import { buildMonthTrend } from "@/lib/month-trend";
 import { listStepsInMonth } from "@/lib/steps";
 import { getHealthPlanetToken } from "@/lib/supabase/admin";
-import { getCalorieGoal, type StoredCalorieGoal } from "@/lib/user-settings";
+import { getCalorieGoal, getWeightAxis, type StoredCalorieGoal } from "@/lib/user-settings";
 import { syncHealthPlanetWeights } from "@/lib/weight-sync";
 import { listWeightsInMonth } from "@/lib/weights";
 
@@ -113,7 +113,10 @@ async function HomeMonthTrend({
   goal: StoredCalorieGoal | null;
   today: string;
 }) {
-  const weights = await listWeightsInMonth(userId, year, month).catch(() => []);
+  const [weights, axis] = await Promise.all([
+    listWeightsInMonth(userId, year, month).catch(() => []),
+    getWeightAxis(userId).catch(() => null),
+  ]);
   const model = buildMonthTrend({
     year,
     month,
@@ -127,6 +130,7 @@ async function HomeMonthTrend({
         }
       : null,
     today,
+    axis,
   });
   return <MonthTrendChart model={model} />;
 }

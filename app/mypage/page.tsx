@@ -8,14 +8,16 @@ import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
 import { WeekStartForm } from "@/components/week-start-form";
+import { WeightAxisForm } from "@/components/weight-axis-form";
 import { WEEK_START_COOKIE, parseWeekStart } from "@/lib/calendar";
+import { formatWeightAxisKg } from "@/lib/weight-axis";
 import { navPrimary, navQuiet, navSecondary } from "@/components/nav-styles";
 import { ShareCardList } from "@/components/share-card-list";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { listOwnShareCards } from "@/lib/share-store";
 import { redirect } from "next/navigation";
 import { getAuthUserId } from "@/lib/supabase/server";
-import { storageErrorMessage } from "@/lib/user-settings";
+import { getWeightAxis, storageErrorMessage } from "@/lib/user-settings";
 import type { AdvisorId } from "@/lib/advisors";
 
 export const metadata: Metadata = {
@@ -34,6 +36,7 @@ export default async function MyPage({
   }
   const store = await cookies();
   const weekStartsOn = parseWeekStart(store.get(WEEK_START_COOKIE)?.value);
+  const weightAxis = await loadWeightAxis(userId);
 
   return (
     <div className="flex flex-1 flex-col items-center bg-[#FFF8F3] px-4 py-10 font-sans">
@@ -77,9 +80,31 @@ export default async function MyPage({
         </form>
         <HealthPlanetSettings userId={userId} status={params.healthplanet} reason={params.reason} />
         <WeekStartForm weekStartsOn={weekStartsOn} />
+        <WeightAxisForm
+          initialMinKg={weightAxis.minKg}
+          initialMaxKg={weightAxis.maxKg}
+          loadError={weightAxis.loadError}
+        />
       </main>
     </div>
   );
+}
+
+async function loadWeightAxis(userId: string) {
+  try {
+    const axis = await getWeightAxis(userId);
+    return {
+      minKg: axis ? formatWeightAxisKg(axis.minKg) : "",
+      maxKg: axis ? formatWeightAxisKg(axis.maxKg) : "",
+      loadError: null,
+    };
+  } catch {
+    return {
+      minKg: "",
+      maxKg: "",
+      loadError: "縦軸の設定を読み込めませんでした。グラフは自動の範囲のままです。",
+    };
+  }
 }
 
 async function OwnShareCards({ userId }: { userId: string }) {

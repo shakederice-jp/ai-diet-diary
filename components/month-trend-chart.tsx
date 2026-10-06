@@ -11,6 +11,7 @@ import {
   type MonthTrendModel,
   type MonthTrendScale,
 } from "@/lib/month-trend";
+import { isWeightOutsideRange, weightPlotFraction } from "@/lib/weight-axis";
 
 const PAD_L = 46;
 const PAD_R = 8;
@@ -45,6 +46,10 @@ function yFor(value: number, scale: MonthTrendScale, top: number, height: number
   const span = scale.max - scale.min || 1;
   const clamped = Math.min(scale.max, Math.max(scale.min, value));
   return top + (1 - (clamped - scale.min) / span) * height;
+}
+
+function yForWeight(value: number, scale: MonthTrendScale, top: number, height: number) {
+  return top + (1 - weightPlotFraction(value, scale.min, scale.max)) * height;
 }
 
 function annotationY(y: number, top: number, bottom: number) {
@@ -131,6 +136,7 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
   const calTop = PAD_T + WEIGHT_H + GAP;
   const calBottom = calTop + CAL_H;
   const clipId = `trend-cal-${model.year}-${model.month}`;
+  const weightClipId = `trend-weight-${model.year}-${model.month}`;
 
   function xAt(index: number) {
     return PAD_L + (index + 0.5) * slot;
@@ -152,7 +158,8 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
                 {
                   index,
                   x: xAt(index),
-                  y: yFor(day.weightKg, model.weight!, weightTop, WEIGHT_H),
+                  y: yForWeight(day.weightKg, model.weight!, weightTop, WEIGHT_H),
+                  outside: isWeightOutsideRange(day.weightKg, model.weight!.min, model.weight!.max),
                 },
               ],
         );
@@ -170,9 +177,15 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
       data-calorie-max={model.calories?.max ?? ""}
       data-weight-goal={model.weight?.goal ?? ""}
       data-calorie-goal={model.calories?.goal ?? ""}
+      data-weight-outside={model.weightOutside ? "true" : "false"}
     >
       <h2 className="text-sm font-medium text-[#F5821F]">体重とカロリー</h2>
       <p className="mt-1 text-[11px] leading-4 text-[#8A7360]">上段 体重（kg） / 下段 摂取カロリー</p>
+      {model.weightOutside ? (
+        <p className="mt-1 text-[11px] leading-4 text-[#8A7360]" data-weight-outside-note="">
+          範囲外の日があります
+        </p>
+      ) : null}
       <div
         ref={frame}
         tabIndex={0}
@@ -197,6 +210,9 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
             <defs>
               <clipPath id={clipId}>
                 <rect x={PAD_L} y={calTop} width={plotW} height={CAL_H} />
+              </clipPath>
+              <clipPath id={weightClipId}>
+                <rect x={PAD_L} y={weightTop} width={plotW} height={WEIGHT_H} />
               </clipPath>
             </defs>
             <rect x={PAD_L} y={weightTop} width={plotW} height={WEIGHT_H} fill={PLOT} />
@@ -287,19 +303,22 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
                 strokeWidth={2}
                 strokeLinejoin="round"
                 strokeLinecap="round"
+                clipPath={model.weightOutside ? `url(#${weightClipId})` : undefined}
               />
             ) : null}
-            {weightPoints.map((point) => (
-              <circle
-                key={`p-${point.index}`}
-                cx={point.x}
-                cy={point.y}
-                r={3.5}
-                fill={LINE}
-                stroke={PLOT}
-                strokeWidth={1.5}
-              />
-            ))}
+            {weightPoints.map((point) =>
+              point.outside ? null : (
+                <circle
+                  key={`p-${point.index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r={3.5}
+                  fill={LINE}
+                  stroke={PLOT}
+                  strokeWidth={1.5}
+                />
+              ),
+            )}
             {model.calories ? (
               <g>
                 {model.calories.ticks.map((tick) => {

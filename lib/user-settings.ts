@@ -8,6 +8,7 @@ import {
 } from "./calorie-plan";
 import { parseIsoDate } from "./calendar";
 import { createDataClient } from "@/lib/supabase/server";
+import { coerceStoredWeightAxis, type WeightAxisRange } from "./weight-axis";
 
 export type StoredProfile = ProfileInput;
 
@@ -209,4 +210,50 @@ function mapCalorieGoal(row: CalorieGoalRow): StoredCalorieGoal | null {
     floorKcal,
     floorApplied: Boolean(row.floor_applied),
   };
+}
+
+function isMissingWeightAxisStorage(error: { message?: string; code?: string }) {
+  const message = error.message ?? "";
+  return (
+    error.code === "PGRST205" ||
+    error.code === "42P01" ||
+    /schema cache|does not exist|Could not find the table|Could not find the '.+' column/i.test(message)
+  );
+}
+
+export async function getWeightAxis(userId: string): Promise<WeightAxisRange | null> {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("weight_axis_preferences")
+    .select("min_kg, max_kg")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingWeightAxisStorage(error)) {
+      return null;
+    }
+    throw new Error(`Failed to load weight axis: ${error.message}`);
+  }
+  if (!data) {
+    return null;
+  }
+  return coerceStoredWeightAxis(data.min_kg, data.max_kg);
+}
+
+export async function saveWeightAxis(userId: string, range: WeightAxisRange | null) {
+  const supabase = await createDataClient();
+  const { error } = await supabase.from("weight_axis_preferences").upsert(
+    {
+      user_id: userId,
+      min_kg: range ? range.minKg.toFixed(1) : null,
+      max_kg: range ? range.maxKg.toFixed(1) : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+
+  if (error) {
+    throw new Error(`Failed to save weight axis: ${error.message}`);
+  }
 }
