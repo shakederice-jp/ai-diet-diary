@@ -11,11 +11,11 @@ export function kcalSourceLabel(source: KcalSource) {
 }
 
 export const SOURCE_COLORS: Record<MealSource, string> = {
-  外食: "#C8553D",
-  内食: "#6B9A73",
+  外食: "#C8664C",
+  内食: "#7F9C6E",
   中食: "#D9A441",
 };
-export const SNACK_COLOR = "#8E7CA8";
+export const SNACK_COLOR = "#A38AA8";
 
 export function mealTone(period: MealPeriod, source: MealSource | null) {
   if (period === "間食" || !source) {

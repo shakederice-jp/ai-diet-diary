@@ -10,6 +10,8 @@ import {
 const BAND_X = 56;
 const BAND_WIDTH = 56;
 const LABEL_X = 4;
+const STACK_RADIUS = 6;
+const PERIOD_GAP = "#F3EBDD";
 
 function spacedLabels(
   labels: Array<{ period: string; y: number; height: number }>,
@@ -36,6 +38,20 @@ function spacedLabels(
   return placed;
 }
 
+function periodSeams(labels: Array<{ y: number; height: number }>) {
+  const ordered = [...labels].sort((left, right) => left.y - right.y);
+  const seams: number[] = [];
+  for (let index = 0; index < ordered.length - 1; index += 1) {
+    const upper = ordered[index];
+    const lower = ordered[index + 1];
+    if (!upper || !lower) {
+      continue;
+    }
+    seams.push(upper.y + upper.height);
+  }
+  return seams;
+}
+
 export function DailyCalorieBand({
   meals,
   dailyGoal,
@@ -47,6 +63,11 @@ export function DailyCalorieBand({
   const width = 220;
   const topPad = 18;
   const labels = spacedLabels(band.labels, band.chartHeight);
+  const seams = periodSeams(band.labels);
+  const stackTop = band.slices.length === 0 ? 0 : Math.min(...band.slices.map((slice) => slice.y));
+  const stackBottom =
+    band.slices.length === 0 ? 0 : Math.max(...band.slices.map((slice) => slice.y + slice.height));
+  const clipId = "calorie-band-stack";
 
   return (
     <figure className="mt-6">
@@ -68,17 +89,43 @@ export function DailyCalorieBand({
           fill="#FBF6EE"
           stroke="#F5821F"
         />
-        {band.slices.map((slice) => (
-          <rect
-            key={`${slice.period}-${slice.source ?? "snack"}-${slice.y}`}
-            x={BAND_X}
-            y={slice.y}
-            width={BAND_WIDTH}
-            height={Math.max(slice.height, 0)}
-            fill={slice.color}
-          >
-            <title>{`${slice.period}${slice.source ? ` ${slice.source}` : ""} ${formatKcal(slice.kcal)}`}</title>
-          </rect>
+        <defs>
+          <clipPath id={clipId}>
+            <rect
+              x={BAND_X}
+              y={stackTop}
+              width={BAND_WIDTH}
+              height={Math.max(stackBottom - stackTop, 0)}
+              rx={STACK_RADIUS}
+              ry={STACK_RADIUS}
+            />
+          </clipPath>
+        </defs>
+        <g clipPath={`url(#${clipId})`}>
+          {band.slices.map((slice) => (
+            <rect
+              key={`${slice.period}-${slice.source ?? "snack"}-${slice.y}`}
+              x={BAND_X}
+              y={slice.y}
+              width={BAND_WIDTH}
+              height={Math.max(slice.height, 0)}
+              fill={slice.color}
+            >
+              <title>{`${slice.period}${slice.source ? ` ${slice.source}` : ""} ${formatKcal(slice.kcal)}`}</title>
+            </rect>
+          ))}
+        </g>
+        {seams.map((y) => (
+          <line
+            key={y}
+            x1={BAND_X}
+            x2={BAND_X + BAND_WIDTH}
+            y1={y}
+            y2={y}
+            stroke={PERIOD_GAP}
+            strokeWidth={2}
+            vectorEffect="non-scaling-stroke"
+          />
         ))}
         <line
           x1={BAND_X - 8}
