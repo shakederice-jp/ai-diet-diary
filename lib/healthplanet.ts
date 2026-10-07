@@ -142,7 +142,7 @@ export async function fetchWeightMeasurements(input: {
   from: Date;
   to: Date;
 }): Promise<HealthPlanetWeight[]> {
-  let from = formatHealthPlanetTimestamp(input.from);
+  const from = formatHealthPlanetTimestamp(input.from);
   let to = formatHealthPlanetTimestamp(input.to);
   if (from >= to) {
     to = formatHealthPlanetTimestamp(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setFavoriteOnDay } from "@/app/days/[date]/actions";
 import { RecordReaction } from "@/components/record-reaction";
 
@@ -16,12 +16,14 @@ export function FavoriteMenuToggle({
   label: string;
 }) {
   const [on, setOn] = useState(checked);
+  const [prevChecked, setPrevChecked] = useState(checked);
   const [reaction, setReaction] = useState<{ advisorName: string; line: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
+  if (checked !== prevChecked) {
+    setPrevChecked(checked);
     setOn(checked);
-  }, [checked]);
+  }
 
   return (
     <div className="min-w-0 flex-1">

@@ -45,14 +45,13 @@ function StepEntryForm({ date }: { date: string }) {
   const [state, formAction, pending] = useActionState(addSteps, initialState);
   const [steps, setSteps] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
+  const [appliedSavedAt, setAppliedSavedAt] = useState(state.savedAt);
 
-  useEffect(() => {
-    if (!state.savedAt) {
-      return;
-    }
+  if (state.savedAt && state.savedAt !== appliedSavedAt) {
+    setAppliedSavedAt(state.savedAt);
     setSteps("");
     setDistanceKm("");
-  }, [state.savedAt]);
+  }
 
   return (
     <form action={formAction} className="mt-3">

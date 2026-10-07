@@ -20,6 +20,11 @@ import { listWeightsInMonth } from "@/lib/weights";
 
 const FRESH_SYNC_MS = 15 * 60 * 1000;
 
+function weightSyncIsDue(syncedAtIso: string | null) {
+  const syncedAt = syncedAtIso ? new Date(syncedAtIso).getTime() : 0;
+  return !(Number.isFinite(syncedAt) && Date.now() - syncedAt < FRESH_SYNC_MS);
+}
+
 async function loadStoredGoal(userId: string) {
   if (!userId || userId === "local") {
     return null;
@@ -149,8 +154,7 @@ export async function HomeHealth({ userId }: { userId: string }) {
       const stored = await getHealthPlanetToken(userId);
       connected = Boolean(stored);
       if (stored) {
-        const syncedAt = stored.weight_synced_at ? new Date(stored.weight_synced_at).getTime() : 0;
-        if (!(Number.isFinite(syncedAt) && Date.now() - syncedAt < FRESH_SYNC_MS)) {
+        if (weightSyncIsDue(stored.weight_synced_at)) {
           const origin = await requestOrigin();
           after(() => syncHealthPlanetWeights(userId, origin).catch(() => undefined));
         }

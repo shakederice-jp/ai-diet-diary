@@ -68,13 +68,12 @@ function WeightEntryForm({
   const [state, formAction, pending] = useActionState(addWeight, initialState);
   const [weight, setWeight] = useState("");
   const [measuredAt, setMeasuredAt] = useState(initialMeasuredAt);
+  const [appliedSavedAt, setAppliedSavedAt] = useState(state.savedAt);
 
-  useEffect(() => {
-    if (!state.savedAt) {
-      return;
-    }
+  if (state.savedAt && state.savedAt !== appliedSavedAt) {
+    setAppliedSavedAt(state.savedAt);
     setWeight("");
-  }, [state.savedAt]);
+  }
 
   return (
     <form action={formAction} className="mt-3">

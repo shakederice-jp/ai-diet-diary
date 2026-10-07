@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdvisor } from "@/lib/advisors";
 import { navPrimary } from "@/components/nav-styles";
@@ -73,9 +74,9 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
             <p className="mt-3 text-xs text-zinc-600">{SHARE_DISCLAIMER}</p>
           </>
         )}
-        <a href="/" className={`mt-8 ${navPrimary}`}>
+        <Link href="/" className={`mt-8 ${navPrimary}`}>
           あなたも始めてみる
-        </a>
+        </Link>
       </main>
     </div>
   );

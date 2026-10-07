@@ -20,6 +20,15 @@ export function MealEntryForm({
   const [period, setPeriod] = useState<MealPeriod>(initialPeriod);
   const [source, setSource] = useState<MealSource>("内食");
   const [manualKcal, setManualKcal] = useState("");
+  const resetToken = state.savedAt ? `${state.savedAt}:${initialPeriod}` : null;
+  const [appliedReset, setAppliedReset] = useState<string | null>(null);
+
+  if (resetToken && resetToken !== appliedReset) {
+    setAppliedReset(resetToken);
+    setManualKcal("");
+    setPeriod(initialPeriod);
+    setSource("内食");
+  }
 
   useEffect(() => {
     if (!state.savedAt) {
@@ -38,9 +47,6 @@ export function MealEntryForm({
     if (favorite instanceof HTMLInputElement) {
       favorite.checked = false;
     }
-    setManualKcal("");
-    setPeriod(initialPeriod);
-    setSource("内食");
   }, [state.savedAt, initialPeriod]);
 
   return (

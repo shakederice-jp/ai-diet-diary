@@ -108,9 +108,16 @@ async function loadWeightAxis(userId: string) {
 }
 
 async function OwnShareCards({ userId }: { userId: string }) {
+  const cards = await loadOwnShareCards(userId);
+  if (!cards) {
+    return null;
+  }
+  return <ShareCardList cards={cards} />;
+}
+
+async function loadOwnShareCards(userId: string) {
   try {
-    const cards = await listOwnShareCards(userId);
-    return <ShareCardList cards={cards} />;
+    return await listOwnShareCards(userId);
   } catch {
     return null;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { loadShareReply, prepareShare, publishShare, removeShareCard } from "@/app/share/actions";
 import { ShareChatCard } from "@/components/share-chat-card";
 import {
@@ -38,16 +38,18 @@ export function ShareCardButton({ date }: { date: string }) {
   const [reply, setReply] = useState("");
   const [card, setCard] = useState<{ id: string; pageUrl: string; imageUrl: string } | null>(null);
   const [canNativeShare, setCanNativeShare] = useState(false);
+  const [prevDate, setPrevDate] = useState(date);
   const replyToken = useRef(0);
 
-  useEffect(() => {
+  if (date !== prevDate) {
+    setPrevDate(date);
     setOpen(false);
     setError(null);
     setNotice(null);
     setName("");
     setCard(null);
     setReply("");
-  }, [date]);
+  }
 
   async function fetchReply(nextSituation: ShareSituationId) {
     const token = replyToken.current + 1;

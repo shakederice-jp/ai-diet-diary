@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setRankingVisible } from "@/app/mypage/actions";
 
 export function RankingSwitch({ initialEnabled }: { initialEnabled: boolean }) {
   const [enabled, setEnabled] = useState(initialEnabled);
+  const [prevEnabled, setPrevEnabled] = useState(initialEnabled);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
+  if (initialEnabled !== prevEnabled) {
+    setPrevEnabled(initialEnabled);
     setEnabled(initialEnabled);
-  }, [initialEnabled]);
+  }
 
   return (
     <div className="mt-3">
