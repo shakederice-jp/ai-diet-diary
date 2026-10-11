@@ -57,6 +57,12 @@ export default async function MyPage({
             目標設定
           </InstantLink>
         </div>
+        <InstantLink
+          href="/howto"
+          className="mt-3 flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
+        >
+          このサイトの使い方
+        </InstantLink>
         <div className="mt-6">
           <Suspense
             fallback={<p className="text-sm text-zinc-600">連続記録を読み込んでいます…</p>}

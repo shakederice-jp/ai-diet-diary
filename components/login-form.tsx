@@ -41,6 +41,12 @@ export function LoginForm({ notice = null }: { notice?: string | null }) {
         <InstantLink href="/forgot-password" className={authLinkClass}>
           パスワードを設定する・忘れた方はこちら
         </InstantLink>
+        <InstantLink
+          href="/howto"
+          className="block py-2 text-center text-sm text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]"
+        >
+          このサイトの使い方
+        </InstantLink>
       </div>
     </AuthFrame>
   );
