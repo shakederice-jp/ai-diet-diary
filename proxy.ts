@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 
-const protectedPrefixes = ["/days", "/mypage", "/settings", "/goals", "/api/auth/healthplanet"];
+const protectedPrefixes = ["/days", "/mypage", "/settings", "/goals", "/recipes", "/api/auth/healthplanet"];
 const guestOnlyPaths = new Set(["/login", "/signup", "/forgot-password"]);
 
 export async function proxy(request: NextRequest) {

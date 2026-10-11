@@ -33,7 +33,7 @@ export function matchCategory(response: string, names: string[]) {
   );
 }
 
-async function askClaude(prompt: string, maxTokens: number) {
+async function askClaude(prompt: string, maxTokens: number, system?: string) {
   const response = await fetch(CLAUDE_MESSAGES_URL, {
     method: "POST",
     headers: {
@@ -45,8 +45,9 @@ async function askClaude(prompt: string, maxTokens: number) {
       model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL,
       max_tokens: maxTokens,
       // Haiku 5.5 は思考が既定でオンで、思考トークンも max_tokens に含まれる。
-      // カロリーや分類などの短い返答では思考を切り、出力が増えないようにする。
+      // 短い返答では思考を切り、出力が増えないようにする。
       thinking: { type: "disabled" },
+      ...(system ? { system } : {}),
       messages: [{ role: "user", content: prompt }],
     }),
     cache: "no-store",
@@ -89,6 +90,18 @@ export async function generateAdvisorComment(prompt: string, maxTokens = 400) {
     throw new Error("コメントを読み取れませんでした。");
   }
   return text.slice(0, 500);
+}
+
+export async function completeClaudeText(input: {
+  system: string;
+  prompt: string;
+  maxTokens: number;
+}) {
+  const text = (await askClaude(input.prompt, input.maxTokens, input.system)).trim();
+  if (!text) {
+    throw new Error("Claude returned an empty response");
+  }
+  return text;
 }
 
 export async function classifyDishCategory(dishName: string, categoryNames: string[]) {

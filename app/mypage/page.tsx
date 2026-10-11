@@ -58,8 +58,14 @@ export default async function MyPage({
           </InstantLink>
         </div>
         <InstantLink
+          href="/recipes"
+          className="mt-4 flex min-h-[52px] w-full items-center rounded-2xl px-3 text-base text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:bg-[#E7DCC8]"
+        >
+          自炊メニューを提案してもらう
+        </InstantLink>
+        <InstantLink
           href="/howto"
-          className="mt-3 flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
+          className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
         >
           このサイトの使い方
         </InstantLink>
