@@ -1,7 +1,7 @@
 import { getAnthropicApiKey } from "@/lib/env";
 
 const CLAUDE_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-haiku-4-5";
+const DEFAULT_MODEL = "claude-haiku-5-5";
 
 type ClaudeResponse = {
   content?: Array<{ type?: string; text?: string }>;
@@ -44,6 +44,9 @@ async function askClaude(prompt: string, maxTokens: number) {
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL,
       max_tokens: maxTokens,
+      // Haiku 5.5 は思考が既定でオンで、思考トークンも max_tokens に含まれる。
+      // カロリーや分類などの短い返答では思考を切り、出力が増えないようにする。
+      thinking: { type: "disabled" },
       messages: [{ role: "user", content: prompt }],
     }),
     cache: "no-store",

@@ -1,5 +1,6 @@
 import { InstantLink } from "@/components/instant-link";
 import { navIcon } from "@/components/nav-styles";
+import { APP_TITLE } from "@/lib/app-title";
 import {
   addMonths,
   formatKcal,
@@ -70,6 +71,9 @@ export function MonthCalendar({
           マイページ
         </InstantLink>
       </div>
+      <p className="mt-2 text-lg font-medium leading-snug text-[#6B4A32] sm:text-xl">
+        {APP_TITLE}
+      </p>
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 sm:gap-3">
           <InstantLink
