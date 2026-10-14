@@ -1,2 +1,2 @@
-/** 画面に出す手帳の名前。短い表記を足すときはここを変える。 */
-export const APP_TITLE = "AIダイエットマネジメント手帳";
+/** 画面に出す手帳の名前。値は lib/site.ts の SITE_NAME。変えるときはそちらを直す。 */
+export { SITE_NAME as APP_TITLE } from "@/lib/site";

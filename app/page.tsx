@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HomeCalendar, HomeHealth } from "@/components/home-sections";
+import { LandingPage } from "@/components/landing-page";
 import {
   WEEK_START_COOKIE,
   parseMonthParam,
@@ -29,7 +30,7 @@ export default async function Home({
     if (params.login === "error" || params.error === "link") {
       redirect("/login?error=link");
     }
-    redirect("/login");
+    return <LandingPage />;
   }
 
   const today = tokyoToday();
