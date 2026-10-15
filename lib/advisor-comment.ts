@@ -3,12 +3,16 @@ import {
   advisorRecordHash,
   buildAdvisorPrompt,
   getAdvisor,
+  pickDailyAngle,
+  seasonLabel,
+  weekdayLabel,
   type AdvisorId,
 } from "@/lib/advisors";
 import {
   deleteAdvisorComment,
   getAdvisorComment,
   getAdvisorPreference,
+  listRecentAdvisorComments,
   upsertAdvisorComment,
 } from "@/lib/advisor-store";
 import { generateAdvisorComment } from "@/lib/claude";
@@ -89,12 +93,17 @@ export async function loadAdvisorComment(input: {
       return { kind: "comment", advisorId, text: cached.comment, cached: true };
     }
 
+    const recentComments = await listRecentAdvisorComments(input.userId, input.date);
     const text = await generateAdvisorComment(
       buildAdvisorPrompt({
         advisor,
         date: input.date,
         dailyGoal: input.dailyGoal,
         bond,
+        angle: pickDailyAngle(input.userId, input.date),
+        weekday: weekdayLabel(input.date),
+        season: seasonLabel(input.date),
+        recentComments,
         meals: input.meals,
       }),
     );

@@ -40,6 +40,34 @@ export async function upsertAdvisorPreference(userId: string, advisorId: Advisor
   }
 }
 
+export async function listRecentAdvisorComments(userId: string, beforeDate: string, limit = 5) {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("advisor_comments")
+    .select("recorded_on, comment")
+    .eq("user_id", userId)
+    .lt("recorded_on", beforeDate)
+    .order("recorded_on", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Failed to load recent advisor comments: ${error.message}`);
+  }
+
+  return (data ?? [])
+    .flatMap((row) => {
+      if (typeof row.recorded_on !== "string" || typeof row.comment !== "string") {
+        return [];
+      }
+      const comment = row.comment.trim();
+      if (!comment) {
+        return [];
+      }
+      return [{ date: row.recorded_on, comment }];
+    })
+    .reverse();
+}
+
 export async function getAdvisorComment(
   userId: string,
   date: string,
