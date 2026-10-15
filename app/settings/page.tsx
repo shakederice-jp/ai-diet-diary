@@ -1,15 +1,17 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile-form";
 import { SettingsFrame } from "@/components/settings-frame";
 import { decimalInputValue, type ActivityLevel, type Gender } from "@/lib/calorie-plan";
 import { tokyoToday } from "@/lib/calendar";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { getProfile, storageErrorMessage } from "@/lib/user-settings";
 
-export const metadata: Metadata = {
-  title: "プロフィール | AI Diet Diary",
-};
+export const metadata = pageMetadata({
+  title: "プロフィール",
+  path: "/settings",
+  index: false,
+});
 
 export default async function SettingsPage() {
   const today = tokyoToday();

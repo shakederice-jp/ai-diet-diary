@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { getAdvisor } from "@/lib/advisors";
 import { navPrimary } from "@/components/nav-styles";
 import { ShareChatCard } from "@/components/share-chat-card";
-import { appOrigin, getPublicShareCard, SHARE_BRAND, SHARE_DISCLAIMER } from "@/lib/share-store";
+import { appOrigin, getPublicShareCard, SHARE_DISCLAIMER } from "@/lib/share-store";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { situationBubble } from "@/lib/share-situations";
 
 export const dynamic = "force-dynamic";
@@ -20,16 +21,21 @@ export async function generateMetadata({
     return { robots: { index: false, follow: false } };
   }
   const origin = await appOrigin();
-  const image = `${origin}/s/${card.id}/image`;
   const advisor = getAdvisor(card.characterId);
   const title = card.situation ? situationBubble(card.situation) : advisor.name;
+  const image = `${origin}/s/${card.id}/image`;
   return {
-    title: `${title} | ${SHARE_BRAND}`,
+    title,
     description: card.text,
+    alternates: { canonical: `/s/${card.id}` },
     robots: { index: false, follow: false },
     openGraph: {
       title,
       description: card.text,
+      url: `${SITE_URL}/s/${card.id}`,
+      type: "website",
+      siteName: SITE_NAME,
+      locale: "ja_JP",
       images: [{ url: image, width: 1200, height: 630 }],
     },
     twitter: {

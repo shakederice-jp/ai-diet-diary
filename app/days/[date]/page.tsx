@@ -14,6 +14,20 @@ import {
 } from "@/lib/calendar";
 import { mealPeriodForTokyoHour, tokyoHour } from "@/lib/meal-slot";
 import { getAuthUserId } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/site";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ date: string }>;
+}) {
+  const { date } = await params;
+  return pageMetadata({
+    title: "記録",
+    path: `/days/${date}`,
+    index: false,
+  });
+}
 
 export default async function DayPage({
   params,

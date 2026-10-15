@@ -4,7 +4,6 @@ import {
   OPERATOR_NAME,
   SITE_DESCRIPTION,
   SITE_NAME,
-  SITE_TITLE,
   SITE_URL,
   publicContactEmail,
 } from "@/lib/site";
@@ -77,43 +76,28 @@ const FAQS = [
 const textLinkClass =
   "inline-flex min-h-[52px] w-full items-center text-base font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
 
-function structuredData(email: string | null) {
-  const application: Record<string, unknown> = {
-    "@type": "WebApplication",
-    name: SITE_NAME,
-    url: SITE_URL,
-    description: SITE_DESCRIPTION,
-    applicationCategory: "HealthApplication",
-    operatingSystem: "Web",
-    inLanguage: "ja",
-    publisher: {
-      "@type": "Organization",
-      name: OPERATOR_NAME,
-    },
-  };
-  if (email) {
-    application.publisher = {
-      "@type": "Organization",
-      name: OPERATOR_NAME,
-      email,
-    };
-  }
+function structuredData() {
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebPage",
-        name: SITE_TITLE,
-        description: SITE_DESCRIPTION,
+        "@type": "WebApplication",
+        name: SITE_NAME,
         url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        applicationCategory: "HealthApplication",
+        operatingSystem: "Web",
         inLanguage: "ja",
-        isPartOf: {
-          "@type": "WebSite",
-          name: SITE_NAME,
-          url: SITE_URL,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "JPY",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: OPERATOR_NAME,
         },
       },
-      application,
       {
         "@type": "FAQPage",
         mainEntity: FAQS.map((item) => ({
@@ -137,7 +121,7 @@ export function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData(email)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(structuredData()).replace(/</g, "\\u003c"),
         }}
       />
       <main className="w-full min-w-0 max-w-2xl break-words rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">

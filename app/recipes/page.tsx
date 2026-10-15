@@ -1,16 +1,18 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { InstantLink } from "@/components/instant-link";
 import { RecipeSuggestionPanel } from "@/components/recipe-suggestion-panel";
 import { navQuiet } from "@/components/nav-styles";
 import { NEED_MORE_RECORDS_MESSAGE, RECIPE_UNAVAILABLE_MESSAGE } from "@/lib/recipe-parse";
 import { loadRecipePage } from "@/lib/recipes";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "自炊メニュー提案 | AI Diet Diary",
+export const metadata = pageMetadata({
+  title: "自炊メニュー提案",
   description: "直近の食事記録から、自炊メニューを3品提案します。",
-};
+  path: "/recipes",
+  index: false,
+});
 
 export default async function RecipesPage() {
   const userId = await getAuthUserId();

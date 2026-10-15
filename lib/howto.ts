@@ -9,6 +9,10 @@ export const HOWTO_TITLE = "このサイトの使い方";
 export const HOWTO_LEAD =
   "食べたものと体重を残して、自分のペースで続けるための手帳です。";
 
+/** 検索結果用。ページにある説明の範囲で、120文字前後。 */
+export const HOWTO_DESCRIPTION =
+  "食べたものと体重を残し、カレンダーとグラフで変化を見るための使い方です。毎日の記録の入れ方、Health Planetからの体重の取り込み、目標の決め方、週のカロリーの目安、5人のAIアドバイザーと連続記録のおやすみを説明します。";
+
 export const HOWTO_BACK_TO_MYPAGE = "マイページに戻る";
 export const HOWTO_BACK_TO_LOGIN = "ログイン画面に戻る";
 

@@ -1,0 +1,6 @@
+# AIダイエットマネジメント手帳
+
+満腹感を得て無理なく続くダイエット法。食事名からAIがカロリーを自動推定、タニタの体組成計(Health Planet)と連携して体重もグラフ化。
+
+- トップ: https://diet.finance-tower.com/
+- 使い方: https://diet.finance-tower.com/howto

@@ -1,11 +1,13 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "ログイン | AI Diet Diary",
-};
+export const metadata = pageMetadata({
+  title: "ログイン",
+  path: "/login",
+  index: false,
+});
 
 type LoginSearchParams = Promise<{
   error?: string;

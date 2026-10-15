@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 /** 公開サイトの共通設定。名前や説明文を変えるときは、このファイルを直す。 */
 
 export const SITE_URL = "https://diet.finance-tower.com";
@@ -23,4 +25,48 @@ export function publicContactEmail() {
     return null;
   }
   return email;
+}
+
+export const OG_IMAGE_PATH = "/og.png";
+
+const ogImage = {
+  url: OG_IMAGE_PATH,
+  width: 1200,
+  height: 630,
+  alt: SITE_NAME,
+} as const;
+
+/** 各ページの title、説明、canonical、OGP。title の書式は layout の template と揃える。 */
+export function pageMetadata(input: {
+  title: string;
+  description?: string;
+  path: string;
+  index: boolean;
+  absoluteTitle?: boolean;
+}): Metadata {
+  const path = input.path.startsWith("/") ? input.path : `/${input.path}`;
+  const description = input.description ?? SITE_DESCRIPTION;
+  const ogTitle = input.absoluteTitle ? input.title : `${input.title} | ${SITE_NAME}`;
+  const url = path === "/" ? SITE_URL : `${SITE_URL}${path}`;
+  return {
+    title: input.absoluteTitle ? { absolute: input.title } : input.title,
+    description,
+    alternates: { canonical: path },
+    robots: { index: input.index, follow: true },
+    openGraph: {
+      title: ogTitle,
+      description,
+      url,
+      type: "website",
+      siteName: SITE_NAME,
+      locale: "ja_JP",
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [OG_IMAGE_PATH],
+    },
+  };
 }

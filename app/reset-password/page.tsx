@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
 import { AuthFrame } from "@/components/auth-frame";
 import { authLinkClass } from "@/components/auth-styles";
 import { InstantLink } from "@/components/instant-link";
 import { ResetPasswordForm } from "@/components/reset-password-form";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "新しいパスワード | AI Diet Diary",
-};
+export const metadata = pageMetadata({
+  title: "新しいパスワード",
+  path: "/reset-password",
+  index: false,
+});
 
 type ResetSearchParams = Promise<{
   claim?: string;

@@ -1,19 +1,22 @@
-import type { Metadata } from "next";
 import { InstantLink } from "@/components/instant-link";
 import {
   HOWTO_APPENDIX,
   HOWTO_BACK_TO_LOGIN,
   HOWTO_BACK_TO_MYPAGE,
+  HOWTO_DESCRIPTION,
   HOWTO_LEAD,
   HOWTO_SECTIONS,
   HOWTO_TITLE,
 } from "@/lib/howto";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: `${HOWTO_TITLE} | AI Diet Diary`,
-  description: HOWTO_LEAD,
-};
+export const metadata = pageMetadata({
+  title: HOWTO_TITLE,
+  description: HOWTO_DESCRIPTION,
+  path: "/howto",
+  index: true,
+});
 
 export default async function HowToPage() {
   const loggedIn = Boolean(await getAuthUserId());

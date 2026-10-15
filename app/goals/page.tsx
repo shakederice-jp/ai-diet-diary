@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { InstantLink } from "@/components/instant-link";
 import { navPrimary } from "@/components/nav-styles";
 import { redirect } from "next/navigation";
@@ -11,6 +10,7 @@ import {
   type PeriodUnit,
 } from "@/lib/calorie-plan";
 import { formatKcal } from "@/lib/calendar";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { listRecentWeightRecords } from "@/lib/supabase/admin";
 import {
@@ -21,9 +21,11 @@ import {
   type StoredProfile,
 } from "@/lib/user-settings";
 
-export const metadata: Metadata = {
-  title: "目標設定 | AI Diet Diary",
-};
+export const metadata = pageMetadata({
+  title: "目標設定",
+  path: "/goals",
+  index: false,
+});
 
 const kcalFigure = "font-mono tabular-nums slashed-zero";
 

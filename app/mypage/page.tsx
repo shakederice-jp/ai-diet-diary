@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { signOut } from "@/app/login/actions";
@@ -16,13 +15,16 @@ import { ShareCardList } from "@/components/share-card-list";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { listOwnShareCards } from "@/lib/share-store";
 import { redirect } from "next/navigation";
+import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { getWeightAxis, storageErrorMessage } from "@/lib/user-settings";
 import type { AdvisorId } from "@/lib/advisors";
 
-export const metadata: Metadata = {
-  title: "マイページ | AI Diet Diary",
-};
+export const metadata = pageMetadata({
+  title: "マイページ",
+  path: "/mypage",
+  index: false,
+});
 
 export default async function MyPage({
   searchParams,
