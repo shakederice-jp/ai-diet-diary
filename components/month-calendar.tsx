@@ -1,6 +1,6 @@
 import { InstantLink } from "@/components/instant-link";
 import { navIcon } from "@/components/nav-styles";
-import { AppBrand } from "@/components/app-brand";
+import { APP_CATCHCOPY, APP_NAME, APP_SUBTITLE } from "@/lib/app-title";
 import {
   addMonths,
   formatKcal,
@@ -62,19 +62,27 @@ export function MonthCalendar({
   const dailyGoal = weeklyGoal / 7;
 
   return (
-    <section className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
-      <div className="flex justify-end">
+    <section className="w-full min-w-0 rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] leading-4 text-[#8A7360]">{APP_SUBTITLE}</p>
+          <p className="mt-0.5 flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="whitespace-nowrap text-xs font-medium leading-none text-[#8A7360]">
+              {APP_CATCHCOPY}
+            </span>
+            <span className="whitespace-nowrap text-[2.25rem] font-extrabold leading-none tracking-tight text-[#6B4A32]">
+              {APP_NAME}
+            </span>
+          </p>
+        </div>
         <InstantLink
           href="/mypage"
-          className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
+          className="inline-flex min-h-[52px] shrink-0 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
         >
           マイページ
         </InstantLink>
       </div>
-      <div className="mt-2">
-        <AppBrand />
-      </div>
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex items-center gap-1 sm:gap-3">
           <InstantLink
             href={monthHref(previous.year, previous.month, today)}
