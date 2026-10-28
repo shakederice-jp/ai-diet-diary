@@ -1,3 +1,4 @@
+import { AppBrand } from "@/components/app-brand";
 import { InstantLink } from "@/components/instant-link";
 import {
   HOWTO_APPENDIX,
@@ -8,7 +9,7 @@ import {
   HOWTO_SECTIONS,
   HOWTO_TITLE,
 } from "@/lib/howto";
-import { pageMetadata } from "@/lib/site";
+import { APP_DISCLAIMER, pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const metadata = pageMetadata({
@@ -24,8 +25,8 @@ export default async function HowToPage() {
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans">
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-medium text-[#F5821F]">AI Diet Diary</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">{HOWTO_TITLE}</h1>
+        <AppBrand size="label" />
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-zinc-950">{HOWTO_TITLE}</h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">{HOWTO_LEAD}</p>
         <div className="mt-8 flex flex-col gap-8">
           {HOWTO_SECTIONS.map((section) => (
@@ -57,6 +58,7 @@ export default async function HowToPage() {
             </section>
           ) : null}
         </div>
+        <p className="mt-10 text-xs leading-5 text-zinc-500">{APP_DISCLAIMER}</p>
       </main>
     </div>
   );

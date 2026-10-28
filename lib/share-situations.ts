@@ -1,4 +1,6 @@
-export const SHARE_BRAND = "AIダイエットマネジメント手帳";
+import { APP_NAME } from "@/lib/app-title";
+
+export const SHARE_BRAND = APP_NAME;
 export const SHARE_DOMAIN = "diet.finance-tower.com";
 export const SHARE_DISCLAIMER = "AIによる一般的な情報です";
 
@@ -91,7 +93,7 @@ export function shareEmoji(characterId: ShareCharacterId) {
 }
 
 export function sharePostText(situation: string, advisorName: string, characterId: ShareCharacterId) {
-  return `${situation}。でも、${advisorName}に励まされた${shareEmoji(characterId)}\n同じように頑張ってる人、一緒に続けよう\n#ダイエット記録 #ダイエット仲間 #AIダイエット手帳`;
+  return `${situation}。でも、${advisorName}に励まされた${shareEmoji(characterId)}\n同じように頑張ってる人、一緒に続けよう\n#ダイエット記録 #ダイエット仲間 #${APP_NAME}`;
 }
 
 export function shareReplyFallback(characterId: ShareCharacterId, situationId: ShareSituationId) {

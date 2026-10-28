@@ -1,7 +1,11 @@
+import { AppBrand } from "@/components/app-brand";
 import { InstantLink } from "@/components/instant-link";
 import { authSubmitClass } from "@/components/auth-styles";
+import { APP_NAME, APP_NAME_EN, APP_SUBTITLE } from "@/lib/app-title";
 import {
+  APP_DISCLAIMER,
   OPERATOR_NAME,
+  SITE_ALTERNATE_NAME,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -10,8 +14,6 @@ import {
 
 const CATCH = "満腹感を得て無理なく続くダイエット法。";
 const SUBLINE = "AIがカロリーと体重を管理する、新時代の無料食事記録アプリ";
-const DISCLAIMER =
-  "カロリーの数値は目安です。このアプリの内容は、医療行為や診断ではありません。持病のある方や、体調に不安のある方は、医師や管理栄養士にご相談ください。";
 
 const FEATURES = [
   {
@@ -83,6 +85,7 @@ function structuredData() {
       {
         "@type": "WebApplication",
         name: SITE_NAME,
+        alternateName: [SITE_ALTERNATE_NAME, APP_NAME_EN],
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         applicationCategory: "HealthApplication",
@@ -125,14 +128,11 @@ export function LandingPage() {
         }}
       />
       <main className="w-full min-w-0 max-w-2xl break-words rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-semibold leading-snug tracking-tight text-balance text-zinc-950 sm:text-3xl">
-          {SITE_NAME}
-        </h1>
+        <AppBrand heading size="hero" />
         <p className="mt-4 text-lg font-medium leading-7 text-balance text-zinc-800">{CATCH}</p>
         <p className="mt-2 text-sm leading-6 text-zinc-600">{SUBLINE}</p>
         <p className="mt-6 text-base leading-7 text-zinc-800">
-          {SITE_NAME}
-          は、食事名を入力するとAIがカロリーを推定し、5人のAIアドバイザーが毎日コメントをくれる、無料のダイエット記録アプリです。
+          {APP_NAME}（{APP_SUBTITLE}）は、食事名を入力するとAIがカロリーを推定し、5人のAIアドバイザーが毎日コメントをくれる、無料のダイエット記録アプリです。
         </p>
         <div className="mt-8 flex flex-col gap-1">
           <InstantLink href="/signup" className={authSubmitClass}>
@@ -171,7 +171,8 @@ export function LandingPage() {
             ))}
           </div>
         </section>
-        <footer className="mt-10 border-t border-[#E4D7C6] pt-6">
+        <p className="mt-10 text-xs leading-5 text-zinc-500">{APP_DISCLAIMER}</p>
+        <footer className="mt-6 border-t border-[#E4D7C6] pt-6">
           <p className="text-sm text-zinc-700">運営: {OPERATOR_NAME}</p>
           {email ? (
             <p className="mt-2 text-sm text-zinc-700">
@@ -184,7 +185,7 @@ export function LandingPage() {
               </a>
             </p>
           ) : null}
-          <p className="mt-4 text-xs leading-5 text-zinc-500">{DISCLAIMER}</p>
+          <p className="mt-4 text-xs text-zinc-400">{APP_NAME_EN}</p>
         </footer>
       </main>
     </div>

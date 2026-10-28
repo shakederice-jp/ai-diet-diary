@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
+import { APP_NAME, APP_CATCHCOPY, APP_SUBTITLE } from "@/lib/app-title";
 
-/** 公開サイトの共通設定。名前や説明文を変えるときは、このファイルを直す。 */
+/** 公開サイトの共通設定。名前は lib/app-title.ts。説明文を変えるときは、このファイルを直す。 */
+
+export { APP_NAME, APP_NAME_EN, APP_CATCHCOPY, APP_SUBTITLE } from "@/lib/app-title";
 
 export const SITE_URL = "https://diet.finance-tower.com";
 
-/** アプリ内の表示名。lib/app-title.ts の APP_TITLE は、この値を使う。 */
-export const SITE_NAME = "AIダイエットマネジメント手帳";
+/** アプリ内の表示名。値は APP_NAME。 */
+export const SITE_NAME = APP_NAME;
+
+/** 検索用の副題。値は APP_SUBTITLE。 */
+export const SITE_ALTERNATE_NAME = APP_SUBTITLE;
 
 export const SITE_TITLE =
-  "【無料】AIダイエットマネジメント手帳 ｜AIがカロリーと体重を管理する、新時代の食事記録アプリ";
+  `【無料】${APP_NAME} ｜${APP_SUBTITLE} - AIがカロリーと体重を管理する食事記録アプリ`;
 
 export const SITE_DESCRIPTION =
-  "満腹感を得て無理なく続くダイエット法。食事名からAIがカロリーを自動推定、タニタの体組成計(Health Planet)と連携して体重もグラフ化。ツンデレ猫や関西のおかんなど、5人のAIアドバイザーが親身に寄り添う無料のダイエット記録アプリです。";
+  `${APP_NAME}は、${APP_SUBTITLE}です。満腹感を得て無理なく続くダイエット法。食事名からAIがカロリーを自動推定、タニタの体組成計(Health Planet)と連携して体重もグラフ化。ツンデレ猫や関西のおかんなど、5人のAIアドバイザーが親身に寄り添う無料のダイエット記録アプリです。`;
+
+/** 紹介ページのフッター上と、使い方の最後に出す共通の免責。 */
+export const APP_DISCLAIMER =
+  "効果や結果には個人差があります。食事・運動の目安は一般的な情報で、医療上の助言ではありません。";
 
 export const OPERATOR_NAME = "ピークアンドバレー合同会社";
 
@@ -29,14 +39,14 @@ export function publicContactEmail() {
 
 export const OG_IMAGE_PATH = "/og.png";
 
-const ogImage = {
+export const OG_IMAGE = {
   url: OG_IMAGE_PATH,
   width: 1200,
   height: 630,
-  alt: SITE_NAME,
+  alt: `${APP_CATCHCOPY}　${APP_NAME}`,
 } as const;
 
-/** 各ページの title、説明、canonical、OGP。title の書式は layout の template と揃える。 */
+/** 各ページの title、説明、canonical、OGP。title の書式は layout の template と揃える。英語表記は入れない。 */
 export function pageMetadata(input: {
   title: string;
   description?: string;
@@ -60,7 +70,7 @@ export function pageMetadata(input: {
       type: "website",
       siteName: SITE_NAME,
       locale: "ja_JP",
-      images: [ogImage],
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
