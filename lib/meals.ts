@@ -32,6 +32,12 @@ export type FavoriteMenu = {
   name: string;
   kcal: number;
   categoryId: string;
+  createdAt: string;
+};
+
+export type FavoriteUse = {
+  count: number;
+  lastUsedAt: string | null;
 };
 
 type MealRow = {
@@ -56,7 +62,18 @@ type FavoriteRow = {
   name: string;
   kcal: number;
   category_id: string;
+  created_at: string;
 };
+
+function mapFavorite(row: FavoriteRow): FavoriteMenu {
+  return {
+    id: row.id,
+    name: row.name,
+    kcal: row.kcal,
+    categoryId: row.category_id,
+    createdAt: row.created_at,
+  };
+}
 
 function mapMeal(row: MealRow): MealEntry {
   return {
@@ -200,24 +217,6 @@ export async function deleteMeal(userId: string, id: string) {
   }
 }
 
-export async function deleteFavoriteMealsOnDate(
-  userId: string,
-  date: string,
-  favoriteId: string,
-) {
-  const supabase = await createDataClient();
-  const { error } = await supabase
-    .from("meal_records")
-    .delete()
-    .eq("user_id", userId)
-    .eq("recorded_on", date)
-    .eq("favorite_id", favoriteId);
-
-  if (error) {
-    throw new Error(`Failed to remove favorite meal: ${error.message}`);
-  }
-}
-
 export async function listCategories(userId: string): Promise<MenuCategory[]> {
   const supabase = await createDataClient();
   const { data, error } = await supabase
@@ -285,6 +284,9 @@ export async function renameCategory(userId: string, categoryId: string, name: s
     .eq("id", categoryId);
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error("同じ名前のカテゴリーがあります。");
+    }
     throw new Error(`Failed to rename category: ${error.message}`);
   }
 }
@@ -293,20 +295,58 @@ export async function listFavorites(userId: string): Promise<FavoriteMenu[]> {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("favorite_menus")
-    .select("id, name, kcal, category_id")
+    .select("id, name, kcal, category_id, created_at")
     .eq("user_id", userId)
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to load favorite menus: ${error.message}`);
   }
 
-  return ((data ?? []) as FavoriteRow[]).map((row) => ({
-    id: row.id,
-    name: row.name,
-    kcal: row.kcal,
-    categoryId: row.category_id,
-  }));
+  return ((data ?? []) as FavoriteRow[]).map(mapFavorite);
+}
+
+export async function listFavoriteUsage(userId: string, favorites: FavoriteMenu[]) {
+  const usage: Record<string, FavoriteUse> = {};
+  for (const favorite of favorites) {
+    usage[favorite.id] = { count: 0, lastUsedAt: null };
+  }
+  if (favorites.length === 0) {
+    return usage;
+  }
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .select("favorite_id, name, created_at")
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(`Failed to load favorite usage: ${error.message}`);
+  }
+
+  const knownIds = new Set(favorites.map((favorite) => favorite.id));
+  const idByName = new Map(favorites.map((favorite) => [favorite.name, favorite.id]));
+  for (const row of (data ?? []) as Array<{
+    favorite_id: string | null;
+    name: string;
+    created_at: string;
+  }>) {
+    const id =
+      row.favorite_id && knownIds.has(row.favorite_id)
+        ? row.favorite_id
+        : idByName.get(row.name);
+    if (!id) {
+      continue;
+    }
+    const current = usage[id] ?? { count: 0, lastUsedAt: null };
+    current.count += 1;
+    if (!current.lastUsedAt || row.created_at > current.lastUsedAt) {
+      current.lastUsedAt = row.created_at;
+    }
+    usage[id] = current;
+  }
+  return usage;
 }
 
 export async function upsertFavorite(input: {
@@ -341,7 +381,7 @@ export async function getFavorite(userId: string, favoriteId: string) {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("favorite_menus")
-    .select("id, name, kcal, category_id")
+    .select("id, name, kcal, category_id, created_at")
     .eq("user_id", userId)
     .eq("id", favoriteId)
     .maybeSingle();
@@ -354,40 +394,116 @@ export async function getFavorite(userId: string, favoriteId: string) {
     return null;
   }
 
-  const row = data as FavoriteRow;
-  return {
-    id: row.id,
-    name: row.name,
-    kcal: row.kcal,
-    categoryId: row.category_id,
-  } satisfies FavoriteMenu;
+  return mapFavorite(data as FavoriteRow);
 }
 
-export async function moveFavorite(
-  userId: string,
-  favoriteId: string,
-  categoryId: string,
-) {
+export async function updateFavorite(input: {
+  userId: string;
+  favoriteId: string;
+  name: string;
+  kcal: number;
+  categoryId: string;
+}) {
   const supabase = await createDataClient();
   const { data: category, error: categoryError } = await supabase
     .from("menu_categories")
     .select("id")
-    .eq("user_id", userId)
-    .eq("id", categoryId)
+    .eq("user_id", input.userId)
+    .eq("id", input.categoryId)
     .maybeSingle();
 
   if (categoryError || !category) {
-    throw new Error("Category was not found");
+    throw new Error("カテゴリーが見つかりません。");
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("favorite_menus")
-    .update({ category_id: categoryId })
-    .eq("user_id", userId)
-    .eq("id", favoriteId);
+    .update({
+      name: input.name,
+      kcal: input.kcal,
+      category_id: input.categoryId,
+    })
+    .eq("user_id", input.userId)
+    .eq("id", input.favoriteId)
+    .select("id");
 
   if (error) {
-    throw new Error(`Failed to move favorite menu: ${error.message}`);
+    if (error.code === "23505") {
+      throw new Error("同じ名前のメニューがあります。");
+    }
+    throw new Error(`Failed to update favorite menu: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("メニューが見つかりません。");
+  }
+}
+
+export async function deleteFavorite(userId: string, favoriteId: string) {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("favorite_menus")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", favoriteId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete favorite menu: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("メニューが見つかりません。");
+  }
+}
+
+export async function ensureOtherCategory(userId: string) {
+  const categories = await listCategories(userId);
+  const existing = categories.find((category) => category.name === "その他");
+  if (existing) {
+    return existing;
+  }
+
+  await addCategory(userId, "その他");
+  const created = (await listCategories(userId)).find((category) => category.name === "その他");
+  if (!created) {
+    throw new Error("「その他」を用意できませんでした。");
+  }
+  return created;
+}
+
+export async function deleteCategory(userId: string, categoryId: string) {
+  const categories = await listCategories(userId);
+  const target = categories.find((category) => category.id === categoryId);
+  if (!target) {
+    throw new Error("カテゴリーが見つかりません。");
+  }
+  if (target.name === "その他") {
+    throw new Error("「その他」は削除できません。");
+  }
+
+  const other = await ensureOtherCategory(userId);
+  const supabase = await createDataClient();
+  const { error: moveError } = await supabase
+    .from("favorite_menus")
+    .update({ category_id: other.id })
+    .eq("user_id", userId)
+    .eq("category_id", categoryId);
+
+  if (moveError) {
+    throw new Error(`Failed to move menus: ${moveError.message}`);
+  }
+
+  const { data, error } = await supabase
+    .from("menu_categories")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", categoryId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete category: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("カテゴリーが見つかりません。");
   }
 }
 
@@ -399,11 +515,13 @@ export async function loadDayScreen(userId: string, date: string, weekStartsOn: 
     listMealKcalBetween(userId, bounds.start, bounds.end),
     listFavorites(userId),
   ]);
+  const usage = await listFavoriteUsage(userId, favorites);
 
   return {
     meals,
     categories,
     favorites,
+    usage,
     dayTotal: meals.reduce((sum, meal) => sum + meal.kcal, 0),
     weekTotal: weekRows.reduce((sum, meal) => sum + meal.kcal, 0),
   };

@@ -18,15 +18,15 @@ import { classifyDishCategory, estimateDishKcal } from "@/lib/claude";
 import { getAuthUserId } from "@/lib/supabase/server";
 import {
   addCategory,
-  deleteFavoriteMealsOnDate,
+  deleteCategory,
+  deleteFavorite,
   deleteMeal,
   ensureDefaultCategories,
   getFavorite,
   getMeal,
   insertMeal,
-  listMeals,
-  moveFavorite,
   renameCategory,
+  updateFavorite,
   updateMeal,
   upsertFavorite,
 } from "@/lib/meals";
@@ -195,42 +195,100 @@ export async function addMeal(
   }
 }
 
-export async function setFavoriteOnDay(date: string, favoriteId: string, checked: boolean) {
+export async function addFavoriteToDay(date: string, favoriteId: string) {
   if (!parseIsoDate(date) || !UUID_PATTERN.test(favoriteId)) {
-    return;
+    return { error: "メニューが見つかりません。" };
   }
 
-  const userId = await ensureUserId();
-  const favorite = await getFavorite(userId, favoriteId);
-  if (!favorite) {
-    return;
-  }
-
-  let created = false;
-  if (checked) {
-    const meals = await listMeals(userId, date);
-    const alreadyLogged = meals.some((meal) => meal.favoriteId === favoriteId);
-    if (!alreadyLogged) {
-      const mealPeriod = mealPeriodForTokyoHour(tokyoHour());
-      await insertMeal({
-        userId,
-        date,
-        name: favorite.name,
-        kcal: favorite.kcal,
-        favoriteId,
-        mealPeriod,
-        mealSource: mealPeriod === "間食" ? null : "内食",
-        kcalSource: "ai",
-      });
-      created = true;
+  try {
+    const userId = await ensureUserId();
+    const favorite = await getFavorite(userId, favoriteId);
+    if (!favorite) {
+      return { error: "メニューが見つかりません。" };
     }
-  } else {
-    await deleteFavoriteMealsOnDate(userId, date, favoriteId);
+    const mealPeriod = mealPeriodForTokyoHour(tokyoHour());
+    await insertMeal({
+      userId,
+      date,
+      name: favorite.name,
+      kcal: favorite.kcal,
+      favoriteId,
+      mealPeriod,
+      mealSource: mealPeriod === "間食" ? null : "内食",
+      kcalSource: "ai",
+    });
+    await rememberEngagement(userId, date);
+    refreshDay(date);
+    return { error: null };
+  } catch (error) {
+    return { error: failureMessage(error) };
+  }
+}
+
+export async function saveFavoriteMenu(
+  date: string,
+  favoriteId: string,
+  input: { name: string; kcal: string; categoryId: string },
+) {
+  if (!parseIsoDate(date) || !UUID_PATTERN.test(favoriteId)) {
+    return { error: "メニューが見つかりません。" };
+  }
+  const name = input.name.trim().replace(/\s+/g, " ").slice(0, 80);
+  const kcal = parseManualKcal(input.kcal);
+  if (!name) {
+    return { error: "料理名を入力してください。" };
+  }
+  if (kcal === null) {
+    return { error: "カロリーは0〜10000の整数で入力してください。" };
+  }
+  if (!UUID_PATTERN.test(input.categoryId)) {
+    return { error: "カテゴリーを選んでください。" };
   }
 
-  await rememberEngagement(userId, date);
-  refreshDay(date);
-  return { reaction: created ? await reactionFor(userId) : null };
+  try {
+    const userId = await ensureUserId();
+    await updateFavorite({
+      userId,
+      favoriteId,
+      name,
+      kcal,
+      categoryId: input.categoryId,
+    });
+    refreshDay(date);
+    return { error: null };
+  } catch (error) {
+    return { error: failureMessage(error) };
+  }
+}
+
+export async function removeFavoriteMenu(date: string, favoriteId: string) {
+  if (!parseIsoDate(date) || !UUID_PATTERN.test(favoriteId)) {
+    return { error: "メニューが見つかりません。" };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await deleteFavorite(userId, favoriteId);
+    refreshDay(date);
+    return { error: null };
+  } catch (error) {
+    return { error: failureMessage(error) };
+  }
+}
+
+export async function removeCategory(date: string, categoryId: string) {
+  if (!parseIsoDate(date) || !UUID_PATTERN.test(categoryId)) {
+    return { error: "カテゴリーが見つかりません。" };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await deleteCategory(userId, categoryId);
+    refreshDay(date);
+    return { error: null };
+  } catch (error) {
+    return { error: failureMessage(error) };
+  }
 }
 
 export async function createCategory(formData: FormData) {
@@ -246,30 +304,23 @@ export async function createCategory(formData: FormData) {
   refreshDay(date);
 }
 
-export async function updateCategoryName(formData: FormData) {
-  const date = readDate(formData);
-  const categoryId = String(formData.get("categoryId") ?? "");
-  const name = readName(formData, "name", 20);
-  if (!date || !UUID_PATTERN.test(categoryId) || !name) {
-    return;
+export async function renameMenuCategory(date: string, categoryId: string, name: string) {
+  if (!parseIsoDate(date) || !UUID_PATTERN.test(categoryId)) {
+    return { error: "カテゴリーが見つかりません。" };
+  }
+  const nextName = name.trim().replace(/\s+/g, " ").slice(0, 20);
+  if (!nextName) {
+    return { error: "カテゴリー名を入力してください。" };
   }
 
-  const userId = await ensureUserId();
-  await renameCategory(userId, categoryId, name);
-  refreshDay(date);
-}
-
-export async function updateFavoriteCategory(formData: FormData) {
-  const date = readDate(formData);
-  const favoriteId = String(formData.get("favoriteId") ?? "");
-  const categoryId = String(formData.get("categoryId") ?? "");
-  if (!date || !UUID_PATTERN.test(favoriteId) || !UUID_PATTERN.test(categoryId)) {
-    return;
+  try {
+    const userId = await ensureUserId();
+    await renameCategory(userId, categoryId, nextName);
+    refreshDay(date);
+    return { error: null };
+  } catch (error) {
+    return { error: failureMessage(error) };
   }
-
-  const userId = await ensureUserId();
-  await moveFavorite(userId, favoriteId, categoryId);
-  refreshDay(date);
 }
 
 export async function updateMealRecord(

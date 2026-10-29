@@ -1,22 +1,16 @@
 import { Suspense } from "react";
 import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
-import { FavoriteMenuToggle } from "@/components/favorite-menu-toggle";
+import { FavoriteMenuPanel } from "@/components/favorite-menu-panel";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MealRecordList } from "@/components/meal-record-list";
 import { StepRecordPanel } from "@/components/step-record-panel";
-import { SubmitButton } from "@/components/submit-button";
 import { WeightRecordPanel } from "@/components/weight-record-panel";
-import {
-  createCategory,
-  updateCategoryName,
-  updateFavoriteCategory,
-} from "@/app/days/[date]/actions";
 import { loadAdvisorComment, type AdvisorCommentView } from "@/lib/advisor-comment";
 import { formatKcal, type WeekStart } from "@/lib/calendar";
 import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
-import { loadDayScreen, type FavoriteMenu, type MenuCategory } from "@/lib/meals";
+import { loadDayScreen, type FavoriteMenu, type FavoriteUse, type MenuCategory } from "@/lib/meals";
 import { listStepOnDate, type StepDayRecord } from "@/lib/steps";
 import { dateTimeLocalOnPageDate, type WeightDayRecord } from "@/lib/weight-format";
 import { listWeightsOnDate } from "@/lib/weights";
@@ -29,6 +23,7 @@ type ScreenResult =
       meals: Awaited<ReturnType<typeof loadDayScreen>>["meals"];
       categories: MenuCategory[];
       favorites: FavoriteMenu[];
+      usage: Record<string, FavoriteUse>;
       dayTotal: number;
       weekTotal: number;
     }
@@ -119,12 +114,9 @@ export async function DayBody({
   const meals = screen.ok ? screen.meals : [];
   const categories = screen.ok ? screen.categories : [];
   const favorites = screen.ok ? screen.favorites : [];
+  const usage = screen.ok ? screen.usage : {};
   const percent = goal > 0 ? Math.round((weekTotal / goal) * 100) : 0;
   const barWidth = Math.min(100, Math.max(0, percent));
-  const loggedFavoriteIds = new Set(
-    meals.flatMap((meal) => (meal.favoriteId ? [meal.favoriteId] : [])),
-  );
-
   return (
     <>
       <section className="mt-6 rounded-2xl bg-[#E7DCC8] p-5">
@@ -190,90 +182,14 @@ export async function DayBody({
 
       <StepRecordPanel date={date} record={steps.record} loadError={steps.error} />
 
-      <section className="mt-8">
-        <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">よく使うメニュー</h2>
-        <form action={createCategory} className="mt-3 flex gap-2">
-          <input type="hidden" name="date" value={date} />
-          <input
-            name="name"
-            maxLength={20}
-            placeholder="カテゴリーを追加"
-            aria-label="新しいカテゴリー名"
-            className="h-10 flex-1 rounded-xl border border-[#F5821F]/40 px-3 text-sm outline-none focus:border-[#F5821F]"
-          />
-          <SubmitButton
-            pendingLabel="追加しています…"
-            className="h-10 rounded-full border border-[#F5821F] px-4 text-sm font-medium text-[#F5821F]"
-          >
-            追加
-          </SubmitButton>
-        </form>
-
-        {categories.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
-            料理を登録すると、和食や麺類などのカテゴリーに分類されます。
-          </p>
-        ) : (
-          <div className="mt-4 space-y-5">
-            {categories.map((category) => {
-              const items = favorites.filter((favorite) => favorite.categoryId === category.id);
-              return (
-                <div key={category.id}>
-                  <form action={updateCategoryName} className="flex items-center gap-2">
-                    <input type="hidden" name="date" value={date} />
-                    <input type="hidden" name="categoryId" value={category.id} />
-                    <input
-                      name="name"
-                      defaultValue={category.name}
-                      maxLength={20}
-                      aria-label={`${category.name}のカテゴリー名`}
-                      className="h-9 w-40 rounded-lg border border-[#F5821F]/40 px-2 text-sm font-medium text-[#F5821F] outline-none focus:border-[#F5821F]"
-                    />
-                    <SubmitButton pendingLabel="変更しています…" className="text-sm text-[#F5821F]">
-                      変更
-                    </SubmitButton>
-                  </form>
-                  {items.length > 0 ? (
-                    <ul className="mt-2 space-y-2">
-                      {items.map((favorite) => (
-                        <li key={favorite.id} className="flex flex-wrap items-center gap-3">
-                          <FavoriteMenuToggle
-                            date={date}
-                            favoriteId={favorite.id}
-                            checked={loggedFavoriteIds.has(favorite.id)}
-                            label={`${favorite.name} ${formatKcal(favorite.kcal)}`}
-                          />
-                          <form action={updateFavoriteCategory} className="flex items-center gap-2">
-                            <input type="hidden" name="date" value={date} />
-                            <input type="hidden" name="favoriteId" value={favorite.id} />
-                            <select
-                              name="categoryId"
-                              defaultValue={favorite.categoryId}
-                              aria-label={`${favorite.name}のカテゴリー`}
-                              className="h-8 rounded-lg border border-[#F5821F]/40 bg-white px-2 text-xs"
-                            >
-                              {categories.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.name}
-                                </option>
-                              ))}
-                            </select>
-                            <SubmitButton pendingLabel="移動しています…" className="text-xs text-[#F5821F]">
-                              移動
-                            </SubmitButton>
-                          </form>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-xs text-zinc-500">メニューはまだありません。</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {screen.ok ? (
+        <FavoriteMenuPanel
+          date={date}
+          categories={categories}
+          favorites={favorites}
+          usage={usage}
+        />
+      ) : null}
     </>
   );
 }
