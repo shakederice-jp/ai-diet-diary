@@ -19,9 +19,10 @@ import {
   type EatingOutMark,
   type EatingOutSort,
 } from "@/lib/eating-out-guide";
-import { InstantLink } from "@/components/instant-link";
+import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
+import { GuideSentence, OtherGuides } from "@/components/guide-links";
 import { StaplesGuide } from "@/components/staples-guide";
-import { GUIDE_LINKS } from "@/lib/guide-links";
+import { TryAppCta } from "@/components/try-app-cta";
 import { APP_DISCLAIMER } from "@/lib/site";
 
 const CRITERIA = [
@@ -64,7 +65,7 @@ function genreBandLabel(genre: EatingOutGenre, count: number) {
   return note ? `${genre}(${note}・${count})` : `${genre}(${count})`;
 }
 
-export function EatingOutGuide() {
+export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
   const [sort, setSort] = useState<EatingOutSort>("standard");
   const [genre, setGenre] = useState<EatingOutGenre | "すべて">("すべて");
   const [balancedOnly, setBalancedOnly] = useState(false);
@@ -104,7 +105,8 @@ export function EatingOutGuide() {
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-3 py-3 font-sans sm:px-4">
       <main className="w-full max-w-6xl">
         <header id="eating-out-intro">
-          <h1 className="text-lg font-semibold leading-6 tracking-tight text-zinc-950">
+          <Breadcrumbs items={guideBreadcrumbItems("/eating-out")} />
+          <h1 className="mt-1 text-lg font-semibold leading-6 tracking-tight text-zinc-950">
             {EATING_OUT_TITLE}
           </h1>
           <p className="mt-1 text-xs leading-5 text-zinc-700">
@@ -197,16 +199,9 @@ export function EatingOutGuide() {
           <p>{EATING_OUT_DISCLAIMER}</p>
           <p>野菜の量は、ほとんどが推定です。</p>
           <p>{APP_DISCLAIMER}</p>
-          {GUIDE_LINKS.filter((link) => link.href === "/sweets").map((link) => (
-            <InstantLink
-              key={link.href}
-              href={link.href}
-              className="inline-flex min-h-11 items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
-            >
-              {link.label}
-              <span aria-hidden="true">→</span>
-            </InstantLink>
-          ))}
+          <GuideSentence href="/sweets" className="pt-2" />
+          <OtherGuides currentHref="/eating-out" className="pt-2" />
+          <TryAppCta href={startHref} className="pt-2" />
         </footer>
       </main>
     </div>

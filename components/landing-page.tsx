@@ -1,5 +1,6 @@
 import { AppBrand } from "@/components/app-brand";
 import { GuideLinks } from "@/components/guide-links";
+import { GUIDE_PAGES } from "@/lib/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import { authSubmitClass } from "@/components/auth-styles";
 import { APP_NAME, APP_NAME_EN, APP_SUBTITLE } from "@/lib/app-title";
@@ -175,6 +176,17 @@ export function LandingPage() {
         </section>
         <p className="mt-10 text-xs leading-5 text-zinc-500">{APP_DISCLAIMER}</p>
         <footer className="mt-6 border-t border-[#E4D7C6] pt-6">
+          <nav aria-label="ガイド" className="mb-4 flex flex-col">
+            {GUIDE_PAGES.map((page) => (
+              <InstantLink
+                key={page.href}
+                href={page.href}
+                className="inline-flex min-h-8 items-center text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+              >
+                {page.label}
+              </InstantLink>
+            ))}
+          </nav>
           <p className="text-sm text-zinc-700">運営: {OPERATOR_NAME}</p>
           {email ? (
             <p className="mt-2 text-sm text-zinc-700">

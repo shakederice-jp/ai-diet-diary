@@ -1,8 +1,7 @@
 import { EatingOutGuide } from "@/components/eating-out-guide";
 import { EATING_OUT_LEAD, EATING_OUT_TITLE } from "@/lib/eating-out-guide";
 import { pageMetadata } from "@/lib/site";
-
-export const dynamic = "force-static";
+import { getAuthUserId } from "@/lib/supabase/server";
 
 export const metadata = pageMetadata({
   title: EATING_OUT_TITLE,
@@ -11,6 +10,7 @@ export const metadata = pageMetadata({
   index: true,
 });
 
-export default function EatingOutPage() {
-  return <EatingOutGuide />;
+export default async function EatingOutPage() {
+  const loggedIn = Boolean(await getAuthUserId());
+  return <EatingOutGuide startHref={loggedIn ? "/" : "/signup"} />;
 }

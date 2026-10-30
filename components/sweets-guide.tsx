@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { InstantLink } from "@/components/instant-link";
-import { GUIDE_LINKS } from "@/lib/guide-links";
+import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
+import { GuideSentence, OtherGuides } from "@/components/guide-links";
+import { TryAppCta } from "@/components/try-app-cta";
 import {
   SWEETS_DISCLAIMER,
   SWEETS_EMPTY,
@@ -50,7 +51,7 @@ function MarkBadge({ mark }: { mark: SweetsMark }) {
   );
 }
 
-export function SweetsGuide() {
+export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
   const [sort, setSort] = useState<SweetsSort>("standard");
   const [genre, setGenre] = useState<SweetsGenre | "すべて">("すべて");
   const [mark, setMark] = useState<SweetsMarkFilter>("すべて");
@@ -69,8 +70,6 @@ export function SweetsGuide() {
       items: items.filter((row) => row.genre === item),
     })).filter((section) => section.items.length > 0);
   }, [items, sort]);
-  const eatingOut = GUIDE_LINKS.find((link) => link.href === "/eating-out");
-
   function toggleSort() {
     setSort((current) => (current === "calorie" ? "standard" : "calorie"));
   }
@@ -91,7 +90,8 @@ export function SweetsGuide() {
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-3 py-3 font-sans sm:px-4">
       <main className="w-full max-w-6xl">
         <header id="sweets-intro">
-          <h1 className="text-lg font-semibold leading-6 tracking-tight text-zinc-950">{SWEETS_TITLE}</h1>
+          <Breadcrumbs items={guideBreadcrumbItems("/sweets")} />
+          <h1 className="mt-1 text-lg font-semibold leading-6 tracking-tight text-zinc-950">{SWEETS_TITLE}</h1>
           <p className="mt-1 text-[13px] leading-5 font-medium text-[#6B4A32]">{SWEETS_NOTICE}</p>
           <p className="mt-1 text-xs leading-4 text-zinc-700">{SWEETS_LEAD}</p>
           <table className="mt-1 w-full text-[11px] leading-4 text-[#6B4A32]">
@@ -177,15 +177,9 @@ export function SweetsGuide() {
           <p>{SWEETS_DISCLAIMER}</p>
           <p>{SWEETS_PACKAGE_NOTE}</p>
           <p>{APP_DISCLAIMER}</p>
-          {eatingOut ? (
-            <InstantLink
-              href={eatingOut.href}
-              className="inline-flex min-h-11 items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
-            >
-              {eatingOut.label}
-              <span aria-hidden="true">→</span>
-            </InstantLink>
-          ) : null}
+          <GuideSentence href="/eating-out" className="pt-2" />
+          <OtherGuides currentHref="/sweets" className="pt-2" />
+          <TryAppCta href={startHref} className="pt-2" />
         </footer>
       </main>
     </div>
