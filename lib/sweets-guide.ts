@@ -16,7 +16,10 @@ export const SWEETS_LEAD =
 export const SWEETS_SNACK_NOTE =
   "間食の目安は1日200kcal程度とされています(食事バランスガイドより)。";
 
-export const SWEETS_MARK_SCALE = "◎ 100kcal以下 / ○ 101〜200kcal / △ 201kcal以上";
+export const SWEETS_MARK_EXCELLENT_MAX = 100;
+export const SWEETS_MARK_GOOD_MAX = 200;
+
+export const SWEETS_MARK_SCALE = `◎ ${SWEETS_MARK_EXCELLENT_MAX}kcal以下 / ○ ${SWEETS_MARK_EXCELLENT_MAX + 1}〜${SWEETS_MARK_GOOD_MAX}kcal / △ ${SWEETS_MARK_GOOD_MAX + 1}kcal以上`;
 
 export const SWEETS_DISCLAIMER =
   "掲載の数値は、文部科学省の日本食品標準成分表(八訂)をもとにした目安で、一部は推定です。大きさ、作り方、お店によって変わります。1個・1枚の重さは一般的な目安です。";
@@ -222,10 +225,10 @@ export function sweetsMidpoint(range: SweetsRange) {
 
 export function sweetsMark(range: SweetsRange): SweetsMark {
   const midpoint = sweetsMidpoint(range);
-  if (midpoint <= 100) {
+  if (midpoint <= SWEETS_MARK_EXCELLENT_MAX) {
     return "◎";
   }
-  if (midpoint <= 200) {
+  if (midpoint <= SWEETS_MARK_GOOD_MAX) {
     return "○";
   }
   return "△";
@@ -268,4 +271,16 @@ export function filterSweetsItems(
     return a.index - b.index;
   });
   return filtered.map(({ item }) => item);
+}
+
+export function sweetsPageTitle() {
+  return `お菓子・スイーツ${SWEETS_ITEMS.length}品のカロリー目安一覧｜メモレバ`;
+}
+
+export function sweetsSummary() {
+  return `包装されていない菓子・スイーツ${SWEETS_ITEMS.length}品の、間食1回分のカロリーの目安を一覧にしました。◎は${SWEETS_MARK_EXCELLENT_MAX}kcal以下、○は${SWEETS_MARK_EXCELLENT_MAX + 1}〜${SWEETS_MARK_GOOD_MAX}kcal、△は${SWEETS_MARK_GOOD_MAX + 1}kcal以上です。`;
+}
+
+export function sweetsPageDescription() {
+  return `${SWEETS_DESCRIPTION}◎は${SWEETS_MARK_EXCELLENT_MAX}kcal以下、○は${SWEETS_MARK_EXCELLENT_MAX + 1}〜${SWEETS_MARK_GOOD_MAX}kcal、△は${SWEETS_MARK_GOOD_MAX + 1}kcal以上です。`;
 }

@@ -8,6 +8,7 @@ import {
   EATING_OUT_GENRE_NOTE,
   EATING_OUT_GENRES,
   EATING_OUT_TITLE,
+  eatingOutSummary,
   calorieMark,
   filterEatingOutDishes,
   formatEatingOutRange,
@@ -20,11 +21,15 @@ import {
   type EatingOutSort,
 } from "@/lib/eating-out-guide";
 import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
+import { GuideAbout } from "@/components/guide-about";
 import { GuideSentence, OtherGuides } from "@/components/guide-links";
+import { InstantLink } from "@/components/instant-link";
+import { JsonLd } from "@/components/json-ld";
 import { StaplesGuide } from "@/components/staples-guide";
 import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
-import { APP_DISCLAIMER } from "@/lib/site";
+import { GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { guideStructuredData } from "@/lib/structured-data";
 
 const CRITERIA = [
   ["カロリー", "◎650kcal以下 / ○651〜850 / △851以上"],
@@ -105,14 +110,21 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-3 py-3 font-sans sm:px-4">
       <main className="w-full max-w-6xl">
+        <JsonLd
+          data={guideStructuredData({
+            name: EATING_OUT_TITLE,
+            description: eatingOutSummary(),
+            path: "/eating-out",
+            dateModified: GUIDE_UPDATED_ON["/eating-out"],
+            breadcrumbs: guideBreadcrumbItems("/eating-out"),
+          })}
+        />
         <header id="eating-out-intro">
-          <Breadcrumbs items={guideBreadcrumbItems("/eating-out")} />
+          <Breadcrumbs items={guideBreadcrumbItems("/eating-out")} includeJsonLd={false} />
           <h1 className="mt-1 text-lg font-semibold leading-6 tracking-tight text-zinc-950">
             {EATING_OUT_TITLE}
           </h1>
-          <p className="mt-1 text-xs leading-5 text-zinc-700">
-            外食メニュー74品のカロリー・たんぱく質・野菜の目安です。印は目安の真ん中の数字で判定しています。推定を含みます。
-          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-700">{eatingOutSummary()}</p>
           <table className="mt-2 w-full text-[11px] leading-4 text-[#6B4A32]">
             <tbody>
               {CRITERIA.map(([label, text]) => (
@@ -130,6 +142,14 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
           </p>
         </header>
 
+        <p className="mt-2">
+          <InstantLink
+            href="/staples"
+            className="inline-flex min-h-8 items-center text-[13px] text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+          >
+            主食の早見表を別ページで見る →
+          </InstantLink>
+        </p>
         <StaplesGuide />
 
         <div className="mt-2 flex items-center gap-2">
@@ -199,8 +219,8 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
         <footer className="mt-4 space-y-2 text-[11px] leading-5 text-[#6B4A32]">
           <p>{EATING_OUT_DISCLAIMER}</p>
           <p>野菜の量は、ほとんどが推定です。</p>
-          <p>{APP_DISCLAIMER}</p>
           <GuideSentence href="/sweets" className="pt-2" />
+          <GuideAbout href="/eating-out" />
           <OtherGuides currentHref="/eating-out" className="pt-2" />
           <TryAppCta href={startHref} className="pt-2" />
           <SiteFooter className="pt-4" />

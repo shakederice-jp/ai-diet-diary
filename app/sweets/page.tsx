@@ -1,14 +1,16 @@
 import { SweetsGuide } from "@/components/sweets-guide";
-import { SWEETS_DESCRIPTION, SWEETS_PAGE_TITLE } from "@/lib/sweets-guide";
+import { sweetsPageDescription, sweetsPageTitle } from "@/lib/sweets-guide";
+import { GUIDE_OG } from "@/lib/guide-meta";
 import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const metadata = pageMetadata({
-  title: SWEETS_PAGE_TITLE,
-  description: SWEETS_DESCRIPTION,
+  title: sweetsPageTitle(),
+  description: sweetsPageDescription(),
   path: "/sweets",
   index: true,
   absoluteTitle: true,
+  image: GUIDE_OG["/sweets"],
 });
 
 export default async function SweetsPage() {

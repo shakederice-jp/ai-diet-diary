@@ -1,8 +1,21 @@
-# メモレバ(memo-lever)
+# メモレバ (memo-lever)
 
-メモレバは、AIダイエットマネジメント手帳です。満腹感を得て無理なく続くダイエット法。食事名からAIがカロリーを自動推定、タニタの体組成計(Health Planet)と連携して体重もグラフ化。
+> メモレバは、食事名からAIがカロリーを推定し、タニタのHealth Planetと連携して体重をグラフ化する、無料のダイエット記録アプリです。5人のAIアドバイザーがコメントします。運営は大手町調査室九課です。AIの内容は一般的な情報で、医療上の助言ではありません。
 
-- トップ: https://diet.finance-tower.com/
-- 使い方: https://diet.finance-tower.com/howto
-- 外食ランチ・定食のカロリー目安: https://diet.finance-tower.com/eating-out
-- お菓子・スイーツのカロリー目安: https://diet.finance-tower.com/sweets
+## 主要ページ
+
+- [トップ](https://diet.finance-tower.com/): 食事名からAIがカロリーを推定し、体重をグラフ化する無料の記録アプリです。
+- [使い方](https://diet.finance-tower.com/howto): 食事と体重の記録、グラフ、目標、AIアドバイザー、連続記録の使い方です。
+- [外食ランチ・定食のカロリー目安](https://diet.finance-tower.com/eating-out): 外食74品の、1食あたりのカロリー・たんぱく質・野菜の目安です。◎は低い(または多い)、○はふつう、△は高い(または少ない)の目安です。カロリーは◎650kcal以下、○651〜850kcal、△851kcal以上。たんぱく質は◎30g以上、○20〜29g、△20g未満。野菜は◎120g以上、○70〜119g、△70g未満です。
+- [お菓子・スイーツのカロリー目安](https://diet.finance-tower.com/sweets): 包装されていない菓子・スイーツ102品の、間食1回分のカロリーの目安です。◎は100kcal以下、○は101〜200kcal、△は201kcal以上です。
+- [ご飯・パン・麺のカロリー早見表](https://diet.finance-tower.com/staples): ご飯、パン、麺など主食のカロリーを、量ごとに一覧にしています。
+
+## 運営・規約
+
+- [プライバシーポリシー](https://diet.finance-tower.com/privacy): 取得する情報、利用目的、外部サービスへの委託、Cookie、開示と削除の請求です。
+- [利用規約](https://diet.finance-tower.com/terms): 利用条件、禁止事項、健康情報とAIの注意、免責、準拠法です。
+- [特定商取引法に基づく表記](https://diet.finance-tower.com/tokushoho): 運営者とお問い合わせの表記です。現在、有料の販売は行っていません。
+
+## 注意
+
+数値は目安で、一部は推定です。効果や結果には個人差があり、医療上の助言ではありません。出典は、文部科学省「日本食品標準成分表(八訂)増補2023」(https://fooddb.mext.go.jp/) です。お菓子ページの「間食は1日200kcal程度」は、農林水産省「食事バランスガイド」(https://www.maff.go.jp/j/balance_guide/) を参照しています。外食の数値には、公開されている栄養情報や、成分表をもとにした推定を含みます。

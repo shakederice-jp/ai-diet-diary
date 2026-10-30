@@ -15,6 +15,20 @@ import {
   type StapleAmountRow,
 } from "@/lib/staples-guide";
 
+export function StaplesTables() {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-x-4">
+        <AmountTable title="ご飯" amountHeader="量(g)" rows={RICE_ROWS} note={RICE_NOTE} />
+        <AmountTable title="パン" amountHeader="量" rows={BREAD_ROWS} note={BREAD_NOTE} />
+        <NoodleTable />
+        <AmountTable title="その他の主食" amountHeader="量" rows={OTHER_ROWS} />
+      </div>
+      <p className="mt-2 text-[12px] leading-4 text-[#6B4A32]">{STAPLES_NOTICE}</p>
+    </>
+  );
+}
+
 export function StaplesGuide() {
   const [desktop, setDesktop] = useState(false);
   const [override, setOverride] = useState<boolean | null>(null);
@@ -44,13 +58,7 @@ export function StaplesGuide() {
       </button>
       {open ? (
         <div id="staples-panel" className="mt-1 rounded-xl bg-[#FBF6EE] px-2 py-2">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-x-4">
-            <AmountTable title="ご飯" amountHeader="量(g)" rows={RICE_ROWS} note={RICE_NOTE} />
-            <AmountTable title="パン" amountHeader="量" rows={BREAD_ROWS} note={BREAD_NOTE} />
-            <NoodleTable />
-            <AmountTable title="その他の主食" amountHeader="量" rows={OTHER_ROWS} />
-          </div>
-          <p className="mt-2 text-[12px] leading-4 text-[#6B4A32]">{STAPLES_NOTICE}</p>
+          <StaplesTables />
         </div>
       ) : null}
     </section>
@@ -70,7 +78,7 @@ function AmountTable({
 }) {
   return (
     <section>
-      <h3 className="text-[13px] font-medium text-[#F5821F]">{title}</h3>
+      <h2 className="text-[13px] font-medium text-[#F5821F]">{title}</h2>
       <table className="mt-0.5 w-full text-[13px] leading-4 text-zinc-900">
         <thead>
           <tr className="text-[12px] text-[#8A7360]">
@@ -106,7 +114,7 @@ function AmountTable({
 function NoodleTable() {
   return (
     <section>
-      <h3 className="text-[13px] font-medium text-[#F5821F]">麺</h3>
+      <h2 className="text-[13px] font-medium text-[#F5821F]">麺</h2>
       <p className="text-[12px] leading-4 text-[#8A7360]">スープ・具・ソースは含まない。大盛は麺を1.5倍にした目安。</p>
       <table className="mt-0.5 w-full text-[13px] leading-4 text-zinc-900">
         <thead>

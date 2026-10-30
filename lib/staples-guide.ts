@@ -2,6 +2,16 @@
 
 export const STAPLES_TITLE = "主食のカロリー早見表(ご飯・パン・麺)";
 
+export const STAPLES_PAGE_TITLE = "ご飯・パン・麺のカロリー早見表｜メモレバ";
+
+export const STAPLES_PAGE_HEADING = "ご飯・パン・麺のカロリー早見表";
+
+export const STAPLES_SUMMARY =
+  "ご飯・パン・麺など主食のカロリーを、量ごとに早見表にしました。ご飯を減らしたとき、麺を大盛りにしたときの差も分かります。";
+
+export const STAPLES_DESCRIPTION =
+  "ご飯、食パン、ラーメン・うどん・そば・パスタの麺など、主食のカロリーを量ごとに一覧にしました。ご飯を減らしたとき、麺を大盛りにしたときのカロリーの差も分かります。";
+
 export const STAPLES_NOTICE =
   "文部科学省 日本食品標準成分表(八訂)増補2023年をもとにした目安です。1杯・1枚・1玉の量(g)は一般的な目安で、店や商品によって変わります。";
 

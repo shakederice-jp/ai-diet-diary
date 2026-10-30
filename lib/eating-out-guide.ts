@@ -233,6 +233,12 @@ export const EATING_OUT_DISHES: readonly EatingOutDish[] = SECTIONS.flatMap((sec
   section.lines.map((line) => parseDish(section.genre, line)),
 );
 
+export const EATING_OUT_PAGE_TITLE = "外食ランチ・定食のカロリー・たんぱく質・野菜｜メモレバ";
+
+export function eatingOutSummary() {
+  return `外食ランチ・定食${EATING_OUT_DISHES.length}品の、1食あたりのカロリー・たんぱく質・野菜の目安を一覧にしました。カロリーの低い順などに並べ替えられます。印は目安の真ん中の数字で判定しています。推定を含みます。`;
+}
+
 export function rangeMidpoint(range: EatingOutRange) {
   return (range[0] + range[1]) / 2;
 }

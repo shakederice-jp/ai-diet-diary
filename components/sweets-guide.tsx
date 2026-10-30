@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
+import { GuideAbout } from "@/components/guide-about";
 import { GuideSentence, OtherGuides } from "@/components/guide-links";
+import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
 import {
@@ -16,6 +18,7 @@ import {
   SWEETS_PACKAGE_NOTE,
   SWEETS_SNACK_NOTE,
   SWEETS_TITLE,
+  sweetsSummary,
   filterSweetsItems,
   sweetsBasisLabel,
   sweetsMark,
@@ -25,7 +28,8 @@ import {
   type SweetsMarkFilter,
   type SweetsSort,
 } from "@/lib/sweets-guide";
-import { APP_DISCLAIMER } from "@/lib/site";
+import { GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { guideStructuredData } from "@/lib/structured-data";
 
 const ROW_GRID =
   "grid w-full grid-cols-[minmax(0,1fr)_4.75rem_4.25rem_1.5rem] items-center gap-x-1 px-1 md:grid-cols-[minmax(0,1.1fr)_5.5rem_4.5rem_2rem_minmax(0,1.4fr)] md:gap-x-2 md:px-2";
@@ -90,9 +94,19 @@ export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-3 py-3 font-sans sm:px-4">
       <main className="w-full max-w-6xl">
+        <JsonLd
+          data={guideStructuredData({
+            name: SWEETS_TITLE,
+            description: sweetsSummary(),
+            path: "/sweets",
+            dateModified: GUIDE_UPDATED_ON["/sweets"],
+            breadcrumbs: guideBreadcrumbItems("/sweets"),
+          })}
+        />
         <header id="sweets-intro">
-          <Breadcrumbs items={guideBreadcrumbItems("/sweets")} />
+          <Breadcrumbs items={guideBreadcrumbItems("/sweets")} includeJsonLd={false} />
           <h1 className="mt-1 text-lg font-semibold leading-6 tracking-tight text-zinc-950">{SWEETS_TITLE}</h1>
+          <p className="mt-1 text-xs leading-5 text-zinc-700">{sweetsSummary()}</p>
           <p className="mt-1 text-[13px] leading-5 font-medium text-[#6B4A32]">{SWEETS_NOTICE}</p>
           <p className="mt-1 text-xs leading-4 text-zinc-700">{SWEETS_LEAD}</p>
           <table className="mt-1 w-full text-[11px] leading-4 text-[#6B4A32]">
@@ -177,8 +191,8 @@ export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
         <footer className="mt-4 space-y-2 text-[11px] leading-5 text-[#6B4A32]">
           <p>{SWEETS_DISCLAIMER}</p>
           <p>{SWEETS_PACKAGE_NOTE}</p>
-          <p>{APP_DISCLAIMER}</p>
           <GuideSentence href="/eating-out" className="pt-2" />
+          <GuideAbout href="/sweets" />
           <OtherGuides currentHref="/sweets" className="pt-2" />
           <TryAppCta href={startHref} className="pt-2" />
           <SiteFooter className="pt-4" />

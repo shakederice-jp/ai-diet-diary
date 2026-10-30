@@ -18,10 +18,11 @@ import { APP_DISCLAIMER, pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 
 export const metadata = pageMetadata({
-  title: HOWTO_TITLE,
+  title: "食事と体重を残す使い方｜カレンダーとグラフ｜メモレバ",
   description: HOWTO_DESCRIPTION,
   path: "/howto",
   index: true,
+  absoluteTitle: true,
 });
 
 export default async function HowToPage() {

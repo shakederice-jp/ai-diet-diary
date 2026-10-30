@@ -26,9 +26,11 @@ function itemUrl(href: string) {
 export function Breadcrumbs({
   items,
   className = "",
+  includeJsonLd = true,
 }: {
   items: readonly BreadcrumbItem[];
   className?: string;
+  includeJsonLd?: boolean;
 }) {
   const structured = {
     "@context": "https://schema.org",
@@ -43,12 +45,14 @@ export function Breadcrumbs({
 
   return (
     <nav aria-label="パンくずリスト" className={`max-w-full overflow-x-auto ${className}`}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structured).replace(/</g, "\\u003c"),
-        }}
-      />
+      {includeJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structured).replace(/</g, "\\u003c"),
+          }}
+        />
+      ) : null}
       <ol className="flex w-max min-w-full flex-nowrap items-center gap-1 text-[13px] leading-5">
         {items.map((item, index) => {
           const current = index === items.length - 1;
