@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 
-// ログインが必要なパスだけ。/ /howto /eating-out /login /signup /welcome は入れない。
+// ログインが必要なパスだけ。/ /howto /eating-out /sweets /login /signup /welcome は入れない。
 const protectedPrefixes = ["/days", "/mypage", "/settings", "/goals", "/recipes", "/api/auth/healthplanet"];
 const guestOnlyPaths = new Set(["/login", "/signup", "/forgot-password"]);
 const LANDING_PATH = "/welcome";

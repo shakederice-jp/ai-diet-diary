@@ -19,7 +19,9 @@ import {
   type EatingOutMark,
   type EatingOutSort,
 } from "@/lib/eating-out-guide";
+import { InstantLink } from "@/components/instant-link";
 import { StaplesGuide } from "@/components/staples-guide";
+import { GUIDE_LINKS } from "@/lib/guide-links";
 import { APP_DISCLAIMER } from "@/lib/site";
 
 const CRITERIA = [
@@ -195,6 +197,16 @@ export function EatingOutGuide() {
           <p>{EATING_OUT_DISCLAIMER}</p>
           <p>野菜の量は、ほとんどが推定です。</p>
           <p>{APP_DISCLAIMER}</p>
+          {GUIDE_LINKS.filter((link) => link.href === "/sweets").map((link) => (
+            <InstantLink
+              key={link.href}
+              href={link.href}
+              className="inline-flex min-h-11 items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+            >
+              {link.label}
+              <span aria-hidden="true">→</span>
+            </InstantLink>
+          ))}
         </footer>
       </main>
     </div>

@@ -16,7 +16,7 @@ export function GuideLinks({
   labelFor?: (link: GuideLink) => string;
 }) {
   return (
-    <nav aria-label="案内" className={`flex flex-wrap items-center ${className}`}>
+    <nav aria-label="案内" className={`flex flex-wrap items-center gap-x-3 ${className}`}>
       {GUIDE_LINKS.map((link) => (
         <InstantLink
           key={link.href}

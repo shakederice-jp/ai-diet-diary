@@ -15,6 +15,7 @@ import { ShareCardList } from "@/components/share-card-list";
 import { getAdvisorPreference } from "@/lib/advisor-store";
 import { listOwnShareCards } from "@/lib/share-store";
 import { redirect } from "next/navigation";
+import { GUIDE_LINKS } from "@/lib/guide-links";
 import { pageMetadata } from "@/lib/site";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { getWeightAxis, storageErrorMessage } from "@/lib/user-settings";
@@ -65,12 +66,15 @@ export default async function MyPage({
         >
           自炊メニューを提案してもらう
         </InstantLink>
-        <InstantLink
-          href="/eating-out"
-          className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
-        >
-          外食ランチ・定食のカロリー目安
-        </InstantLink>
+        {GUIDE_LINKS.map((link) => (
+          <InstantLink
+            key={link.href}
+            href={link.href}
+            className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
+          >
+            {link.label}
+          </InstantLink>
+        ))}
         <InstantLink
           href="/howto"
           className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"

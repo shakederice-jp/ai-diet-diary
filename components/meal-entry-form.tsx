@@ -4,10 +4,16 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { addMeal, type MealFormState } from "@/app/days/[date]/actions";
 import { ExclusiveChecks } from "@/components/exclusive-checks";
 import { GuideLinks } from "@/components/guide-links";
+import type { GuideLink } from "@/lib/guide-links";
 import { RecordReaction } from "@/components/record-reaction";
 import { MEAL_PERIODS, MEAL_SOURCES, type MealPeriod, type MealSource } from "@/lib/meal-slot";
 
 const initialState: MealFormState = { error: null, savedAt: null, reaction: null };
+
+const DAY_GUIDE_LABELS: Partial<Record<GuideLink["href"], string>> = {
+  "/eating-out": "外食メニューのカロリー目安を見る",
+  "/sweets": "お菓子・スイーツのカロリー目安を見る",
+};
 
 export function MealEntryForm({
   date,
@@ -93,9 +99,7 @@ export function MealEntryForm({
       <GuideLinks
         className="mt-1"
         newTab
-        labelFor={(link) =>
-          link.href === "/eating-out" ? "外食メニューのカロリー目安を見る" : link.label
-        }
+        labelFor={(link) => DAY_GUIDE_LABELS[link.href] ?? link.label}
       />
       <label className="mt-3 flex min-h-11 items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
         <input type="checkbox" name="saveFavorite" className="size-5 accent-[#F5821F]" />
