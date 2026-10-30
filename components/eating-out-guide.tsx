@@ -1,192 +1,304 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { InstantLink } from "@/components/instant-link";
 import {
-  EATING_OUT_BALANCED_LABEL,
   EATING_OUT_DISCLAIMER,
   EATING_OUT_DISHES,
   EATING_OUT_EMPTY,
+  EATING_OUT_GENRE_NOTE,
   EATING_OUT_GENRES,
-  EATING_OUT_LEAD,
-  EATING_OUT_MARK_LEAD,
-  EATING_OUT_MARK_SCALE,
-  EATING_OUT_SORTS,
   EATING_OUT_TITLE,
-  EATING_OUT_UPDATED,
-  EATING_OUT_VEGETABLE_NOTE,
   calorieMark,
-  eatingOutGenreLabel,
   filterEatingOutDishes,
   formatEatingOutRange,
   isBalancedDish,
   proteinMark,
   vegetableMark,
+  type EatingOutDish,
   type EatingOutGenre,
   type EatingOutMark,
   type EatingOutSort,
 } from "@/lib/eating-out-guide";
+import { APP_DISCLAIMER } from "@/lib/site";
 
-function chipClass(selected: boolean) {
-  const base =
-    "inline-flex min-h-[44px] items-center justify-center rounded-full px-3 text-sm";
-  if (selected) {
-    return `${base} bg-[#F5821F] font-semibold text-white`;
+const CRITERIA = [
+  ["カロリー", "◎650kcal以下 / ○651〜850 / △851以上"],
+  ["たんぱく質", "◎30g以上 / ○20〜29g / △20g未満"],
+  ["野菜", "◎120g以上 / ○70〜119g / △70g未満(いも・豆・きのこ・海藻・薬味は除く)"],
+] as const;
+
+const ROW_GRID =
+  "grid w-full grid-cols-[minmax(0,1fr)_4.5rem_3.25rem_4rem_2.5rem] items-center gap-x-1 px-1 md:grid-cols-[minmax(0,1.15fr)_5rem_4.5rem_5.5rem_4rem_minmax(0,1.4fr)] md:gap-x-2 md:px-2";
+
+const SORT_MARK: Record<Exclude<EatingOutSort, "standard">, string> = {
+  calorie: "▲",
+  protein: "▼",
+  vegetable: "▼",
+};
+
+function markClass(mark: EatingOutMark) {
+  if (mark === "◎") {
+    return "bg-[#F5821F] text-white";
   }
-  return `${base} border border-[#E4D7C6] bg-[#FBF6EE] font-medium text-[#6B4A32] hover:bg-[#E7DCC8]`;
+  if (mark === "○") {
+    return "border border-[#F5821F] text-[#F5821F]";
+  }
+  return "border border-[#C8C2B8] text-[#6F6A62]";
 }
 
 function MarkBadge({ mark }: { mark: EatingOutMark }) {
-  const tone =
-    mark === "◎"
-      ? "bg-[#F5821F] text-white"
-      : mark === "○"
-        ? "border border-[#F5821F] text-[#F5821F]"
-        : "border border-[#C8C2B8] text-[#6F6A62]";
   return (
     <span
-      className={`inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md px-1 text-sm font-semibold leading-none ${tone}`}
+      className={`inline-flex size-6 items-center justify-center rounded-sm text-xs font-semibold leading-none ${markClass(mark)}`}
     >
       {mark}
     </span>
   );
 }
 
+function genreBandLabel(genre: EatingOutGenre, count: number) {
+  const note = EATING_OUT_GENRE_NOTE[genre];
+  return note ? `${genre}(${note}・${count})` : `${genre}(${count})`;
+}
+
 export function EatingOutGuide() {
   const [sort, setSort] = useState<EatingOutSort>("standard");
   const [genre, setGenre] = useState<EatingOutGenre | "すべて">("すべて");
   const [balancedOnly, setBalancedOnly] = useState(false);
+  const [openNames, setOpenNames] = useState<ReadonlySet<string>>(() => new Set());
+
   const dishes = useMemo(
     () => filterEatingOutDishes(EATING_OUT_DISHES, { genre, balancedOnly, sort }),
     [genre, balancedOnly, sort],
   );
+  const sections = useMemo(() => {
+    if (sort !== "standard") {
+      return [{ genre: null as EatingOutGenre | null, dishes }];
+    }
+    return EATING_OUT_GENRES.map((item) => ({
+      genre: item,
+      dishes: dishes.filter((dish) => dish.genre === item),
+    })).filter((section) => section.dishes.length > 0);
+  }, [dishes, sort]);
+
+  function toggleSort(next: Exclude<EatingOutSort, "standard">) {
+    setSort((current) => (current === next ? "standard" : next));
+  }
+
+  function toggleDish(name: string) {
+    setOpenNames((current) => {
+      const next = new Set(current);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans">
+    <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-3 py-3 font-sans sm:px-4">
       <main className="w-full max-w-6xl">
-        <InstantLink
-          href="/"
-          className="inline-flex min-h-[44px] items-center text-sm font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4"
-        >
-          トップへ
-        </InstantLink>
-        <p className="mt-4 text-xs text-[#8A7360]">最終更新: {EATING_OUT_UPDATED}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">{EATING_OUT_TITLE}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-700">{EATING_OUT_LEAD}</p>
-        <section className="mt-6 max-w-3xl rounded-2xl bg-[#F3EBDD] px-4 py-3 text-sm leading-6 text-[#6B4A32]">
-          <p>{EATING_OUT_MARK_LEAD}</p>
-          <ul className="mt-2 space-y-1 text-xs leading-5">
-            {EATING_OUT_MARK_SCALE.map((row) => (
-              <li key={row.label}>
-                <span className="font-medium">{row.label}: </span>
-                {row.text}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs leading-5">{EATING_OUT_VEGETABLE_NOTE}</p>
-        </section>
+        <header id="eating-out-intro">
+          <h1 className="text-lg font-semibold leading-6 tracking-tight text-zinc-950">
+            {EATING_OUT_TITLE}
+          </h1>
+          <p className="mt-1 text-xs leading-5 text-zinc-700">
+            外食メニュー74品のカロリー・たんぱく質・野菜の目安です。印は目安の真ん中の数字で判定しています。推定を含みます。
+          </p>
+          <table className="mt-2 w-full text-[11px] leading-4 text-[#6B4A32]">
+            <tbody>
+              {CRITERIA.map(([label, text]) => (
+                <tr key={label}>
+                  <th scope="row" className="whitespace-nowrap pr-2 text-left align-top font-medium">
+                    {label}
+                  </th>
+                  <td className="align-top">{text}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-1 text-[11px] leading-4 text-[#6B4A32]">
+            ★: カロリーが△でなく、たんぱく質と野菜もともに△でないメニュー
+          </p>
+        </header>
 
-        <fieldset className="mt-6">
-          <legend className="text-xs font-medium text-[#8A7360]">並べ替え</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {EATING_OUT_SORTS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                aria-pressed={sort === item.id}
-                className={chipClass(sort === item.id)}
-                onClick={() => setSort(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="mt-4">
-          <legend className="text-xs font-medium text-[#8A7360]">ジャンル</legend>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              aria-pressed={genre === "すべて"}
-              className={chipClass(genre === "すべて")}
-              onClick={() => setGenre("すべて")}
-            >
+        <div className="mt-2 flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <FilterChip selected={genre === "すべて"} onClick={() => setGenre("すべて")}>
               すべて
-            </button>
+            </FilterChip>
             {EATING_OUT_GENRES.map((item) => (
-              <button
-                key={item}
-                type="button"
-                aria-pressed={genre === item}
-                className={chipClass(genre === item)}
-                onClick={() => setGenre(item)}
-              >
+              <FilterChip key={item} selected={genre === item} onClick={() => setGenre(item)}>
                 {item}
-              </button>
+              </FilterChip>
             ))}
           </div>
-        </fieldset>
-        <button
-          type="button"
-          aria-pressed={balancedOnly}
-          className={`mt-4 ${chipClass(balancedOnly)}`}
-          onClick={() => setBalancedOnly((current) => !current)}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={balancedOnly}
+            className={`inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-xs ${
+              balancedOnly
+                ? "bg-[#F5821F] font-semibold text-white"
+                : "border border-[#E4D7C6] bg-[#FBF6EE] font-medium text-[#6B4A32]"
+            }`}
+            onClick={() => setBalancedOnly((current) => !current)}
+          >
+            ★ バランス良しだけ
+          </button>
+        </div>
+
+        <div
+          id="eating-out-columns"
+          className={`sticky top-0 z-20 mt-2 border-b border-[#C4B39A] bg-[#E6D9C8] py-1 ${ROW_GRID}`}
         >
-          バランス良しだけ表示
-        </button>
+          <div className="text-[11px] font-medium text-[#6B4A32]">メニュー</div>
+          <div className="text-center text-[11px] font-medium text-[#6B4A32]">kcal</div>
+          <SortHeader label="カロリー" active={sort === "calorie"} mark={SORT_MARK.calorie} onClick={() => toggleSort("calorie")} />
+          <SortHeader label="たんぱく質" active={sort === "protein"} mark={SORT_MARK.protein} onClick={() => toggleSort("protein")} />
+          <SortHeader label="野菜" active={sort === "vegetable"} mark={SORT_MARK.vegetable} onClick={() => toggleSort("vegetable")} />
+          <div className="hidden text-[11px] font-medium text-[#6B4A32] md:block">ひとこと</div>
+        </div>
 
         {dishes.length === 0 ? (
-          <p className="mt-6 text-sm text-zinc-700" role="status">
+          <p className="py-4 text-sm text-zinc-700" role="status">
             {EATING_OUT_EMPTY}
           </p>
         ) : (
-          <ul className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {dishes.map((dish) => (
-              <li key={dish.name}>
-                <article className="h-full rounded-2xl bg-[#FBF6EE] p-4 shadow-sm">
-                  <p className="text-xs text-[#8A7360]">{eatingOutGenreLabel(dish.genre)}</p>
-                  <h2 className="mt-1 text-base font-semibold leading-6 text-zinc-950">{dish.name}</h2>
-                  <dl className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <dt className="w-16 shrink-0 text-xs text-[#8A7360]">カロリー</dt>
-                      <dd className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm text-zinc-900">
-                        <span className="tabular-nums">{formatEatingOutRange(dish.calorie, "kcal")}</span>
-                        <MarkBadge mark={calorieMark(dish.calorie)} />
-                      </dd>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <dt className="w-16 shrink-0 text-xs text-[#8A7360]">たんぱく質</dt>
-                      <dd className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm text-zinc-900">
-                        <span className="tabular-nums">
-                          {formatEatingOutRange(dish.protein, "g", dish.proteinOfficial)}
-                        </span>
-                        <MarkBadge mark={proteinMark(dish.protein)} />
-                      </dd>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <dt className="w-16 shrink-0 text-xs text-[#8A7360]">野菜</dt>
-                      <dd className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm text-zinc-900">
-                        <span className="tabular-nums">
-                          {formatEatingOutRange(dish.vegetable, "g", dish.vegetableOfficial)}
-                        </span>
-                        <MarkBadge mark={vegetableMark(dish.vegetable)} />
-                      </dd>
-                    </div>
-                  </dl>
-                  <p className="mt-3 text-sm leading-6 text-zinc-800">{dish.comment}</p>
-                  {dish.note ? <p className="mt-2 text-xs leading-5 text-[#8A7360]">{dish.note}</p> : null}
-                  {isBalancedDish(dish) ? (
-                    <p className="mt-3 inline-flex items-center rounded-full bg-[#F3EBDD] px-2 py-1 text-xs font-medium text-[#6B4A32]">
-                      {EATING_OUT_BALANCED_LABEL}
-                    </p>
-                  ) : null}
-                </article>
-              </li>
+          <div>
+            {sections.map((section) => (
+              <section key={section.genre ?? "sorted"}>
+                {section.genre ? (
+                  <h2 className="flex h-7 items-center bg-[#F3EBDD] px-2 text-xs font-medium text-[#6B4A32]">
+                    {genreBandLabel(section.genre, section.dishes.length)}
+                  </h2>
+                ) : null}
+                {section.dishes.map((dish) => (
+                  <DishRow
+                    key={dish.name}
+                    dish={dish}
+                    open={openNames.has(dish.name)}
+                    onToggle={() => toggleDish(dish.name)}
+                  />
+                ))}
+              </section>
             ))}
-          </ul>
+          </div>
         )}
-        <p className="mt-8 max-w-3xl text-xs leading-5 text-[#6B4A32]">{EATING_OUT_DISCLAIMER}</p>
+
+        <footer className="mt-4 space-y-2 text-[11px] leading-5 text-[#6B4A32]">
+          <p>{EATING_OUT_DISCLAIMER}</p>
+          <p>野菜の量は、ほとんどが推定です。</p>
+          <p>{APP_DISCLAIMER}</p>
+        </footer>
       </main>
+    </div>
+  );
+}
+
+function FilterChip({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      className={`inline-flex h-11 shrink-0 items-center rounded-full px-3 text-xs ${
+        selected
+          ? "bg-[#F5821F] font-semibold text-white"
+          : "border border-[#E4D7C6] bg-[#FBF6EE] font-medium text-[#6B4A32]"
+      }`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SortHeader({
+  label,
+  active,
+  mark,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  mark: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      className={`min-h-11 whitespace-nowrap text-center text-[10px] leading-tight font-medium md:text-xs ${
+        active ? "font-semibold text-[#F5821F]" : "text-[#6B4A32]"
+      }`}
+      onClick={onClick}
+    >
+      {label}
+      {active ? mark : ""}
+    </button>
+  );
+}
+
+function DishRow({
+  dish,
+  open,
+  onToggle,
+}: {
+  dish: EatingOutDish;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const balanced = isBalancedDish(dish);
+  const detailId = `eating-out-detail-${dish.name}`;
+  return (
+    <div className={`border-b border-[#E7DCC8] ${open ? "bg-[#FBF6EE]" : ""}`}>
+      <button
+        type="button"
+        data-menu-row=""
+        aria-expanded={open}
+        aria-controls={detailId}
+        className={`${ROW_GRID} min-h-11 py-1 text-left`}
+        onClick={onToggle}
+      >
+        <span className="line-clamp-2 text-sm leading-[18px] text-zinc-950">
+          {balanced ? <span className="mr-0.5 text-[12px] text-[#F5821F]">★</span> : null}
+          {dish.name}
+        </span>
+        <span className="text-center text-xs tabular-nums text-zinc-800">
+          {dish.calorie[0]}〜{dish.calorie[1]}
+        </span>
+        <span className="flex justify-center">
+          <MarkBadge mark={calorieMark(dish.calorie)} />
+        </span>
+        <span className="flex justify-center">
+          <MarkBadge mark={proteinMark(dish.protein)} />
+        </span>
+        <span className="flex justify-center">
+          <MarkBadge mark={vegetableMark(dish.vegetable)} />
+        </span>
+        <span className="hidden truncate text-xs leading-4 text-zinc-700 md:block">{dish.comment}</span>
+      </button>
+      {open ? (
+        <div id={detailId} className="space-y-1 px-2 pb-2 text-xs leading-5 text-zinc-800">
+          <p>たんぱく質 {formatEatingOutRange(dish.protein, "g", dish.proteinOfficial)}</p>
+          <p>野菜 {formatEatingOutRange(dish.vegetable, "g", dish.vegetableOfficial)}</p>
+          {dish.note ? <p className="text-[#6B4A32]">{dish.note}</p> : null}
+          <p>{dish.comment}</p>
+          {balanced ? (
+            <p>★ バランス良し。カロリーが△でなく、たんぱく質と野菜もともに△でないメニューです。</p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
