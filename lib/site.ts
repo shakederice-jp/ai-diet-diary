@@ -25,11 +25,17 @@ export const APP_DISCLAIMER =
 
 export const OPERATOR_NAME = "大手町調査室九課";
 
+export const OPERATOR_REPRESENTATIVE = "ミヤケテツヤ";
+
+export const OPERATOR_ADDRESS = "東京都中央区日本橋兜町17-2-4F";
+
+export const OPERATOR_ADDRESS_NOTE = "※大手町はバーチャル上の支社です";
+
 /** 法務ページの制定日・最終更新日。直すときはここだけ。 */
 export const LEGAL_UPDATED_ON = "2026年10月30日";
 
 /** 空のときは、お問い合わせを出さない。 */
-export const CONTACT_EMAIL = "";
+export const CONTACT_EMAIL = "otemachi.sec9@gmail.com";
 
 /** 空、またはメールアドレスの形でないときは null。 */
 export function publicContactEmail() {

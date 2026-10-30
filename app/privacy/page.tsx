@@ -1,7 +1,13 @@
 import { LegalContact } from "@/components/legal-contact";
 import { LegalPage, LegalSection } from "@/components/legal-page";
 import { LEGAL_PAGES } from "@/lib/legal";
-import { OPERATOR_NAME, pageMetadata } from "@/lib/site";
+import {
+  OPERATOR_ADDRESS,
+  OPERATOR_ADDRESS_NOTE,
+  OPERATOR_NAME,
+  OPERATOR_REPRESENTATIVE,
+  pageMetadata,
+} from "@/lib/site";
 
 const page = LEGAL_PAGES[0];
 
@@ -20,6 +26,12 @@ export default function PrivacyPage() {
     <LegalPage href="/privacy">
       <LegalSection number={1} title="事業者">
         <p>このサービスの事業者は、{OPERATOR_NAME}です。</p>
+        <p>運営統括責任者は、{OPERATOR_REPRESENTATIVE}です。</p>
+        <p>
+          所在地は、{OPERATOR_ADDRESS}です。
+          <br />
+          {OPERATOR_ADDRESS_NOTE}
+        </p>
         <LegalContact />
       </LegalSection>
       <LegalSection number={2} title="取得する情報">
