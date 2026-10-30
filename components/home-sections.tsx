@@ -85,14 +85,11 @@ export async function HomeCalendar({
 
   return (
     <div className="flex w-full flex-col gap-8">
-      <div>
-        <MonthCalendar
-          model={calendar}
-          weeklyGoal={weeklyGoalFromStored(goal)}
-          today={today}
-        />
-        <GuideLinks className="mt-2" />
-      </div>
+      <MonthCalendar
+        model={calendar}
+        weeklyGoal={weeklyGoalFromStored(goal)}
+        today={today}
+      />
       <Suspense fallback={null}>
         <HomeMonthTrend
           userId={userId}
@@ -103,6 +100,7 @@ export async function HomeCalendar({
           today={today.date}
         />
       </Suspense>
+      <GuideLinks className="!flex-col !items-start" />
     </div>
   );
 }
