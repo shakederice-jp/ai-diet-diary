@@ -66,6 +66,12 @@ export default async function MyPage({
           自炊メニューを提案してもらう
         </InstantLink>
         <InstantLink
+          href="/eating-out"
+          className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
+        >
+          外食ランチ・定食のカロリー目安
+        </InstantLink>
+        <InstantLink
           href="/howto"
           className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
         >
