@@ -19,6 +19,7 @@ import {
   type EatingOutMark,
   type EatingOutSort,
 } from "@/lib/eating-out-guide";
+import { StaplesGuide } from "@/components/staples-guide";
 import { APP_DISCLAIMER } from "@/lib/site";
 
 const CRITERIA = [
@@ -123,6 +124,8 @@ export function EatingOutGuide() {
             ★: カロリーが△でなく、たんぱく質と野菜もともに△でないメニュー
           </p>
         </header>
+
+        <StaplesGuide />
 
         <div className="mt-2 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
