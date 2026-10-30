@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { after } from "next/server";
+import { GuideLinks } from "@/components/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
@@ -84,11 +85,14 @@ export async function HomeCalendar({
 
   return (
     <div className="flex w-full flex-col gap-8">
-      <MonthCalendar
-        model={calendar}
-        weeklyGoal={weeklyGoalFromStored(goal)}
-        today={today}
-      />
+      <div>
+        <MonthCalendar
+          model={calendar}
+          weeklyGoal={weeklyGoalFromStored(goal)}
+          today={today}
+        />
+        <GuideLinks className="mt-2" />
+      </div>
       <Suspense fallback={null}>
         <HomeMonthTrend
           userId={userId}

@@ -1,4 +1,5 @@
 import { AppBrand } from "@/components/app-brand";
+import { GuideLinks } from "@/components/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import { authSubmitClass } from "@/components/auth-styles";
 import { APP_NAME, APP_NAME_EN, APP_SUBTITLE } from "@/lib/app-title";
@@ -158,6 +159,7 @@ export function LandingPage() {
         <InstantLink href="/howto" className={`mt-10 ${textLinkClass} justify-start`}>
           使い方を見る
         </InstantLink>
+        <GuideLinks className="mt-1" />
         <section className="mt-10" aria-labelledby="faq-heading">
           <h2 id="faq-heading" className="text-lg font-medium text-[#F5821F]">
             よくある質問

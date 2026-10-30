@@ -1,4 +1,5 @@
 import { AppBrand } from "@/components/app-brand";
+import { GuideLinks } from "@/components/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import {
   HOWTO_APPENDIX,
@@ -58,6 +59,7 @@ export default async function HowToPage() {
             </section>
           ) : null}
         </div>
+        <GuideLinks className="mt-10" />
         <p className="mt-10 text-xs leading-5 text-zinc-500">{APP_DISCLAIMER}</p>
       </main>
     </div>
