@@ -65,12 +65,14 @@ export function MonthCalendar({
     <section className="w-full min-w-0 rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] leading-4 text-[#8A7360]">{APP_SUBTITLE}</p>
-          <p className="mt-0.5 flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="whitespace-nowrap text-xs font-medium leading-none text-[#8A7360]">
+          <p className="whitespace-nowrap text-[12.5px] font-medium leading-none text-[#826954] min-[390px]:text-[13.75px]">
+            {APP_SUBTITLE}
+          </p>
+          <p className="mt-0.5 flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-0.5 leading-none">
+            <span className="whitespace-nowrap text-[1.05rem] font-semibold text-[#775A44]">
               {APP_CATCHCOPY}
             </span>
-            <span className="whitespace-nowrap text-[2.25rem] font-extrabold leading-none tracking-tight text-[#6B4A32]">
+            <span className="whitespace-nowrap text-[1.575rem] font-extrabold tracking-tight text-[#6B4A32]">
               {APP_NAME}
             </span>
           </p>
