@@ -16,6 +16,12 @@ const SIZES = {
     name: "text-base font-semibold text-[#6B4A32]",
     sub: "mt-0.5 text-[11px] leading-4 text-[#8A7360]",
   },
+  /** 紹介ページの hero と同じ並び。狭い幅だけ、マイページボタンの左に収める。 */
+  calendar: {
+    catch: "text-sm font-medium text-zinc-600 sm:text-base",
+    name: "text-2xl font-semibold tracking-tight text-zinc-950 min-[390px]:text-[1.125rem] min-[420px]:text-2xl sm:text-3xl",
+    sub: "mt-1 text-[12.5px] font-normal leading-5 text-zinc-500 min-[390px]:text-sm",
+  },
 } as const;
 
 export function AppBrand({

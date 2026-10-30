@@ -1,6 +1,6 @@
+import { AppBrand } from "@/components/app-brand";
 import { InstantLink } from "@/components/instant-link";
 import { navIcon } from "@/components/nav-styles";
-import { APP_CATCHCOPY, APP_NAME, APP_SUBTITLE } from "@/lib/app-title";
 import {
   addMonths,
   formatKcal,
@@ -64,19 +64,7 @@ export function MonthCalendar({
   return (
     <section className="w-full min-w-0 rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-        <div className="min-w-0">
-          <p className="whitespace-nowrap text-[12.5px] font-medium leading-none text-[#826954] min-[390px]:text-[13.75px]">
-            {APP_SUBTITLE}
-          </p>
-          <p className="mt-0.5 flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-0.5 leading-none">
-            <span className="whitespace-nowrap text-[1.05rem] font-semibold text-[#775A44]">
-              {APP_CATCHCOPY}
-            </span>
-            <span className="whitespace-nowrap text-[1.575rem] font-extrabold tracking-tight text-[#6B4A32]">
-              {APP_NAME}
-            </span>
-          </p>
-        </div>
+        <AppBrand size="calendar" />
         <InstantLink
           href="/mypage"
           className="inline-flex min-h-[52px] shrink-0 items-center justify-center rounded-full border border-[#F5821F] bg-[#FBF6EE] px-5 text-base font-medium text-[#F5821F] hover:bg-[#E7DCC8]"
