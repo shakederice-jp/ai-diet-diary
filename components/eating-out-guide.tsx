@@ -22,6 +22,7 @@ import {
 import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
 import { GuideSentence, OtherGuides } from "@/components/guide-links";
 import { StaplesGuide } from "@/components/staples-guide";
+import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
 import { APP_DISCLAIMER } from "@/lib/site";
 
@@ -202,6 +203,7 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
           <GuideSentence href="/sweets" className="pt-2" />
           <OtherGuides currentHref="/eating-out" className="pt-2" />
           <TryAppCta href={startHref} className="pt-2" />
+          <SiteFooter className="pt-4" />
         </footer>
       </main>
     </div>

@@ -23,7 +23,10 @@ export const SITE_DESCRIPTION =
 export const APP_DISCLAIMER =
   "効果や結果には個人差があります。食事・運動の目安は一般的な情報で、医療上の助言ではありません。";
 
-export const OPERATOR_NAME = "ピークアンドバレー合同会社";
+export const OPERATOR_NAME = "大手町調査室九課";
+
+/** 法務ページの制定日・最終更新日。直すときはここだけ。 */
+export const LEGAL_UPDATED_ON = "2026年10月30日";
 
 /** 空のときは、お問い合わせを出さない。 */
 export const CONTACT_EMAIL = "";

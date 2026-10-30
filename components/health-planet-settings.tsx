@@ -1,3 +1,4 @@
+import { InstantLink } from "@/components/instant-link";
 import { NavAnchor } from "@/components/nav-anchor";
 import { navQuiet } from "@/components/nav-styles";
 import { getHealthPlanetConnection } from "@/lib/supabase/admin";
@@ -41,6 +42,16 @@ export async function HealthPlanetSettings({
   return (
     <section className="mt-8 border-t border-[#E4D7C6] pt-4">
       <h2 className="text-xs font-medium text-zinc-500">外部サービス連携</h2>
+      <p className="mt-2 text-xs leading-5 text-zinc-600">
+        連携で受け取る情報は、
+        <InstantLink
+          href="/privacy"
+          className="mx-1 text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4"
+        >
+          プライバシーポリシー
+        </InstantLink>
+        に書いています。
+      </p>
       {message ? (
         <p className={`mt-2 text-xs ${message.tone === "error" ? "text-red-800" : "text-zinc-600"}`}>
           {message.text}

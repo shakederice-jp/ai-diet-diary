@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { InstantLink } from "@/components/instant-link";
+import { SiteFooter } from "@/components/site-footer";
 import { RecipeSuggestionPanel } from "@/components/recipe-suggestion-panel";
 import { navQuiet } from "@/components/nav-styles";
 import { NEED_MORE_RECORDS_MESSAGE, RECIPE_UNAVAILABLE_MESSAGE } from "@/lib/recipe-parse";
@@ -61,6 +62,7 @@ export default async function RecipesPage() {
             />
           </div>
         )}
+        <SiteFooter className="mt-10" />
       </main>
     </div>
   );

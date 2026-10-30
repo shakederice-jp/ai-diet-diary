@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { signOut } from "@/app/login/actions";
 import { InstantLink } from "@/components/instant-link";
+import { SiteFooter } from "@/components/site-footer";
 import { SubmitButton } from "@/components/submit-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
@@ -109,6 +110,7 @@ export default async function MyPage({
           initialMaxKg={weightAxis.maxKg}
           loadError={weightAxis.loadError}
         />
+        <SiteFooter className="mt-10" />
       </main>
     </div>
   );

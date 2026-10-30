@@ -1,5 +1,6 @@
 import { AppBrand } from "@/components/app-brand";
 import { GuideLinks } from "@/components/guide-links";
+import { SiteFooter } from "@/components/site-footer";
 import { GUIDE_PAGES } from "@/lib/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import { authSubmitClass } from "@/components/auth-styles";
@@ -187,7 +188,7 @@ export function LandingPage() {
               </InstantLink>
             ))}
           </nav>
-          <p className="text-sm text-zinc-700">運営: {OPERATOR_NAME}</p>
+          <SiteFooter />
           {email ? (
             <p className="mt-2 text-sm text-zinc-700">
               お問い合わせ:{" "}

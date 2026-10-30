@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HomeCalendar, HomeHealth } from "@/components/home-sections";
+import { SiteFooter } from "@/components/site-footer";
 import { LandingPage } from "@/components/landing-page";
 import {
   WEEK_START_COOKIE,
@@ -69,6 +70,7 @@ export default async function Home({
         <Suspense fallback={null}>
           <HomeHealth userId={userId} />
         </Suspense>
+        <SiteFooter />
       </main>
     </div>
   );

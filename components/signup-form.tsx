@@ -23,6 +23,27 @@ export function SignupForm() {
         <button type="submit" disabled={pending} className={authSubmitClass}>
           {pending ? "登録しています…" : "登録する"}
         </button>
+        <p className="text-xs leading-5 text-zinc-600">
+          登録すると、
+          <InstantLink
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mx-1 text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4"
+          >
+            利用規約
+          </InstantLink>
+          と
+          <InstantLink
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mx-1 text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4"
+          >
+            プライバシーポリシー
+          </InstantLink>
+          に同意したものとみなされます
+        </p>
       </form>
       {state.error ? (
         <p className="mt-3 text-sm text-red-800" role="alert">

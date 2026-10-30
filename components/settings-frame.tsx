@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AppNav, type AppSection } from "@/components/app-nav";
+import { SiteFooter } from "@/components/site-footer";
 
 export function SettingsFrame({
   current,
@@ -22,6 +23,7 @@ export function SettingsFrame({
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">{title}</h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">{description}</p>
         <div className="mt-6">{children}</div>
+        <SiteFooter className="mt-10" />
       </main>
     </div>
   );

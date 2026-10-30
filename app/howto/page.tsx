@@ -2,6 +2,7 @@ import { AppBrand } from "@/components/app-brand";
 import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
 import { OtherGuides } from "@/components/guide-links";
 import { InstantLink } from "@/components/instant-link";
+import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
 import {
   HOWTO_APPENDIX,
@@ -87,6 +88,7 @@ export default async function HowToPage() {
         <OtherGuides currentHref="/howto" className="mt-10" />
         <TryAppCta href={loggedIn ? "/" : "/signup"} className="mt-4" />
         <p className="mt-10 text-xs leading-5 text-zinc-500">{APP_DISCLAIMER}</p>
+        <SiteFooter className="mt-6" />
       </main>
     </div>
   );

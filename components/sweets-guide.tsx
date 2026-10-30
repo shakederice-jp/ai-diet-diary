@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Breadcrumbs, guideBreadcrumbItems } from "@/components/Breadcrumbs";
 import { GuideSentence, OtherGuides } from "@/components/guide-links";
+import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
 import {
   SWEETS_DISCLAIMER,
@@ -180,6 +181,7 @@ export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
           <GuideSentence href="/eating-out" className="pt-2" />
           <OtherGuides currentHref="/sweets" className="pt-2" />
           <TryAppCta href={startHref} className="pt-2" />
+          <SiteFooter className="pt-4" />
         </footer>
       </main>
     </div>

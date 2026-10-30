@@ -7,5 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/howto` },
     { url: `${SITE_URL}/eating-out` },
     { url: `${SITE_URL}/sweets` },
+    { url: `${SITE_URL}/privacy` },
+    { url: `${SITE_URL}/terms` },
+    { url: `${SITE_URL}/tokushoho` },
   ];
 }

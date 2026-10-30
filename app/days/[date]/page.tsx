@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { DayBody } from "@/components/day-body";
 import { InstantLink } from "@/components/instant-link";
+import { SiteFooter } from "@/components/site-footer";
 import { navQuiet } from "@/components/nav-styles";
 import { MealEntryForm } from "@/components/meal-entry-form";
 import {
@@ -77,6 +78,7 @@ export default async function DayPage({
             weekStartsOn={weekStartsOn}
           />
         </Suspense>
+        <SiteFooter className="mt-10" />
       </main>
     </div>
   );
