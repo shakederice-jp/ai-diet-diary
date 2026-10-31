@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HomeCalendar, HomeHealth } from "@/components/home-sections";
+import { AddToHomeButton } from "@/components/add-to-home-button";
 import { SiteFooter } from "@/components/site-footer";
 import { LandingPage } from "@/components/landing-page";
 import {
@@ -71,6 +72,7 @@ export default async function Home({
           <HomeHealth userId={userId} />
         </Suspense>
         <SiteFooter />
+        <AddToHomeButton />
       </main>
     </div>
   );

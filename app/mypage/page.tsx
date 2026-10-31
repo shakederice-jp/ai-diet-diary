@@ -4,6 +4,7 @@ import { signOut } from "@/app/login/actions";
 import { InstantLink } from "@/components/instant-link";
 import { SiteFooter } from "@/components/site-footer";
 import { SubmitButton } from "@/components/submit-button";
+import { AddToHomeButton } from "@/components/add-to-home-button";
 import { AdvisorPicker } from "@/components/advisor-picker";
 import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
@@ -110,6 +111,7 @@ export default async function MyPage({
           initialMaxKg={weightAxis.maxKg}
           loadError={weightAxis.loadError}
         />
+        <AddToHomeButton className="mt-10" />
         <SiteFooter className="mt-10" />
       </main>
     </div>
