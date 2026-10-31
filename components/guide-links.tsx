@@ -4,7 +4,7 @@ import { InstantLink } from "@/components/instant-link";
 import { GUIDE_LINKS, GUIDE_PAGES, guidePageByHref, type GuideLink, type GuidePage } from "@/lib/guide-links";
 
 const linkClass =
-  "inline-flex min-h-11 items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
+  "inline-flex min-h-11 min-w-0 max-w-full items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
 
 export function GuideLinks({
   className = "",
@@ -16,7 +16,7 @@ export function GuideLinks({
   labelFor?: (link: GuideLink) => string;
 }) {
   return (
-    <nav aria-label="案内" className={`flex flex-wrap items-center gap-x-3 ${className}`}>
+    <nav aria-label="案内" className={`flex w-full min-w-0 flex-wrap items-center gap-x-3 ${className}`}>
       {GUIDE_LINKS.map((link) => (
         <InstantLink
           key={link.href}
@@ -24,7 +24,7 @@ export function GuideLinks({
           className={linkClass}
           {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         >
-          <span>{labelFor ? labelFor(link) : link.label}</span>
+          <span className="break-words">{labelFor ? labelFor(link) : link.label}</span>
           <span aria-hidden="true">→</span>
         </InstantLink>
       ))}
@@ -33,7 +33,7 @@ export function GuideLinks({
 }
 
 const quietLinkClass =
-  "inline-flex min-h-8 items-center text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
+  "inline-flex min-h-11 items-center text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
 
 export function OtherGuides({
   currentHref,
@@ -42,7 +42,10 @@ export function OtherGuides({
   currentHref: GuidePage["href"];
   className?: string;
 }) {
-  const links = GUIDE_PAGES.filter((page) => page.href !== currentHref);
+  const links = GUIDE_PAGES.filter((page) => page.href !== currentHref).map((page) => {
+    const detailed = GUIDE_LINKS.find((link) => link.href === page.href);
+    return { href: page.href, label: detailed?.label ?? page.label };
+  });
   return (
     <section className={className} aria-labelledby={`other-guides-${currentHref.slice(1)}`}>
       <h2 id={`other-guides-${currentHref.slice(1)}`} className="text-sm font-medium text-[#6B4A32]">

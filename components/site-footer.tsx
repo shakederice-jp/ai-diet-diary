@@ -5,11 +5,17 @@ import { OPERATOR_NAME } from "@/lib/site";
 const linkClass =
   "inline-flex min-h-8 items-center text-xs text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]";
 
+const howtoLinkClass =
+  "inline-flex min-h-11 items-center text-xs text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]";
+
 export function SiteFooter({ className = "" }: { className?: string }) {
   return (
     <div className={className}>
       <p className="text-sm text-zinc-700">運営：{OPERATOR_NAME}</p>
       <nav aria-label="法務" className="mt-2 flex flex-col">
+        <InstantLink href="/howto" className={howtoLinkClass}>
+          使い方
+        </InstantLink>
         {LEGAL_PAGES.map((page) => (
           <InstantLink key={page.href} href={page.href} className={linkClass}>
             {page.label}

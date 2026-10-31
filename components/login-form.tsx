@@ -43,9 +43,9 @@ export function LoginForm({ notice = null }: { notice?: string | null }) {
         </InstantLink>
         <InstantLink
           href="/howto"
-          className="block py-2 text-center text-sm text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]"
+          className="inline-flex min-h-11 w-full items-center justify-center text-sm text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]"
         >
-          このサイトの使い方
+          はじめての方は、使い方をご覧ください →
         </InstantLink>
       </div>
     </AuthFrame>

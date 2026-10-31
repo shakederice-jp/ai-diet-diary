@@ -55,9 +55,15 @@ export function SignupForm() {
           {state.message}
         </p>
       ) : null}
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-1">
         <InstantLink href="/login" className={authLinkClass}>
           ログインはこちら
+        </InstantLink>
+        <InstantLink
+          href="/howto"
+          className="inline-flex min-h-11 w-full items-center justify-center text-sm text-[#8A7360] underline decoration-[#C4B39A] underline-offset-4 hover:text-[#F5821F]"
+        >
+          はじめての方は、使い方をご覧ください →
         </InstantLink>
       </div>
     </AuthFrame>

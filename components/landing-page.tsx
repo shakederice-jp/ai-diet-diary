@@ -71,6 +71,13 @@ export function LandingPage() {
           <InstantLink href="/login" className={`${textLinkClass} justify-center`}>
             ログイン
           </InstantLink>
+          <InstantLink
+            href="/howto"
+            className="inline-flex min-h-11 items-center self-start gap-1 text-sm text-zinc-600 underline decoration-zinc-400 underline-offset-4 hover:text-[#F5821F]"
+          >
+            使い方を見る
+            <span aria-hidden="true">→</span>
+          </InstantLink>
         </div>
         <section className="mt-10" aria-labelledby="features-heading">
           <h2 id="features-heading" className="text-lg font-medium text-[#F5821F]">
@@ -109,7 +116,7 @@ export function LandingPage() {
               <InstantLink
                 key={page.href}
                 href={page.href}
-                className="inline-flex min-h-8 items-center text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+                className="inline-flex min-h-11 items-center text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
               >
                 {page.label}
               </InstantLink>

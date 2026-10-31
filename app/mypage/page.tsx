@@ -54,6 +54,13 @@ export default async function MyPage({
         <p className="mt-3 text-sm leading-6 text-zinc-600">
           プロフィールとカロリーの上限をここから開きます。
         </p>
+        <InstantLink
+          href="/howto"
+          className="mt-4 inline-flex min-h-11 items-center gap-1 text-base text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+        >
+          このサイトの使い方
+          <span aria-hidden="true">→</span>
+        </InstantLink>
         <div className="mt-6 flex flex-col gap-4 sm:flex-row">
           <InstantLink href="/settings" className={navPrimary}>
             プロフィール
@@ -68,7 +75,7 @@ export default async function MyPage({
         >
           自炊メニューを提案してもらう
         </InstantLink>
-        {GUIDE_LINKS.map((link) => (
+        {GUIDE_LINKS.filter((link) => link.href !== "/howto").map((link) => (
           <InstantLink
             key={link.href}
             href={link.href}
@@ -77,12 +84,6 @@ export default async function MyPage({
             {link.label}
           </InstantLink>
         ))}
-        <InstantLink
-          href="/howto"
-          className="flex min-h-[52px] w-full items-center rounded-2xl px-3 text-sm text-[#6B4A32] underline decoration-[#C4B39A] underline-offset-4 hover:bg-[#E7DCC8]"
-        >
-          このサイトの使い方
-        </InstantLink>
         <div className="mt-6">
           <Suspense
             fallback={<p className="text-sm text-zinc-600">連続記録を読み込んでいます…</p>}
