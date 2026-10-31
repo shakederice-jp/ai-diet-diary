@@ -142,6 +142,28 @@ export async function getMeal(userId: string, id: string) {
   };
 }
 
+function mealInsertRow(input: {
+  userId: string;
+  date: string;
+  name: string;
+  kcal: number;
+  favoriteId: string | null;
+  mealPeriod: MealPeriod;
+  mealSource: MealSource | null;
+  kcalSource: KcalSource;
+}) {
+  return {
+    user_id: input.userId,
+    recorded_on: input.date,
+    name: input.name,
+    kcal: input.kcal,
+    favorite_id: input.favoriteId,
+    meal_period: input.mealPeriod,
+    meal_source: input.mealPeriod === "間食" ? null : input.mealSource,
+    kcal_source: input.kcalSource,
+  };
+}
+
 export async function insertMeal(input: {
   userId: string;
   date: string;
@@ -153,17 +175,30 @@ export async function insertMeal(input: {
   kcalSource: KcalSource;
 }) {
   const supabase = await createDataClient();
-  const { error } = await supabase.from("meal_records").insert({
-    user_id: input.userId,
-    recorded_on: input.date,
-    name: input.name,
-    kcal: input.kcal,
-    favorite_id: input.favoriteId,
-    meal_period: input.mealPeriod,
-    meal_source: input.mealPeriod === "間食" ? null : input.mealSource,
-    kcal_source: input.kcalSource,
-  });
+  const { error } = await supabase.from("meal_records").insert(mealInsertRow(input));
 
+  if (error) {
+    throw new Error(`Failed to save meal: ${error.message}`);
+  }
+}
+
+export async function insertMeals(
+  rows: Array<{
+    userId: string;
+    date: string;
+    name: string;
+    kcal: number;
+    favoriteId: string | null;
+    mealPeriod: MealPeriod;
+    mealSource: MealSource | null;
+    kcalSource: KcalSource;
+  }>,
+) {
+  if (rows.length === 0) {
+    return;
+  }
+  const supabase = await createDataClient();
+  const { error } = await supabase.from("meal_records").insert(rows.map(mealInsertRow));
   if (error) {
     throw new Error(`Failed to save meal: ${error.message}`);
   }

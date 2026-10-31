@@ -61,6 +61,30 @@ export function tokyoHour(now = new Date()) {
   return value === 24 ? 0 : value;
 }
 
+export function tokyoDateKey(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/** まとめて入力で最初から出す時間帯。間食は今日でも常に含む。 */
+export function bulkEntryPeriods(pageDate: string, today: string, hour: number): MealPeriod[] {
+  if (pageDate !== today) {
+    return [...MEAL_PERIODS];
+  }
+  const visible = new Set<MealPeriod>(["朝食", "間食"]);
+  if (hour >= 10) {
+    visible.add("昼食");
+  }
+  if (hour >= 16) {
+    visible.add("夕食");
+  }
+  return MEAL_PERIODS.filter((period) => visible.has(period));
+}
+
 export type BandMeal = {
   kcal: number;
   mealPeriod: MealPeriod;

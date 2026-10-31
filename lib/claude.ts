@@ -82,6 +82,48 @@ export async function estimateDishKcal(dishName: string) {
   return kcal;
 }
 
+export function parseEstimatedKcalList(text: string, count: number): Array<number | null> {
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start < 0 || end <= start) {
+    return Array.from({ length: count }, () => null);
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return Array.from({ length: count }, () => null);
+  }
+  if (!Array.isArray(parsed)) {
+    return Array.from({ length: count }, () => null);
+  }
+  return Array.from({ length: count }, (_, index) => {
+    const value = parsed[index];
+    const kcal =
+      typeof value === "number"
+        ? value
+        : typeof value === "string"
+          ? Number(value)
+          : Number.NaN;
+    if (!Number.isInteger(kcal) || kcal < 1 || kcal > 9999) {
+      return null;
+    }
+    return kcal;
+  });
+}
+
+export async function estimateDishesKcal(dishNames: string[]) {
+  if (dishNames.length === 0) {
+    return [];
+  }
+  const numbered = dishNames.map((name, index) => `${index + 1}. ${name}`).join("\n");
+  const text = await askClaude(
+    `次の料理について、一般的な日本の1人前のカロリーをkcalの整数で推定してください。出力はJSONの配列だけにしてください。入力と同じ個数、同じ順番にしてください。説明は付けないでください。\n${numbered}`,
+    Math.min(1024, 80 + dishNames.length * 16),
+  );
+  return parseEstimatedKcalList(text, dishNames.length);
+}
+
 export async function generateAdvisorComment(prompt: string, maxTokens = 400) {
   const text = (await askClaude(prompt, maxTokens))
     .replace(/^(?:#+\s.*\n+)+/, "")

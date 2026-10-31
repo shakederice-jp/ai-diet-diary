@@ -5,7 +5,6 @@ import { DayBody } from "@/components/day-body";
 import { InstantLink } from "@/components/instant-link";
 import { SiteFooter } from "@/components/site-footer";
 import { navQuiet } from "@/components/nav-styles";
-import { MealEntryForm } from "@/components/meal-entry-form";
 import {
   WEEK_START_COOKIE,
   formatJapaneseDate,
@@ -13,7 +12,6 @@ import {
   parseIsoDate,
   parseWeekStart,
 } from "@/lib/calendar";
-import { mealPeriodForTokyoHour, tokyoHour } from "@/lib/meal-slot";
 import { getAuthUserId } from "@/lib/supabase/server";
 import { pageMetadata } from "@/lib/site";
 
@@ -48,8 +46,6 @@ export default async function DayPage({
     redirect("/login");
   }
 
-  const initialPeriod = mealPeriodForTokyoHour(tokyoHour());
-
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 dark:bg-black">
       <main className="w-full max-w-2xl rounded-3xl bg-[#F3EBDD] p-6 shadow-sm sm:p-8 dark:bg-zinc-950">
@@ -63,7 +59,6 @@ export default async function DayPage({
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
           {formatJapaneseDate(parsed.date)}
         </h1>
-        <MealEntryForm date={parsed.date} initialPeriod={initialPeriod} />
         <Suspense
           fallback={
             <div className="mt-6 space-y-4" aria-busy="true">

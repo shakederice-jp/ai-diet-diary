@@ -13,8 +13,12 @@ import {
   parseMealPeriod,
   parseMealSource,
   tokyoHour,
+  type KcalSource,
+  type MealPeriod,
+  type MealSource,
 } from "@/lib/meal-slot";
-import { classifyDishCategory, estimateDishKcal } from "@/lib/claude";
+import { bulkLineProblem, normalizeBulkLine } from "@/lib/bulk-meals";
+import { classifyDishCategory, estimateDishKcal, estimateDishesKcal } from "@/lib/claude";
 import { getAuthUserId } from "@/lib/supabase/server";
 import {
   addCategory,
@@ -25,6 +29,7 @@ import {
   getFavorite,
   getMeal,
   insertMeal,
+  insertMeals,
   renameCategory,
   updateFavorite,
   updateMeal,
@@ -189,6 +194,142 @@ export async function addMeal(
     });
     await rememberEngagement(userId, date);
     refreshDay(date);
+    return { error: null, savedAt: Date.now(), reaction: await reactionFor(userId) };
+  } catch (error) {
+    return { error: failureMessage(error), savedAt: null };
+  }
+}
+
+export type BulkEstimateLine = {
+  name: string;
+  mealPeriod: MealPeriod;
+  mealSource: MealSource | null;
+  kcal: number | null;
+};
+
+export type BulkEstimateResult = {
+  error: string | null;
+  lines: BulkEstimateLine[];
+};
+
+function readBulkChoice(periodValue: string, sourceValue: string | null) {
+  const mealPeriod = parseMealPeriod(periodValue);
+  if (!mealPeriod) {
+    return { error: "時間帯を1つ選んでください。" as const };
+  }
+  if (mealPeriod === "間食") {
+    return { mealPeriod, mealSource: null };
+  }
+  const mealSource = parseMealSource(sourceValue ?? "");
+  if (!mealSource) {
+    return { error: "外食・内食・中食のいずれかを選んでください。" as const };
+  }
+  return { mealPeriod, mealSource };
+}
+
+export async function estimateBulkMeals(input: {
+  date: string;
+  lines: Array<{ name: string; mealPeriod: string; mealSource: string | null }>;
+}): Promise<BulkEstimateResult> {
+  if (!parseIsoDate(input.date)) {
+    return { error: "日付が不正です。", lines: [] };
+  }
+  const prepared: Array<{ name: string; mealPeriod: MealPeriod; mealSource: MealSource | null }> = [];
+  for (const line of input.lines) {
+    const name = normalizeBulkLine(line.name);
+    if (!name) {
+      continue;
+    }
+    const choice = readBulkChoice(line.mealPeriod, line.mealSource);
+    if ("error" in choice && choice.error) {
+      return { error: choice.error, lines: [] };
+    }
+    prepared.push({ name, mealPeriod: choice.mealPeriod, mealSource: choice.mealSource });
+  }
+  const problem = bulkLineProblem(prepared.map((line) => line.name));
+  if (problem) {
+    return { error: problem, lines: [] };
+  }
+
+  try {
+    await ensureUserId();
+    const estimates = await estimateDishesKcal(prepared.map((line) => line.name));
+    return {
+      error: null,
+      lines: prepared.map((line, index) => ({
+        name: line.name,
+        mealPeriod: line.mealPeriod,
+        mealSource: line.mealSource,
+        kcal: estimates[index] ?? null,
+      })),
+    };
+  } catch (error) {
+    return { error: failureMessage(error), lines: [] };
+  }
+}
+
+export async function saveBulkMeals(input: {
+  date: string;
+  lines: Array<{
+    name: string;
+    mealPeriod: string;
+    mealSource: string | null;
+    kcal: string;
+    kcalSource: KcalSource;
+  }>;
+}): Promise<MealFormState> {
+  if (!parseIsoDate(input.date)) {
+    return { error: "日付が不正です。", savedAt: null };
+  }
+  const prepared: Array<{
+    name: string;
+    mealPeriod: MealPeriod;
+    mealSource: MealSource | null;
+    kcal: number;
+    kcalSource: KcalSource;
+  }> = [];
+  for (const line of input.lines) {
+    const name = normalizeBulkLine(line.name);
+    if (!name) {
+      continue;
+    }
+    const choice = readBulkChoice(line.mealPeriod, line.mealSource);
+    if ("error" in choice && choice.error) {
+      return { error: choice.error, savedAt: null };
+    }
+    const kcal = parseManualKcal(line.kcal);
+    if (kcal === null) {
+      return { error: "カロリーは0〜10000の整数で入力してください。", savedAt: null };
+    }
+    prepared.push({
+      name,
+      mealPeriod: choice.mealPeriod,
+      mealSource: choice.mealSource,
+      kcal,
+      kcalSource: line.kcalSource === "manual" ? "manual" : "ai",
+    });
+  }
+  const problem = bulkLineProblem(prepared.map((line) => line.name));
+  if (problem) {
+    return { error: problem, savedAt: null };
+  }
+
+  try {
+    const userId = await ensureUserId();
+    await insertMeals(
+      prepared.map((line) => ({
+        userId,
+        date: input.date,
+        name: line.name,
+        kcal: line.kcal,
+        favoriteId: null,
+        mealPeriod: line.mealPeriod,
+        mealSource: line.mealSource,
+        kcalSource: line.kcalSource,
+      })),
+    );
+    await rememberEngagement(userId, input.date);
+    refreshDay(input.date);
     return { error: null, savedAt: Date.now(), reaction: await reactionFor(userId) };
   } catch (error) {
     return { error: failureMessage(error), savedAt: null };

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuPanel } from "@/components/favorite-menu-panel";
+import { MealEntryForm } from "@/components/meal-entry-form";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MealRecordList } from "@/components/meal-record-list";
@@ -119,6 +120,10 @@ export async function DayBody({
   const barWidth = Math.min(100, Math.max(0, percent));
   return (
     <>
+      <MealEntryForm
+        date={date}
+        meals={meals.map((meal) => ({ mealPeriod: meal.mealPeriod, kcal: meal.kcal }))}
+      />
       <section className="mt-6 rounded-2xl bg-[#E7DCC8] p-5">
         <p className="text-sm text-zinc-600">この日の合計</p>
         <p className={`mt-1 text-4xl font-semibold text-[#F5821F] ${kcalFigure}`}>
