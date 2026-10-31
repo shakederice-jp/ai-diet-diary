@@ -17,7 +17,7 @@ import {
   type MealPeriod,
   type MealSource,
 } from "@/lib/meal-slot";
-import { bulkLineProblem, normalizeBulkLine } from "@/lib/bulk-meals";
+import { bulkLineProblem, fillBulkEstimates, normalizeBulkLine, readDraftKcal } from "@/lib/bulk-meals";
 import { classifyDishCategory, estimateDishKcal, estimateDishesKcal } from "@/lib/claude";
 import { getAuthUserId } from "@/lib/supabase/server";
 import {
@@ -205,6 +205,7 @@ export type BulkEstimateLine = {
   mealPeriod: MealPeriod;
   mealSource: MealSource | null;
   kcal: number | null;
+  kcalSource: KcalSource;
 };
 
 export type BulkEstimateResult = {
@@ -229,12 +230,17 @@ function readBulkChoice(periodValue: string, sourceValue: string | null) {
 
 export async function estimateBulkMeals(input: {
   date: string;
-  lines: Array<{ name: string; mealPeriod: string; mealSource: string | null }>;
+  lines: Array<{ name: string; mealPeriod: string; mealSource: string | null; kcal?: string | null }>;
 }): Promise<BulkEstimateResult> {
   if (!parseIsoDate(input.date)) {
     return { error: "日付が不正です。", lines: [] };
   }
-  const prepared: Array<{ name: string; mealPeriod: MealPeriod; mealSource: MealSource | null }> = [];
+  const prepared: Array<{
+    name: string;
+    mealPeriod: MealPeriod;
+    mealSource: MealSource | null;
+    manualKcal: number | null;
+  }> = [];
   for (const line of input.lines) {
     const name = normalizeBulkLine(line.name);
     if (!name) {
@@ -244,7 +250,16 @@ export async function estimateBulkMeals(input: {
     if ("error" in choice && choice.error) {
       return { error: choice.error, lines: [] };
     }
-    prepared.push({ name, mealPeriod: choice.mealPeriod, mealSource: choice.mealSource });
+    const kcal = readDraftKcal(line.kcal ?? "");
+    if (!kcal.ok) {
+      return { error: "カロリーは0〜10000の整数で入力してください。", lines: [] };
+    }
+    prepared.push({
+      name,
+      mealPeriod: choice.mealPeriod,
+      mealSource: choice.mealSource,
+      manualKcal: kcal.kcal,
+    });
   }
   const problem = bulkLineProblem(prepared.map((line) => line.name));
   if (problem) {
@@ -253,14 +268,15 @@ export async function estimateBulkMeals(input: {
 
   try {
     await ensureUserId();
-    const estimates = await estimateDishesKcal(prepared.map((line) => line.name));
+    const filled = await fillBulkEstimates(prepared, estimateDishesKcal);
     return {
       error: null,
-      lines: prepared.map((line, index) => ({
+      lines: filled.map((line) => ({
         name: line.name,
         mealPeriod: line.mealPeriod,
         mealSource: line.mealSource,
-        kcal: estimates[index] ?? null,
+        kcal: line.kcal,
+        kcalSource: line.kcalSource,
       })),
     };
   } catch (error) {

@@ -1,15 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ClipboardEvent, type KeyboardEvent } from "react";
 import { estimateBulkMeals, saveBulkMeals, type MealFormState } from "@/app/days/[date]/actions";
 import { ExclusiveChecks } from "@/components/exclusive-checks";
 import { GuideLinks } from "@/components/guide-links";
 import { RecordReaction } from "@/components/record-reaction";
 import {
-  appendVoiceLine,
+  appendDraftRow,
+  applyMultilinePaste,
+  blankMealRow,
   bulkLineProblem,
-  parseBulkLines,
+  draftKcalProblem,
+  draftRowName,
+  insertRowBelow,
+  namedDraftCount,
+  pastedMealNames,
+  placeVoiceName,
+  removeDraftRow,
   speechInputAvailable,
+  type DraftMealRow,
 } from "@/lib/bulk-meals";
 import { parseManualKcal } from "@/lib/manual-kcal";
 import { formatKcal } from "@/lib/calendar";
@@ -18,6 +27,7 @@ import {
   MEAL_PERIODS,
   MEAL_SOURCES,
   bulkEntryPeriods,
+  kcalSourceLabel,
   tokyoDateKey,
   tokyoHour,
   type KcalSource,
@@ -30,8 +40,10 @@ const DAY_GUIDE_LABELS: Partial<Record<GuideLink["href"], string>> = {
   "/sweets": "お菓子・スイーツのカロリー目安を見る",
 };
 
-const fieldClass =
-  "mt-2 w-full min-w-0 resize-y rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-4 py-3 text-base leading-6 outline-none focus:border-[#F5821F] scroll-mb-40";
+const nameClass =
+  "h-12 min-w-0 flex-1 rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 text-base outline-none focus:border-[#F5821F]";
+const kcalClass =
+  "h-12 w-[5.5rem] shrink-0 rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-2 text-base tabular-nums outline-none focus:border-[#F5821F]";
 const primaryButton =
   "inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-[#F5821F] px-6 text-base font-medium text-white hover:bg-[#E06E0C] disabled:brightness-90";
 const kcalFigure = "font-mono tabular-nums slashed-zero";
@@ -57,8 +69,10 @@ type ConfirmLine = {
   mealPeriod: MealPeriod;
   mealSource: MealSource | null;
   estimated: number | null;
+  enteredManually: boolean;
   kcalText: string;
 };
+type Drafts = Record<MealPeriod, DraftMealRow[]>;
 
 const serverClock: Clock | null = null;
 let clientClock: Clock | null = null;
@@ -106,6 +120,21 @@ function periodTotal(meals: Array<{ mealPeriod: MealPeriod; kcal: number }>, per
   return meals.filter((meal) => meal.mealPeriod === period).reduce((sum, meal) => sum + meal.kcal, 0);
 }
 
+function emptyDrafts(): Drafts {
+  return {
+    朝食: [blankMealRow("init-breakfast")],
+    昼食: [blankMealRow("init-lunch")],
+    夕食: [blankMealRow("init-dinner")],
+    間食: [blankMealRow("init-snack")],
+  };
+}
+
+function focusName(key: string) {
+  requestAnimationFrame(() => {
+    document.getElementById(`bulk-name-${key}`)?.focus();
+  });
+}
+
 export function MealEntryForm({
   date,
   meals,
@@ -115,12 +144,8 @@ export function MealEntryForm({
 }) {
   const clock = useSyncExternalStore(subscribeClock, readClock, () => serverClock);
   const speechOk = useSyncExternalStore(subscribeClock, browserSpeechAvailable, () => null as boolean | null);
-  const [drafts, setDrafts] = useState<Record<MealPeriod, string>>({
-    朝食: "",
-    昼食: "",
-    夕食: "",
-    間食: "",
-  });
+  const [drafts, setDrafts] = useState<Drafts>(emptyDrafts);
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
   const [sources, setSources] = useState<Record<Exclude<MealPeriod, "間食">, MealSource>>({
     朝食: "内食",
     昼食: "内食",
@@ -149,12 +174,32 @@ export function MealEntryForm({
     };
   }, []);
 
+  function nextRowKey() {
+    lineKey.current += 1;
+    return `row-${lineKey.current}`;
+  }
+
   const basePeriods = clock ? bulkEntryPeriods(date, clock.today, clock.hour) : [...MEAL_PERIODS];
   const shown = MEAL_PERIODS.filter((period) => basePeriods.includes(period) || revealed.includes(period));
   const hiddenLinks = (["昼食", "夕食"] as const).filter((period) => !shown.includes(period));
 
-  function setDraft(period: MealPeriod, value: string) {
-    setDrafts((current) => ({ ...current, [period]: value }));
+  function clearRowError(key: string) {
+    setRowErrors((current) => {
+      if (!current[key]) {
+        return current;
+      }
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  }
+
+  function updateRow(period: MealPeriod, key: string, patch: Partial<Pick<DraftMealRow, "name" | "kcal">>) {
+    setDrafts((current) => ({
+      ...current,
+      [period]: current[period].map((row) => (row.key === key ? { ...row, ...patch } : row)),
+    }));
+    clearRowError(key);
   }
 
   function stopListening() {
@@ -206,9 +251,10 @@ export function MealEntryForm({
           continue;
         }
         const transcript = result[0]?.transcript ?? "";
+        const key = nextRowKey();
         setDrafts((current) => ({
           ...current,
-          [period]: appendVoiceLine(current[period], transcript),
+          [period]: placeVoiceName(current[period], transcript, key),
         }));
       }
     };
@@ -237,21 +283,117 @@ export function MealEntryForm({
     }
   }
 
+  function onNameKeyDown(period: MealPeriod, index: number, event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter" || event.nativeEvent.isComposing || event.keyCode === 229) {
+      return;
+    }
+    event.preventDefault();
+    const rows = drafts[period];
+    const last = rows[rows.length - 1];
+    if (!last || draftRowName(last).length === 0) {
+      if (last && rows[index]?.key !== last.key) {
+        focusName(last.key);
+      }
+      return;
+    }
+    const key = nextRowKey();
+    const next = insertRowBelow(rows, index, key);
+    if (!next) {
+      return;
+    }
+    setDrafts((current) => ({ ...current, [period]: next }));
+    focusName(key);
+  }
+
+  function onNamePaste(period: MealPeriod, index: number, event: ClipboardEvent<HTMLInputElement>) {
+    const lines = pastedMealNames(event.clipboardData.getData("text"));
+    if (!lines) {
+      return;
+    }
+    event.preventDefault();
+    const keys = lines.slice(1).map(() => nextRowKey());
+    let focusKey = "";
+    setDrafts((current) => {
+      const namedElsewhere = MEAL_PERIODS.filter((item) => item !== period).reduce(
+        (sum, item) => sum + namedDraftCount(current[item]),
+        0,
+      );
+      const applied = applyMultilinePaste({
+        rows: current[period],
+        index,
+        lines,
+        namedElsewhere,
+        keys,
+      });
+      focusKey = applied.focusKey;
+      return { ...current, [period]: applied.rows };
+    });
+    if (focusKey) {
+      focusName(focusKey);
+    }
+  }
+
+  function addRow(period: MealPeriod) {
+    const key = nextRowKey();
+    let focusKey = key;
+    setDrafts((current) => {
+      const appended = appendDraftRow(current[period], key);
+      focusKey = appended[appended.length - 1]?.key ?? key;
+      return { ...current, [period]: appended };
+    });
+    focusName(focusKey);
+  }
+
+  function deleteRow(period: MealPeriod, key: string) {
+    const blankKey = nextRowKey();
+    setDrafts((current) => ({
+      ...current,
+      [period]: removeDraftRow(current[period], key, blankKey),
+    }));
+    clearRowError(key);
+  }
+
   function collectLines() {
-    return shown.flatMap((period) =>
-      parseBulkLines(drafts[period]).map((name) => ({
-        name,
-        mealPeriod: period,
-        mealSource: period === "間食" ? null : sources[period],
-      })),
-    );
+    const errors: Record<string, string> = {};
+    const lines: Array<{ name: string; mealPeriod: MealPeriod; mealSource: MealSource | null; kcal: string }> = [];
+    for (const period of shown) {
+      for (const row of drafts[period]) {
+        const name = draftRowName(row);
+        const kcal = row.kcal.trim();
+        if (!name && !kcal) {
+          continue;
+        }
+        if (!name) {
+          errors[row.key] = "品名を入力してください。";
+          continue;
+        }
+        const kcalProblem = draftKcalProblem(row.kcal);
+        if (kcalProblem) {
+          errors[row.key] = kcalProblem;
+          continue;
+        }
+        lines.push({
+          name,
+          mealPeriod: period,
+          mealSource: period === "間食" ? null : sources[period],
+          kcal,
+        });
+      }
+    }
+    return { errors, lines };
   }
 
   async function estimate() {
     if (busy.current) {
       return;
     }
-    const lines = collectLines();
+    const { errors, lines } = collectLines();
+    if (Object.keys(errors).length > 0) {
+      setRowErrors(errors);
+      setError(null);
+      return;
+    }
+    setRowErrors({});
     const problem = bulkLineProblem(lines.map((line) => line.name));
     if (problem) {
       setError(problem);
@@ -272,12 +414,14 @@ export function MealEntryForm({
       setConfirmLines(
         result.lines.map((line) => {
           lineKey.current += 1;
+          const enteredManually = line.kcalSource === "manual" && line.kcal !== null;
           return {
-            key: `${lineKey.current}`,
+            key: `confirm-${lineKey.current}`,
             name: line.name,
             mealPeriod: line.mealPeriod,
             mealSource: line.mealSource,
-            estimated: line.kcal,
+            estimated: line.kcalSource === "ai" ? line.kcal : null,
+            enteredManually,
             kcalText: line.kcal === null ? "" : String(line.kcal),
           };
         }),
@@ -323,7 +467,8 @@ export function MealEntryForm({
         setPhase("confirm");
         return;
       }
-      setDrafts({ 朝食: "", 昼食: "", 夕食: "", 間食: "" });
+      setDrafts(emptyDrafts());
+      setRowErrors({});
       setConfirmLines([]);
       setReaction(result.reaction);
       setPhase("edit");
@@ -342,8 +487,11 @@ export function MealEntryForm({
 
   return (
     <div className="mt-6 min-w-0">
+      <p className="text-xs leading-5 text-zinc-500">
+        カロリーが分かるときは、kcalの欄に入れると、AIの推定を使わずにその数字を登録します
+      </p>
       {speechOk === false ? (
-        <p className="text-xs leading-5 text-zinc-500">キーボードのマイクボタンでも音声入力できます</p>
+        <p className="mt-2 text-xs leading-5 text-zinc-500">キーボードのマイクボタンでも音声入力できます</p>
       ) : null}
       {micError ? (
         <p className="mt-2 text-sm text-red-700" role="alert">
@@ -372,12 +520,13 @@ export function MealEntryForm({
         />
       ) : (
         <>
-          <div className="flex flex-col gap-6">
+          <div className="mt-4 flex flex-col gap-6">
             {shown.map((period) => (
               <PeriodField
                 key={period}
                 period={period}
-                value={drafts[period]}
+                rows={drafts[period]}
+                rowErrors={rowErrors}
                 recordedKcal={periodTotal(meals, period)}
                 recordedCount={meals.filter((meal) => meal.mealPeriod === period).length}
                 source={period === "間食" ? null : sources[period]}
@@ -387,7 +536,12 @@ export function MealEntryForm({
                   }
                   setSources((current) => ({ ...current, [period]: source }));
                 }}
-                onChange={(value) => setDraft(period, value)}
+                onName={(key, name) => updateRow(period, key, { name })}
+                onKcal={(key, kcal) => updateRow(period, key, { kcal })}
+                onNameKeyDown={(index, event) => onNameKeyDown(period, index, event)}
+                onNamePaste={(index, event) => onNamePaste(period, index, event)}
+                onAdd={() => addRow(period)}
+                onDelete={(key) => deleteRow(period, key)}
                 speechOk={speechOk === true}
                 listening={listening === period}
                 onMic={() => toggleListening(period)}
@@ -433,7 +587,7 @@ export function MealEntryForm({
 }
 
 function kcalSourceFor(line: ConfirmLine): KcalSource {
-  if (line.estimated === null) {
+  if (line.enteredManually || line.estimated === null) {
     return "manual";
   }
   return line.kcalText.trim() === String(line.estimated) ? "ai" : "manual";
@@ -456,36 +610,48 @@ function MicIcon({ listening }: { listening: boolean }) {
 
 function PeriodField({
   period,
-  value,
+  rows,
+  rowErrors,
   recordedKcal,
   recordedCount,
   source,
   onSource,
-  onChange,
+  onName,
+  onKcal,
+  onNameKeyDown,
+  onNamePaste,
+  onAdd,
+  onDelete,
   speechOk,
   listening,
   onMic,
   disabled,
 }: {
   period: MealPeriod;
-  value: string;
+  rows: DraftMealRow[];
+  rowErrors: Record<string, string>;
   recordedKcal: number;
   recordedCount: number;
   source: MealSource | null;
   onSource: (source: MealSource) => void;
-  onChange: (value: string) => void;
+  onName: (key: string, name: string) => void;
+  onKcal: (key: string, kcal: string) => void;
+  onNameKeyDown: (index: number, event: KeyboardEvent<HTMLInputElement>) => void;
+  onNamePaste: (index: number, event: ClipboardEvent<HTMLInputElement>) => void;
+  onAdd: () => void;
+  onDelete: (key: string) => void;
   speechOk: boolean;
   listening: boolean;
   onMic: () => void;
   disabled: boolean;
 }) {
-  const fieldId = `bulk-meal-${period}`;
+  const first = rows[0];
   return (
     <section className="min-w-0">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-baseline gap-2">
           <h2 className="text-base font-medium text-zinc-950">
-            <label htmlFor={fieldId}>{period}</label>
+            {first ? <label htmlFor={`bulk-name-${first.key}`}>{period}</label> : period}
           </h2>
           {recordedCount > 0 ? (
             <span className={`text-xs text-zinc-500 ${kcalFigure}`}>登録済み {formatKcal(recordedKcal)}</span>
@@ -506,15 +672,62 @@ function PeriodField({
           </button>
         ) : null}
       </div>
-      <textarea
-        id={fieldId}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={3}
+      <div className="mt-2 flex flex-col gap-2">
+        {rows.map((row, index) => {
+          const problem = rowErrors[row.key];
+          return (
+            <div key={row.key} className="min-w-0">
+              <div className="flex min-w-0 flex-nowrap items-center gap-1">
+                <input
+                  id={`bulk-name-${row.key}`}
+                  value={row.name}
+                  onChange={(event) => onName(row.key, event.target.value)}
+                  onKeyDown={(event) => onNameKeyDown(index, event)}
+                  onPaste={(event) => onNamePaste(index, event)}
+                  disabled={disabled}
+                  placeholder="品名"
+                  aria-label={`${period}の品名`}
+                  enterKeyHint="next"
+                  className={nameClass}
+                />
+                <input
+                  value={row.kcal}
+                  onChange={(event) => onKcal(row.key, event.target.value)}
+                  disabled={disabled}
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="kcal"
+                  aria-label={`${period}のカロリー`}
+                  aria-invalid={problem ? true : undefined}
+                  className={kcalClass}
+                />
+                <button
+                  type="button"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-xl leading-none text-zinc-500 hover:bg-[#E7DCC8] hover:text-zinc-800"
+                  aria-label={`${period}の${index + 1}行目を削除`}
+                  disabled={disabled}
+                  onClick={() => onDelete(row.key)}
+                >
+                  ×
+                </button>
+              </div>
+              {problem ? (
+                <p className="mt-1 text-xs text-red-700" role="alert">
+                  {problem}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        className="mt-1 inline-flex min-h-11 items-center text-sm text-[#F5821F]"
         disabled={disabled}
-        placeholder="1行に1品。例: ご飯 / 味噌汁 / 焼き鮭"
-        className={fieldClass}
-      />
+        onClick={onAdd}
+      >
+        ＋ 1品追加
+      </button>
       {period === "間食" ? null : (
         <div className="mt-3">
           <ExclusiveChecks
@@ -550,44 +763,52 @@ function ConfirmList({
   onSave: () => void;
 }) {
   return (
-    <section>
+    <section className="mt-4">
       <h2 className="text-base font-medium text-zinc-950">登録内容の確認</h2>
       <p className={`mt-1 text-sm text-zinc-700 ${kcalFigure}`}>合計 {formatKcal(total)}</p>
       <ul className="mt-3">
-        {lines.map((line) => (
-          <li key={line.key} className="border-b border-[#F5821F]/20 py-3">
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 break-words text-sm text-zinc-950">{line.name}</p>
-              <button
-                type="button"
-                className="inline-flex min-h-11 shrink-0 items-center px-3 text-sm text-red-700"
-                onClick={() => onDelete(line.key)}
-                disabled={pending}
-              >
-                削除
-              </button>
-            </div>
-            <p className="mt-1 text-xs text-zinc-500">
-              {line.mealPeriod}
-              {line.mealSource ? `・${line.mealSource}` : ""}
-            </p>
-            <label className="mt-2 flex min-w-0 items-center gap-2 text-sm text-zinc-700">
-              <span className="shrink-0">kcal</span>
-              <input
-                inputMode="numeric"
-                maxLength={5}
-                value={line.kcalText}
-                onChange={(event) => onChange(line.key, event.target.value)}
-                placeholder={line.estimated === null ? "手入力してください" : undefined}
-                aria-label={`${line.name}のカロリー`}
-                className="h-12 w-28 min-w-0 rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 text-base outline-none focus:border-[#F5821F]"
-              />
-            </label>
-            {line.estimated === null ? (
-              <p className="mt-1 text-xs text-zinc-600">手入力してください</p>
-            ) : null}
-          </li>
-        ))}
+        {lines.map((line) => {
+          const source = kcalSourceFor(line);
+          return (
+            <li key={line.key} className="border-b border-[#F5821F]/20 py-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="min-w-0 break-words text-sm text-zinc-950">{line.name}</p>
+                <button
+                  type="button"
+                  className="inline-flex min-h-11 shrink-0 items-center px-3 text-sm text-red-700"
+                  onClick={() => onDelete(line.key)}
+                  disabled={pending}
+                >
+                  削除
+                </button>
+              </div>
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                <span>
+                  {line.mealPeriod}
+                  {line.mealSource ? `・${line.mealSource}` : ""}
+                </span>
+                <span className="rounded-full bg-[#E6D9C8] px-2 py-0.5 text-[11px] text-[#6B5344]">
+                  {kcalSourceLabel(source)}
+                </span>
+              </p>
+              <label className="mt-2 flex min-w-0 items-center gap-2 text-sm text-zinc-700">
+                <span className="shrink-0">kcal</span>
+                <input
+                  inputMode="numeric"
+                  maxLength={5}
+                  value={line.kcalText}
+                  onChange={(event) => onChange(line.key, event.target.value)}
+                  placeholder={line.estimated === null && !line.enteredManually ? "手入力してください" : undefined}
+                  aria-label={`${line.name}のカロリー`}
+                  className="h-12 w-28 min-w-0 rounded-xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 text-base outline-none focus:border-[#F5821F]"
+                />
+              </label>
+              {line.estimated === null && !line.enteredManually ? (
+                <p className="mt-1 text-xs text-zinc-600">手入力してください</p>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
       <button type="button" className={`${primaryButton} mt-4`} disabled={pending || lines.length === 0} onClick={onSave}>
         {pending ? "登録しています…" : "この内容で登録"}
