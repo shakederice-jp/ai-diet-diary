@@ -3,9 +3,8 @@ import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuPanel } from "@/components/favorite-menu-panel";
 import { MealEntryForm } from "@/components/meal-entry-form";
-import { InstantLink } from "@/components/instant-link";
-import { navSecondary } from "@/components/nav-styles";
 import { MealRecordList } from "@/components/meal-record-list";
+import { WeeklyLimitCard } from "@/components/weekly-limit-card";
 import { StepRecordPanel } from "@/components/step-record-panel";
 import { WeightRecordPanel } from "@/components/weight-record-panel";
 import { loadAdvisorComment, type AdvisorCommentView } from "@/lib/advisor-comment";
@@ -116,8 +115,6 @@ export async function DayBody({
   const categories = screen.ok ? screen.categories : [];
   const favorites = screen.ok ? screen.favorites : [];
   const usage = screen.ok ? screen.usage : {};
-  const percent = goal > 0 ? Math.round((weekTotal / goal) * 100) : 0;
-  const barWidth = Math.min(100, Math.max(0, percent));
   return (
     <>
       <MealEntryForm
@@ -130,28 +127,7 @@ export async function DayBody({
           {formatKcal(dayTotal)}
         </p>
         <div className="mt-5">
-          <div className="flex flex-col gap-3 text-base text-zinc-700">
-            <span className="flex items-center justify-between gap-3">
-              <span>今週の目標</span>
-              <span className={kcalFigure}>
-                {formatKcal(weekTotal)} / {formatKcal(goal)}
-              </span>
-            </span>
-            <InstantLink href="/goals" className={navSecondary}>
-              変更
-            </InstantLink>
-          </div>
-          <div
-            className="mt-2 h-3 overflow-hidden rounded-full bg-white"
-            role="progressbar"
-            aria-label="週の目標に対する進捗"
-            aria-valuemin={0}
-            aria-valuemax={goal}
-            aria-valuenow={weekTotal}
-          >
-            <div className="h-full rounded-full bg-[#F5821F]" style={{ width: `${barWidth}%` }} />
-          </div>
-          <p className={`mt-2 text-right text-xs text-[#F5821F] ${kcalFigure}`}>{percent}%</p>
+          <WeeklyLimitCard weekTotal={weekTotal} limit={goal} />
         </div>
       </section>
 

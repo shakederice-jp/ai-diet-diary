@@ -76,7 +76,7 @@ export function DailyCalorieBand({
       </figcaption>
       <svg
         role="img"
-        aria-label={`1日の目標 ${formatKcal(dailyGoal)} に対する摂取の帯グラフ`}
+        aria-label={`1日の上限 ${formatKcal(dailyGoal)} に対する摂取の帯グラフ`}
         width="100%"
         viewBox={`0 ${-topPad} ${width} ${band.chartHeight + topPad}`}
         className="mt-3 max-w-sm"
@@ -143,7 +143,7 @@ export function DailyCalorieBand({
           fill="#F5821F"
           fontSize={12}
         >
-          目標 {formatKcal(dailyGoal)}
+          上限 {formatKcal(dailyGoal)}
         </text>
         {labels.map((label) => (
           <text

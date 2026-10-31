@@ -52,7 +52,7 @@ export default async function MyPage({
         <p className="mt-6 text-sm font-medium text-[#F5821F]">マイページ</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">設定</h1>
         <p className="mt-3 text-sm leading-6 text-zinc-600">
-          プロフィールと目標カロリーをここから開きます。
+          プロフィールとカロリーの上限をここから開きます。
         </p>
         <div className="mt-6 flex flex-col gap-4 sm:flex-row">
           <InstantLink href="/settings" className={navPrimary}>

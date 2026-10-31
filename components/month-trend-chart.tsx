@@ -408,7 +408,7 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
                   strokeWidth={3}
                   paintOrder="stroke"
                 >
-                  {`目標${formatKcal(model.calories.goal)}`}
+                  {`上限 ${formatKcal(model.calories.goal)}`}
                 </text>
               </g>
             ) : null}

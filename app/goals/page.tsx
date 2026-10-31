@@ -90,7 +90,7 @@ export default async function GoalsPage() {
       current="goals"
       eyebrow="目標設定"
       title="体重とカロリー"
-      description="現在の体重、目標体重、達成までの期間から、1日の目安摂取カロリーと週の目標を計算します。"
+      description="現在の体重、目標体重、達成までの期間から、1日のカロリー上限と週の上限を計算します。"
     >
       {loadError ? (
         <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
@@ -132,12 +132,12 @@ function GoalSummary({ goal }: { goal: StoredCalorieGoal }) {
 
   return (
     <section className="rounded-2xl bg-[#E7DCC8] p-5">
-      <p className="text-sm text-zinc-600">1日の目安摂取カロリー</p>
+      <p className="text-sm text-zinc-600">1日の上限</p>
       <p className={`mt-1 text-4xl font-semibold text-[#F5821F] ${kcalFigure}`}>
         {formatKcal(goal.dailyKcal)}
       </p>
       <p className={`mt-2 text-sm text-zinc-700 ${kcalFigure}`}>
-        週の目標（7倍） {formatKcal(goal.weeklyKcal)}
+        週の上限（7倍） {formatKcal(goal.weeklyKcal)}
       </p>
       <p className="mt-3 text-sm text-zinc-700">
         現在 {decimalInputValue(goal.currentWeightKg)}kg、目標{" "}

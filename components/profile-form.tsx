@@ -196,7 +196,7 @@ export function ProfileForm({
         {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}
         {state.savedAt ? (
           <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            保存しました。目標設定で摂取カロリーの目安を計算できます。
+            保存しました。目標設定でカロリーの上限を計算できます。
           </p>
         ) : null}
       </div>

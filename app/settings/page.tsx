@@ -44,7 +44,7 @@ export default async function SettingsPage() {
       current="settings"
       eyebrow="プロフィール"
       title="体の設定"
-      description="身長、生年月日、性別、活動量を保存します。目標カロリーの計算に使います。"
+      description="身長、生年月日、性別、活動量を保存します。カロリーの上限の計算に使います。"
     >
       {loadError ? (
         <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>

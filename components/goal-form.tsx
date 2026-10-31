@@ -120,7 +120,7 @@ export function GoalForm({
         {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}
         {state.savedAt ? (
           <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            目標を保存しました。カレンダーと各日の進捗にこの週の目標を使います。
+            目標を保存しました。カレンダーと各日の表示に、この週のカロリー上限を使います。
           </p>
         ) : null}
       </div>
