@@ -6,9 +6,9 @@ import { prepareShare, publishShare, removeShareCard } from "@/app/share/actions
 import { ShareChatCard } from "@/components/share-chat-card";
 import { DIARY_PRIVACY_NOTICE } from "@/lib/diary-shared";
 import { clipText, textLength } from "@/lib/diary-text";
+import { X_POST_LIMIT, buildXPost, xWeightedLength } from "@/lib/share-post";
 import {
   isShareCharacterId,
-  sharePostText,
   visibleStreakDays,
   type ShareCharacterId,
 } from "@/lib/share-situations";
@@ -36,12 +36,16 @@ export function ShareCardButton({ date }: { date: string }) {
   const [streakDays, setStreakDays] = useState(0);
   const [weightLabel, setWeightLabel] = useState<string | null>(null);
   const [card, setCard] = useState<{ id: string; pageUrl: string; imageUrl: string } | null>(null);
+  const [postDraft, setPostDraft] = useState("");
+  const [postEdited, setPostEdited] = useState(false);
 
   async function openShare() {
     setOpen(true);
     setPending(true);
     setError(null);
     setNotice(null);
+    setPostEdited(false);
+    setPostDraft("");
     const prepared = await prepareShare(date);
     setPending(false);
     if (!prepared.ok) {
@@ -105,6 +109,18 @@ export function ShareCardButton({ date }: { date: string }) {
     return published;
   }
 
+  function captionFor(pageUrl: string) {
+    if (!postEdited) {
+      return buildXPost({
+        shareText,
+        reply: includeReply && !replyLocked ? reply : "",
+        advisorName: name,
+        url: pageUrl,
+      }).text;
+    }
+    return postDraft;
+  }
+
   async function shareNative() {
     const published = await ensurePublished();
     if (!published) {
@@ -114,7 +130,7 @@ export function ShareCardButton({ date }: { date: string }) {
       const response = await fetch(`${published.imageUrl}?v=${Date.now()}`);
       const blob = await response.blob();
       const file = new File([blob], "ai-diet-share.png", { type: "image/png" });
-      const payload = { title: published.name, text: published.postText, url: published.pageUrl };
+      const payload = { title: published.name, text: captionFor(published.pageUrl) };
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ ...payload, files: [file] });
         return;
@@ -138,7 +154,7 @@ export function ShareCardButton({ date }: { date: string }) {
     if (!published) {
       return;
     }
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(published.postText)}&url=${encodeURIComponent(published.pageUrl)}`;
+    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(captionFor(published.pageUrl))}`;
     window.open(xUrl, "_blank", "noopener,noreferrer");
   }
 
@@ -181,9 +197,16 @@ export function ShareCardButton({ date }: { date: string }) {
   const shownStreak = visibleStreakDays(showStreak, streakDays);
   const shownWeight = showWeight ? weightLabel : null;
   const shownReply = includeReply && !replyLocked ? reply : "";
-  const postText = isShareCharacterId(characterId)
-    ? sharePostText(shareText || "今日の記録", name, characterId)
-    : "";
+  const built = buildXPost({
+    shareText,
+    reply: shownReply,
+    advisorName: name,
+    url: card?.pageUrl ?? "",
+  });
+  const postValue = postEdited ? postDraft : built.text;
+  const postWeight = postEdited ? xWeightedLength(postDraft) : built.weight;
+  const postOver = postWeight > X_POST_LIMIT;
+  const postRemain = X_POST_LIMIT - postWeight;
   const busy = pending || publishing;
 
   return (
@@ -199,7 +222,7 @@ export function ShareCardButton({ date }: { date: string }) {
             aria-label="シェアのプレビュー"
             className="flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[#F3EBDD] shadow-lg sm:max-h-[90vh] sm:rounded-3xl"
           >
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-medium text-[#F5821F]">シェアする</p>
                 <button type="button" className={buttonClass} onClick={() => setOpen(false)}>
@@ -212,7 +235,7 @@ export function ShareCardButton({ date }: { date: string }) {
               {error ? <p className="mt-4 text-sm leading-6 text-red-800">{error}</p> : null}
               {!pending && name ? (
                 <>
-                  <div className="mt-4">
+                  <div className="mt-4 min-w-0">
                     <ShareChatCard
                       characterId={characterId}
                       name={name}
@@ -222,6 +245,36 @@ export function ShareCardButton({ date }: { date: string }) {
                       weightLabel={shownWeight}
                     />
                   </div>
+                  <label className="mt-4 block min-w-0">
+                    <span className="text-sm font-medium text-zinc-800">Xに投稿する文章</span>
+                    <textarea
+                      value={postValue}
+                      onChange={(event) => {
+                        setPostEdited(true);
+                        setPostDraft(event.target.value);
+                      }}
+                      rows={6}
+                      className="mt-2 w-full max-w-full resize-y rounded-2xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 py-3 text-base leading-7 break-words [overflow-wrap:anywhere] text-zinc-900 outline-none"
+                    />
+                  </label>
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      className="text-xs text-[#F5821F] underline"
+                      onClick={() => {
+                        setPostEdited(false);
+                        setPostDraft(built.text);
+                      }}
+                    >
+                      元に戻す
+                    </button>
+                    <p className={`text-xs tabular-nums ${postOver ? "text-[#9A3412]" : "text-zinc-600"}`}>
+                      {postOver ? "超えています" : `あと ${postRemain}`}
+                    </p>
+                  </div>
+                  {built.shortened && !postEdited ? (
+                    <p className="mt-1 text-xs leading-5 text-zinc-600">文字数の関係で、一部を短くしました</p>
+                  ) : null}
                   <label className="mt-4 block">
                     <span className="text-sm font-medium text-zinc-800">シェアに載せる文</span>
                     <textarea
@@ -244,9 +297,8 @@ export function ShareCardButton({ date }: { date: string }) {
                     <SwitchRow label="記録の日数を載せる" on={showStreak} disabled={busy} onChange={setShowStreak} />
                     <SwitchRow label="体重の変化を載せる" on={showWeight} disabled={busy} onChange={setShowWeight} />
                   </div>
-                  <p className="mt-4 text-sm leading-6 break-words whitespace-pre-wrap text-zinc-700">{postText}</p>
                   <div className="mt-4 flex flex-col gap-3">
-                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareOnX} disabled={busy}>
+                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareOnX} disabled={busy || postOver}>
                       Xでシェア
                     </button>
                     <button type="button" className={`${actionClass} border border-[#F5821F] text-[#F5821F]`} onClick={copyLink} disabled={busy}>
@@ -264,11 +316,14 @@ export function ShareCardButton({ date }: { date: string }) {
               {notice ? <p className="mt-3 text-sm text-zinc-700">{notice}</p> : null}
             </div>
             <div className="border-t border-[#E4D7C6] bg-[#F3EBDD] p-4">
+              {postOver ? (
+                <p className="mb-2 text-xs leading-5 text-[#9A3412]">280字を超えているので、シェアできません。</p>
+              ) : null}
               <button
                 type="button"
                 className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#F5821F] text-base font-medium text-white disabled:opacity-60"
                 onClick={shareNative}
-                disabled={busy || !name}
+                disabled={busy || !name || postOver}
               >
                 {publishing ? "準備しています…" : "シェアする"}
               </button>

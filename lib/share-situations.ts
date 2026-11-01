@@ -1,4 +1,5 @@
 import { APP_NAME } from "@/lib/app-title";
+import { buildXPost } from "@/lib/share-post";
 
 export const SHARE_BRAND = APP_NAME;
 export const SHARE_DOMAIN = "diet.finance-tower.com";
@@ -97,7 +98,13 @@ export function shareEmoji(characterId: ShareCharacterId) {
 }
 
 export function sharePostText(situation: string, advisorName: string, characterId: ShareCharacterId) {
-  return `${situation}。でも、${advisorName}に励まされた${shareEmoji(characterId)}\n同じように頑張ってる人、一緒に続けよう\n#ダイエット記録 #ダイエット仲間 #${APP_NAME}`;
+  void characterId;
+  return buildXPost({
+    shareText: situation,
+    reply: "",
+    advisorName,
+    url: "",
+  }).text;
 }
 
 export function shareReplyFallback(characterId: ShareCharacterId, situationId: ShareSituationId) {
