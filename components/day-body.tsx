@@ -3,7 +3,6 @@ import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
 import { FavoriteMenuPanel } from "@/components/favorite-menu-panel";
 import { MealEntryForm } from "@/components/meal-entry-form";
-import { MealRecordList } from "@/components/meal-record-list";
 import { WeeklyLimitCard } from "@/components/weekly-limit-card";
 import { StepRecordPanel } from "@/components/step-record-panel";
 import { WeightRecordPanel } from "@/components/weight-record-panel";
@@ -117,10 +116,7 @@ export async function DayBody({
   const usage = screen.ok ? screen.usage : {};
   return (
     <>
-      <MealEntryForm
-        date={date}
-        meals={meals.map((meal) => ({ mealPeriod: meal.mealPeriod, kcal: meal.kcal }))}
-      />
+      <MealEntryForm date={date} meals={meals} />
       <section className="mt-6 rounded-2xl bg-[#E7DCC8] p-5">
         <p className="text-sm text-zinc-600">この日の合計</p>
         <p className={`mt-1 text-4xl font-semibold text-[#F5821F] ${kcalFigure}`}>
@@ -149,7 +145,6 @@ export async function DayBody({
               <DayComment commentPromise={commentPromise} date={date} />
             </Suspense>
             <DailyCalorieBand meals={meals} dailyGoal={dailyCalorieGoalFromWeekly(goal)} />
-            <MealRecordList date={date} meals={meals} />
           </>
         ) : null}
       </section>

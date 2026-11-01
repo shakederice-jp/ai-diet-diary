@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ClipboardEvent,
 import { estimateBulkMeals, saveBulkMeals, type MealFormState } from "@/app/days/[date]/actions";
 import { ExclusiveChecks } from "@/components/exclusive-checks";
 import { GuideLinks } from "@/components/guide-links";
+import { MealRecordList, type MealRecordItem } from "@/components/meal-record-list";
 import { RecordReaction } from "@/components/record-reaction";
 import {
   appendDraftRow,
@@ -116,10 +117,6 @@ function browserSpeechAvailable() {
   });
 }
 
-function periodTotal(meals: Array<{ mealPeriod: MealPeriod; kcal: number }>, period: MealPeriod) {
-  return meals.filter((meal) => meal.mealPeriod === period).reduce((sum, meal) => sum + meal.kcal, 0);
-}
-
 function emptyDrafts(): Drafts {
   return {
     朝食: [blankMealRow("init-breakfast")],
@@ -140,7 +137,7 @@ export function MealEntryForm({
   meals,
 }: {
   date: string;
-  meals: Array<{ mealPeriod: MealPeriod; kcal: number }>;
+  meals: MealRecordItem[];
 }) {
   const clock = useSyncExternalStore(subscribeClock, readClock, () => serverClock);
   const speechOk = useSyncExternalStore(subscribeClock, browserSpeechAvailable, () => null as boolean | null);
@@ -157,6 +154,7 @@ export function MealEntryForm({
   const [error, setError] = useState<string | null>(null);
   const [micError, setMicError] = useState<string | null>(null);
   const [listening, setListening] = useState<MealPeriod | null>(null);
+  const [openRecords, setOpenRecords] = useState<MealPeriod[]>([]);
   const [reaction, setReaction] = useState<MealFormState["reaction"]>(null);
   const busy = useRef(false);
   const recognition = useRef<SpeechRec | null>(null);
@@ -180,7 +178,12 @@ export function MealEntryForm({
   }
 
   const basePeriods = clock ? bulkEntryPeriods(date, clock.today, clock.hour) : [...MEAL_PERIODS];
-  const shown = MEAL_PERIODS.filter((period) => basePeriods.includes(period) || revealed.includes(period));
+  const shown = MEAL_PERIODS.filter(
+    (period) =>
+      basePeriods.includes(period) ||
+      revealed.includes(period) ||
+      meals.some((meal) => meal.mealPeriod === period),
+  );
   const hiddenLinks = (["昼食", "夕食"] as const).filter((period) => !shown.includes(period));
 
   function clearRowError(key: string) {
@@ -470,6 +473,7 @@ export function MealEntryForm({
       setDrafts(emptyDrafts());
       setRowErrors({});
       setConfirmLines([]);
+      setOpenRecords([]);
       setReaction(result.reaction);
       setPhase("edit");
     } catch {
@@ -527,8 +531,16 @@ export function MealEntryForm({
                 period={period}
                 rows={drafts[period]}
                 rowErrors={rowErrors}
-                recordedKcal={periodTotal(meals, period)}
-                recordedCount={meals.filter((meal) => meal.mealPeriod === period).length}
+                date={date}
+                recordedMeals={meals.filter((meal) => meal.mealPeriod === period)}
+                recordsOpen={openRecords.includes(period)}
+                onToggleRecords={() =>
+                  setOpenRecords((current) =>
+                    current.includes(period)
+                      ? current.filter((item) => item !== period)
+                      : [...current, period],
+                  )
+                }
                 source={period === "間食" ? null : sources[period]}
                 onSource={(source) => {
                   if (period === "間食") {
@@ -612,8 +624,10 @@ function PeriodField({
   period,
   rows,
   rowErrors,
-  recordedKcal,
-  recordedCount,
+  date,
+  recordedMeals,
+  recordsOpen,
+  onToggleRecords,
   source,
   onSource,
   onName,
@@ -630,8 +644,10 @@ function PeriodField({
   period: MealPeriod;
   rows: DraftMealRow[];
   rowErrors: Record<string, string>;
-  recordedKcal: number;
-  recordedCount: number;
+  date: string;
+  recordedMeals: MealRecordItem[];
+  recordsOpen: boolean;
+  onToggleRecords: () => void;
   source: MealSource | null;
   onSource: (source: MealSource) => void;
   onName: (key: string, name: string) => void;
@@ -646,32 +662,53 @@ function PeriodField({
   disabled: boolean;
 }) {
   const first = rows[0];
+  const recordedKcal = recordedMeals.reduce((sum, meal) => sum + meal.kcal, 0);
+  const recordedId = `recorded-${period}`;
   return (
     <section className="min-w-0">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-baseline gap-2">
-          <h2 className="text-base font-medium text-zinc-950">
-            {first ? <label htmlFor={`bulk-name-${first.key}`}>{period}</label> : period}
-          </h2>
-          {recordedCount > 0 ? (
-            <span className={`text-xs text-zinc-500 ${kcalFigure}`}>登録済み {formatKcal(recordedKcal)}</span>
+      <div className="flex min-w-0 flex-nowrap items-center gap-1.5">
+        <h2 className="shrink-0 text-base font-medium text-zinc-950">
+          {first ? <label htmlFor={`bulk-name-${first.key}`}>{period}</label> : period}
+        </h2>
+        {recordedMeals.length > 0 ? (
+          <span className={`min-w-0 truncate text-xs whitespace-nowrap text-zinc-500 ${kcalFigure}`}>
+            <span className="hidden min-[480px]:inline">登録済み </span>
+            {formatKcal(recordedKcal)}
+          </span>
+        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          {recordedMeals.length > 0 ? (
+            <button
+              type="button"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-[#F5821F] px-3 text-sm font-medium whitespace-nowrap text-[#F5821F]"
+              aria-expanded={recordsOpen}
+              aria-controls={recordedId}
+              onClick={onToggleRecords}
+            >
+              {recordsOpen ? "閉じる" : "修正する"}
+            </button>
+          ) : null}
+          {speechOk ? (
+            <button
+              type="button"
+              className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full border ${
+                listening ? "border-red-500 bg-red-50" : "border-[#E4D7C6] bg-[#FBF6EE]"
+              }`}
+              aria-pressed={listening}
+              aria-label={listening ? `${period}の音声入力を止める` : `${period}の音声入力を始める`}
+              disabled={disabled}
+              onClick={onMic}
+            >
+              <MicIcon listening={listening} />
+            </button>
           ) : null}
         </div>
-        {speechOk ? (
-          <button
-            type="button"
-            className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full border ${
-              listening ? "border-red-500 bg-red-50" : "border-[#E4D7C6] bg-[#FBF6EE]"
-            }`}
-            aria-pressed={listening}
-            aria-label={listening ? `${period}の音声入力を止める` : `${period}の音声入力を始める`}
-            disabled={disabled}
-            onClick={onMic}
-          >
-            <MicIcon listening={listening} />
-          </button>
-        ) : null}
       </div>
+      {recordsOpen && recordedMeals.length > 0 ? (
+        <div id={recordedId}>
+          <MealRecordList date={date} meals={recordedMeals} />
+        </div>
+      ) : null}
       <div className="mt-2 flex flex-col gap-2">
         {rows.map((row, index) => {
           const problem = rowErrors[row.key];
