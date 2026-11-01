@@ -103,6 +103,36 @@ export async function listMeals(userId: string, date: string) {
   return ((data ?? []) as MealRow[]).map(mapMeal);
 }
 
+export async function listMealDetailsBetween(userId: string, start: string, end: string) {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .select("recorded_on, name, kcal, meal_period, meal_source, kcal_source")
+    .eq("user_id", userId)
+    .gte("recorded_on", start)
+    .lte("recorded_on", end);
+
+  if (error) {
+    throw new Error(`Failed to load meal details: ${error.message}`);
+  }
+
+  const periodOrder: Record<string, number> = { 朝食: 0, 昼食: 1, 夕食: 2, 間食: 3 };
+  return ((data ?? []) as Array<{
+    recorded_on: string;
+    name: string;
+    kcal: number;
+    meal_period: MealPeriod;
+    meal_source: MealSource | null;
+    kcal_source: KcalSource | null;
+  }>).sort((a, b) => {
+    const byDate = a.recorded_on.localeCompare(b.recorded_on);
+    if (byDate !== 0) return byDate;
+    const byPeriod = (periodOrder[a.meal_period] ?? 9) - (periodOrder[b.meal_period] ?? 9);
+    if (byPeriod !== 0) return byPeriod;
+    return a.name.localeCompare(b.name, "ja");
+  });
+}
+
 export async function listMealKcalBetween(userId: string, start: string, end: string) {
   const supabase = await createDataClient();
   const { data, error } = await supabase

@@ -10,7 +10,7 @@ import { EngagementPanel } from "@/components/engagement-panel";
 import { HealthPlanetSettings } from "@/components/health-planet-settings";
 import { WeekStartForm } from "@/components/week-start-form";
 import { WeightAxisForm } from "@/components/weight-axis-form";
-import { WEEK_START_COOKIE, parseWeekStart } from "@/lib/calendar";
+import { WEEK_START_COOKIE, formatMonthParam, parseWeekStart, tokyoToday } from "@/lib/calendar";
 import { formatWeightAxisKg } from "@/lib/weight-axis";
 import { navPrimary, navQuiet, navSecondary } from "@/components/nav-styles";
 import { ShareCardList } from "@/components/share-card-list";
@@ -59,6 +59,13 @@ export default async function MyPage({
           className="mt-4 inline-flex min-h-11 items-center gap-1 text-base text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
         >
           このサイトの使い方
+          <span aria-hidden="true">→</span>
+        </InstantLink>
+        <InstantLink
+          href={`/months/${formatMonthParam(tokyoToday().year, tokyoToday().month)}`}
+          className="mt-2 inline-flex min-h-11 items-center gap-1 text-base text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+        >
+          過去の記録・月のまとめ
           <span aria-hidden="true">→</span>
         </InstantLink>
         <div className="mt-6 flex flex-col gap-4 sm:flex-row">

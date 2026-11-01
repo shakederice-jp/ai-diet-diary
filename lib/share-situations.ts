@@ -84,6 +84,10 @@ export function situationBubble(text: string) {
   return `${text}…`;
 }
 
+export function displayShareLine(text: string) {
+  return shareSituationByText(text) ? situationBubble(text) : text;
+}
+
 export function shareEmoji(characterId: ShareCharacterId) {
   if (characterId === "sharp") return "🐱";
   if (characterId === "kind") return "✨";

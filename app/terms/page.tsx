@@ -41,6 +41,7 @@ export default function TermsPage() {
           <li>サービスの運営を妨げること</li>
           <li>自動化による大量のアクセス</li>
           <li>他人の個人情報を登録すること</li>
+          <li>日記やシェアに、他人の個人情報を書いたり、他人を中傷したりすること</li>
           <li>その他、運営が不適切と判断する行為</li>
         </ul>
       </LegalSection>

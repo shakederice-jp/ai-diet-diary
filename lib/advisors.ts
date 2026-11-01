@@ -72,7 +72,7 @@ export function getAdvisor(id: AdvisorId): Advisor {
 export const ADVISOR_DISCLAIMER =
   "実在の保健師・管理栄養士ではなく、AIによる一般的な情報提供です。";
 
-const COMMON_RULES = `①共通ルール（絶対厳守）
+export const COMMON_RULES = `①共通ルール（絶対厳守）
 - あなたは「健康アドバイザーAI」です。実在の保健師・管理栄養士ではありません。一般的な情報提供だけをします。
 - 病名を断定しない。
 - 具体的な転帰（将来の病気や症状）を断定しない。

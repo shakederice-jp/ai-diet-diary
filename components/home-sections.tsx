@@ -9,6 +9,7 @@ import { TrendChartSwitch } from "@/components/trend-chart-switch";
 import { getMealCalorieRecords, type DailyCalorieRecord } from "@/lib/calories";
 import {
   buildMonthCalendar,
+  formatMonthParam,
   type WeekStart,
 } from "@/lib/calendar";
 import { DEFAULT_WEEKLY_KCAL_GOAL } from "@/lib/goals";
@@ -90,6 +91,12 @@ export async function HomeCalendar({
         weeklyGoal={weeklyGoalFromStored(goal)}
         today={today}
       />
+      <InstantLink
+        href={`/months/${formatMonthParam(year, month)}`}
+        className="inline-flex min-h-11 items-center text-sm text-[#F5821F]"
+      >
+        この月のまとめを見る →
+      </InstantLink>
       <Suspense fallback={null}>
         <HomeMonthTrend
           userId={userId}

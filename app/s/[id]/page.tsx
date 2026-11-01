@@ -6,7 +6,7 @@ import { navPrimary } from "@/components/nav-styles";
 import { ShareChatCard } from "@/components/share-chat-card";
 import { appOrigin, getPublicShareCard, SHARE_DISCLAIMER } from "@/lib/share-store";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { situationBubble } from "@/lib/share-situations";
+import { displayShareLine } from "@/lib/share-situations";
 
 export const dynamic = "force-dynamic";
 
@@ -22,16 +22,17 @@ export async function generateMetadata({
   }
   const origin = await appOrigin();
   const advisor = getAdvisor(card.characterId);
-  const title = card.situation ? situationBubble(card.situation) : advisor.name;
+  const title = card.situation ? displayShareLine(card.situation) : advisor.name;
+  const description = card.text.trim() || card.situation || advisor.name;
   const image = `${origin}/s/${card.id}/image`;
   return {
     title,
-    description: card.text,
+    description,
     alternates: { canonical: `/s/${card.id}` },
     robots: { index: false, follow: false },
     openGraph: {
       title,
-      description: card.text,
+      description,
       url: `${SITE_URL}/s/${card.id}`,
       type: "website",
       siteName: SITE_NAME,
@@ -41,7 +42,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title,
-      description: card.text,
+      description,
       images: [image],
     },
   };
@@ -62,7 +63,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
             characterId={card.characterId}
             name={advisor.name}
             situation={card.situation}
-            reply={card.text}
+            reply={card.text.trim()}
             streakDays={card.streakDays}
             weightLabel={card.weightLabel}
           />

@@ -1,114 +1,87 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { loadShareReply, prepareShare, publishShare, removeShareCard } from "@/app/share/actions";
+import { useState } from "react";
+import { setDiaryShareReply } from "@/app/diary/actions";
+import { prepareShare, publishShare, removeShareCard } from "@/app/share/actions";
 import { ShareChatCard } from "@/components/share-chat-card";
+import { DIARY_PRIVACY_NOTICE } from "@/lib/diary-shared";
+import { clipText, textLength } from "@/lib/diary-text";
 import {
-  SHARE_SITUATIONS,
   isShareCharacterId,
   sharePostText,
-  shareSituationById,
   visibleStreakDays,
-  type ShareSituationId,
+  type ShareCharacterId,
 } from "@/lib/share-situations";
 
 const buttonClass =
   "inline-flex min-h-11 items-center justify-center rounded-full border border-[#E4D7C6] bg-[#FBF6EE] px-4 text-sm font-medium text-[#F5821F] hover:bg-[#E7DCC8] disabled:opacity-60";
 
 const actionClass =
-  "inline-flex min-h-[52px] items-center justify-center rounded-full px-5 text-base font-medium";
-
-const choiceClass =
-  "inline-flex min-h-[52px] w-full items-center justify-center rounded-full px-4 text-base font-medium";
+  "inline-flex min-h-[52px] w-full items-center justify-center rounded-full px-5 text-base font-medium";
 
 export function ShareCardButton({ date }: { date: string }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [replyPending, setReplyPending] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [characterId, setCharacterId] = useState("sharp");
+  const [characterId, setCharacterId] = useState<ShareCharacterId | "">("");
   const [name, setName] = useState("");
-  const [situationId, setSituationId] = useState<ShareSituationId>("recorded");
+  const [shareText, setShareText] = useState("");
+  const [includeReply, setIncludeReply] = useState(false);
+  const [replyLocked, setReplyLocked] = useState(false);
+  const [reply, setReply] = useState("");
   const [showStreak, setShowStreak] = useState(true);
   const [showWeight, setShowWeight] = useState(false);
   const [streakDays, setStreakDays] = useState(0);
   const [weightLabel, setWeightLabel] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
   const [card, setCard] = useState<{ id: string; pageUrl: string; imageUrl: string } | null>(null);
-  const [canNativeShare, setCanNativeShare] = useState(false);
-  const [prevDate, setPrevDate] = useState(date);
-  const replyToken = useRef(0);
-
-  if (date !== prevDate) {
-    setPrevDate(date);
-    setOpen(false);
-    setError(null);
-    setNotice(null);
-    setName("");
-    setCard(null);
-    setReply("");
-  }
-
-  async function fetchReply(nextSituation: ShareSituationId) {
-    const token = replyToken.current + 1;
-    replyToken.current = token;
-    setReplyPending(true);
-    const loaded = await loadShareReply(date, nextSituation);
-    if (token !== replyToken.current) {
-      return;
-    }
-    setReplyPending(false);
-    if (!loaded.ok) {
-      setError(loaded.error);
-      return;
-    }
-    setReply(loaded.text);
-  }
 
   async function openShare() {
     setOpen(true);
-    setNotice(null);
-    setError(null);
-    setCanNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
-    if (name || pending) {
-      return;
-    }
     setPending(true);
+    setError(null);
+    setNotice(null);
     const prepared = await prepareShare(date);
     setPending(false);
     if (!prepared.ok) {
       setError(prepared.error);
       return;
     }
+    if (!isShareCharacterId(prepared.characterId)) {
+      setError("アドバイザーを選ぶと、シェアできます。");
+      return;
+    }
     setCharacterId(prepared.characterId);
     setName(prepared.name);
-    setStreakDays(prepared.streakDays);
-    setWeightLabel(prepared.weightLabel);
+    setShareText(clipText(prepared.shareText, 80));
+    setIncludeReply(prepared.includeReply && !prepared.replyLocked);
+    setReplyLocked(prepared.replyLocked);
+    setReply(prepared.reply ?? "");
     setShowStreak(prepared.showStreak);
     setShowWeight(prepared.showWeight);
-    if (shareSituationById(prepared.situationId)) {
-      setSituationId(prepared.situationId as ShareSituationId);
-    }
+    setStreakDays(prepared.streakDays);
+    setWeightLabel(prepared.weightLabel);
     if (prepared.cardId && prepared.pageUrl && prepared.imageUrl) {
       setCard({ id: prepared.cardId, pageUrl: prepared.pageUrl, imageUrl: prepared.imageUrl });
     }
-    if (prepared.reply) {
-      setReply(prepared.reply);
-      return;
-    }
-    const initial = shareSituationById(prepared.situationId)?.id ?? "recorded";
-    await fetchReply(initial);
   }
 
-  async function chooseSituation(next: ShareSituationId) {
-    if (next === situationId) {
+  async function changeReply(next: boolean) {
+    if (replyLocked || !reply.trim()) {
       return;
     }
-    setSituationId(next);
-    setNotice(null);
-    await fetchReply(next);
+    setIncludeReply(next);
+    const saved = await setDiaryShareReply(date, next);
+    if (!saved.ok) {
+      setIncludeReply((current) => !current);
+      setNotice(saved.error);
+      return;
+    }
+    setIncludeReply(saved.shareReply);
+    if (saved.locked) {
+      setReplyLocked(true);
+    }
   }
 
   async function ensurePublished() {
@@ -116,14 +89,17 @@ export function ShareCardButton({ date }: { date: string }) {
       return null;
     }
     setPublishing(true);
-    const published = await publishShare(date, { situationId, showStreak, showWeight });
+    const published = await publishShare(date, {
+      shareText,
+      includeReply: includeReply && !replyLocked,
+      showStreak,
+      showWeight,
+    });
     setPublishing(false);
     if (!published.ok) {
       setError(published.error);
       return null;
     }
-    setReply(published.text);
-    setName(published.name);
     const next = { id: published.id, pageUrl: published.pageUrl, imageUrl: published.imageUrl };
     setCard(next);
     return published;
@@ -143,7 +119,12 @@ export function ShareCardButton({ date }: { date: string }) {
         await navigator.share({ ...payload, files: [file] });
         return;
       }
-      await navigator.share(payload);
+      if (navigator.share) {
+        await navigator.share(payload);
+        return;
+      }
+      await navigator.clipboard.writeText(published.pageUrl);
+      setNotice("リンクをコピーしました。");
     } catch (shareError) {
       if (shareError instanceof DOMException && shareError.name === "AbortError") {
         return;
@@ -197,12 +178,13 @@ export function ShareCardButton({ date }: { date: string }) {
     setOpen(false);
   }
 
-  const situation = shareSituationById(situationId);
-  const postText =
-    situation && isShareCharacterId(characterId) ? sharePostText(situation.text, name, characterId) : "";
   const shownStreak = visibleStreakDays(showStreak, streakDays);
   const shownWeight = showWeight ? weightLabel : null;
-  const busy = pending || replyPending || publishing;
+  const shownReply = includeReply && !replyLocked ? reply : "";
+  const postText = isShareCharacterId(characterId)
+    ? sharePostText(shareText || "今日の記録", name, characterId)
+    : "";
+  const busy = pending || publishing;
 
   return (
     <>
@@ -210,98 +192,120 @@ export function ShareCardButton({ date }: { date: string }) {
         シェアする
       </button>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" role="presentation">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="presentation">
           <div
             role="dialog"
             aria-modal="true"
             aria-label="シェアのプレビュー"
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[#F3EBDD] p-5 shadow-lg"
+            className="flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[#F3EBDD] shadow-lg sm:max-h-[90vh] sm:rounded-3xl"
           >
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-[#F5821F]">シェアする</p>
-              <button type="button" className={buttonClass} onClick={() => setOpen(false)}>
-                閉じる
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-[#F5821F]">シェアする</p>
+                <button type="button" className={buttonClass} onClick={() => setOpen(false)}>
+                  閉じる
+                </button>
+              </div>
+              <p className="mt-3 text-sm font-medium text-zinc-950">公開されます</p>
+              <p className="mt-1 text-xs leading-5 break-words text-zinc-700">{DIARY_PRIVACY_NOTICE}</p>
+              {pending ? <p className="mt-6 text-sm text-zinc-600">カードを準備しています…</p> : null}
+              {error ? <p className="mt-4 text-sm leading-6 text-red-800">{error}</p> : null}
+              {!pending && name ? (
+                <>
+                  <div className="mt-4">
+                    <ShareChatCard
+                      characterId={characterId}
+                      name={name}
+                      situation={shareText}
+                      reply={shownReply}
+                      streakDays={shownStreak}
+                      weightLabel={shownWeight}
+                    />
+                  </div>
+                  <label className="mt-4 block">
+                    <span className="text-sm font-medium text-zinc-800">シェアに載せる文</span>
+                    <textarea
+                      value={shareText}
+                      onChange={(event) => setShareText(clipText(event.target.value, 80))}
+                      maxLength={80}
+                      rows={3}
+                      className="mt-2 w-full resize-y rounded-2xl border border-[#E4D7C6] bg-[#FBF6EE] px-3 py-3 text-base leading-7 break-words text-zinc-900 outline-none"
+                    />
+                    <span className="mt-1 block text-right text-xs tabular-nums text-zinc-600">{textLength(shareText)}/80</span>
+                  </label>
+                  <div className="mt-2 flex flex-col gap-2">
+                    <SwitchRow
+                      label="AIの返事を載せる"
+                      on={includeReply && !replyLocked}
+                      disabled={replyLocked || !reply.trim() || busy}
+                      onChange={changeReply}
+                    />
+                    {replyLocked ? <p className="text-xs leading-5 text-zinc-600">この返事は、シェアに載せられません</p> : null}
+                    <SwitchRow label="記録の日数を載せる" on={showStreak} disabled={busy} onChange={setShowStreak} />
+                    <SwitchRow label="体重の変化を載せる" on={showWeight} disabled={busy} onChange={setShowWeight} />
+                  </div>
+                  <p className="mt-4 text-sm leading-6 break-words whitespace-pre-wrap text-zinc-700">{postText}</p>
+                  <div className="mt-4 flex flex-col gap-3">
+                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareOnX} disabled={busy}>
+                      Xでシェア
+                    </button>
+                    <button type="button" className={`${actionClass} border border-[#F5821F] text-[#F5821F]`} onClick={copyLink} disabled={busy}>
+                      リンクをコピー
+                    </button>
+                    <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={saveImage} disabled={busy}>
+                      画像を保存
+                    </button>
+                    <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={remove} disabled={busy}>
+                      このカードを削除
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {notice ? <p className="mt-3 text-sm text-zinc-700">{notice}</p> : null}
+            </div>
+            <div className="border-t border-[#E4D7C6] bg-[#F3EBDD] p-4">
+              <button
+                type="button"
+                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#F5821F] text-base font-medium text-white disabled:opacity-60"
+                onClick={shareNative}
+                disabled={busy || !name}
+              >
+                {publishing ? "準備しています…" : "シェアする"}
               </button>
             </div>
-            {pending ? <p className="mt-6 text-sm text-zinc-600">カードを準備しています…</p> : null}
-            {error ? <p className="mt-4 text-sm text-red-800">{error}</p> : null}
-            {!pending && name && situation ? (
-              <>
-                <fieldset className="mt-4">
-                  <legend className="text-sm font-medium text-zinc-800">今日のわたし</legend>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {SHARE_SITUATIONS.map((item) => {
-                      const selected = item.id === situationId;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          aria-pressed={selected}
-                          className={`${choiceClass} ${selected ? "bg-[#F5821F] text-white" : "border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800"}`}
-                          onClick={() => chooseSituation(item.id)}
-                          disabled={busy}
-                        >
-                          {item.text}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-                <div className="mt-4 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    aria-pressed={showStreak}
-                    className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
-                    onClick={() => setShowStreak((current) => !current)}
-                  >
-                    記録の日数を{showStreak ? "載せる" : "載せない"}
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={showWeight}
-                    className={`${choiceClass} border border-[#E4D7C6] bg-[#FBF6EE] text-zinc-800`}
-                    onClick={() => setShowWeight((current) => !current)}
-                  >
-                    体重の変化を{showWeight ? "載せる" : "載せない"}
-                  </button>
-                  {showWeight ? <p className="text-xs text-zinc-500">公開されます</p> : null}
-                </div>
-                <div className="mt-4">
-                  <ShareChatCard
-                    characterId={characterId}
-                    name={name}
-                    situation={situation.text}
-                    reply={replyPending ? "返事を書いています…" : reply}
-                    streakDays={shownStreak}
-                    weightLabel={shownWeight}
-                  />
-                </div>
-                <p className="mt-4 text-sm leading-6 whitespace-pre-wrap text-zinc-700">{postText}</p>
-                <div className="mt-4 flex flex-col gap-3">
-                  {canNativeShare ? (
-                    <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareNative} disabled={busy}>
-                      この端末でシェア
-                    </button>
-                  ) : null}
-                  <button type="button" className={`${actionClass} bg-[#F5821F] text-white`} onClick={shareOnX} disabled={busy}>
-                    Xでシェア
-                  </button>
-                  <button type="button" className={`${actionClass} border border-[#F5821F] text-[#F5821F]`} onClick={copyLink} disabled={busy}>
-                    リンクをコピー
-                  </button>
-                  <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={saveImage} disabled={busy}>
-                    画像を保存
-                  </button>
-                  <button type="button" className={`${actionClass} border border-[#E4D7C6] text-zinc-700`} onClick={remove} disabled={busy}>
-                    このカードを削除
-                  </button>
-                </div>
-              </>
-            ) : null}
-            {notice ? <p className="mt-3 text-sm text-zinc-700">{notice}</p> : null}
           </div>
         </div>
       ) : null}
     </>
+  );
+}
+
+function SwitchRow({
+  label,
+  on,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  on: boolean;
+  disabled?: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-[#FBF6EE] px-3 py-2">
+      <span className="text-sm text-zinc-800">{label}</span>
+      <span className="flex shrink-0 items-center gap-2">
+        <span className="w-8 text-right text-xs font-medium text-zinc-700">{on ? "ON" : "OFF"}</span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="size-5 accent-[#F5821F]"
+          checked={on}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          aria-label={label}
+        />
+      </span>
+    </label>
   );
 }

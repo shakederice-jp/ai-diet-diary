@@ -11,6 +11,7 @@ import {
   publishShareCard,
   replyForShare,
 } from "@/lib/share-store";
+import { textLength } from "@/lib/diary-text";
 import { isShareSituationId } from "@/lib/share-situations";
 
 export type ShareDraftState =
@@ -21,7 +22,9 @@ export type ShareDraftState =
       name: string;
       streakDays: number;
       weightLabel: string | null;
-      situationId: string;
+      shareText: string;
+      includeReply: boolean;
+      replyLocked: boolean;
       showStreak: boolean;
       showWeight: boolean;
       reply: string | null;
@@ -72,7 +75,9 @@ export async function prepareShare(date: string): Promise<ShareDraftState> {
       name: prepared.draft.name,
       streakDays: prepared.draft.streakDays,
       weightLabel: prepared.draft.weightLabel,
-      situationId: prepared.draft.situationId,
+      shareText: prepared.draft.shareText,
+      includeReply: prepared.draft.includeReply,
+      replyLocked: prepared.draft.replyLocked,
       showStreak: prepared.draft.showStreak,
       showWeight: prepared.draft.showWeight,
       reply: prepared.draft.reply,
@@ -102,14 +107,14 @@ export async function loadShareReply(date: string, situationId: string): Promise
 
 export async function publishShare(
   date: string,
-  input: { situationId: string; showStreak: boolean; showWeight: boolean },
+  input: { shareText: string; includeReply: boolean; showStreak: boolean; showWeight: boolean },
 ): Promise<SharePublishState> {
   const userId = await getAuthUserId();
   if (!userId) {
     return { ok: false, error: "ログインしてください。" };
   }
-  if (!parseIsoDate(date) || !isShareSituationId(input.situationId)) {
-    return { ok: false, error: "状況を選び直してください。" };
+  if (!parseIsoDate(date) || textLength(input.shareText) > 80) {
+    return { ok: false, error: "載せる文は、80文字以内にしてください。" };
   }
   try {
     const created = await publishShareCard(userId, date, input);

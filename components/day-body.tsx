@@ -1,13 +1,16 @@
 import { Suspense } from "react";
 import { AdvisorNote } from "@/components/advisor-note";
 import { DailyCalorieBand } from "@/components/daily-calorie-band";
+import { DiaryCard } from "@/components/diary-card";
 import { FavoriteMenuPanel } from "@/components/favorite-menu-panel";
 import { MealEntryForm } from "@/components/meal-entry-form";
 import { WeeklyLimitCard } from "@/components/weekly-limit-card";
 import { StepRecordPanel } from "@/components/step-record-panel";
 import { WeightRecordPanel } from "@/components/weight-record-panel";
 import { loadAdvisorComment, type AdvisorCommentView } from "@/lib/advisor-comment";
-import { formatKcal, type WeekStart } from "@/lib/calendar";
+import { getAdvisorPreference } from "@/lib/advisor-store";
+import { formatKcal, tokyoToday, type WeekStart } from "@/lib/calendar";
+import { getDiaryEntry, type DiaryEntry } from "@/lib/diary";
 import { dailyCalorieGoalFromWeekly, getWeeklyCalorieGoal } from "@/lib/goals";
 import { loadDayScreen, type FavoriteMenu, type FavoriteUse, type MenuCategory } from "@/lib/meals";
 import { listStepOnDate, type StepDayRecord } from "@/lib/steps";
@@ -51,16 +54,33 @@ function stepErrorMessage(error: unknown) {
 
 async function DayComment({
   commentPromise,
-  date,
 }: {
   commentPromise: Promise<AdvisorCommentView | null>;
-  date: string;
 }) {
   const view = await commentPromise;
   if (!view) {
     return null;
   }
-  return <AdvisorNote view={view} date={date} />;
+  return <AdvisorNote view={view} />;
+}
+
+async function DiarySection({ userId, date }: { userId: string; date: string }) {
+  const [entry, advisorId] = await Promise.all([
+    getDiaryEntry(userId, date).then(
+      (value) => ({ entry: value, error: null as string | null }),
+      () => ({ entry: null as DiaryEntry | null, error: "日記を読み込めませんでした。" }),
+    ),
+    getAdvisorPreference(userId).catch(() => null),
+  ]);
+  return (
+    <DiaryCard
+      date={date}
+      today={tokyoToday().date}
+      entry={entry.entry}
+      advisorId={advisorId}
+      error={entry.error}
+    />
+  );
 }
 
 export async function DayBody({
@@ -134,19 +154,18 @@ export async function DayBody({
       <section className="mt-8">
         <h2 className="text-sm font-medium text-zinc-950 dark:text-zinc-50">この日の記録</h2>
         {screen.ok ? (
-          <>
-            <Suspense
-              fallback={
-                <p className="mt-4 rounded-2xl bg-[#E7DCC8] px-5 py-4 text-sm text-zinc-600">
-                  コメントをまとめています…
-                </p>
-              }
-            >
-              <DayComment commentPromise={commentPromise} date={date} />
-            </Suspense>
-            <DailyCalorieBand meals={meals} dailyGoal={dailyCalorieGoalFromWeekly(goal)} />
-          </>
+          <Suspense
+            fallback={
+              <p className="mt-4 rounded-2xl bg-[#E7DCC8] px-5 py-4 text-sm text-zinc-600">
+                コメントをまとめています…
+              </p>
+            }
+          >
+            <DayComment commentPromise={commentPromise} />
+          </Suspense>
         ) : null}
+        <DiarySection userId={userId} date={date} />
+        {screen.ok ? <DailyCalorieBand meals={meals} dailyGoal={dailyCalorieGoalFromWeekly(goal)} /> : null}
       </section>
 
       <WeightRecordPanel

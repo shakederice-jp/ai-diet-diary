@@ -31,7 +31,7 @@ export const OPERATOR_ADDRESS = "東京都中央区日本橋兜町17-2-4F";
 export const OPERATOR_ADDRESS_NOTE = "※大手町はバーチャル上の支社です";
 
 /** 法務ページの制定日・最終更新日。直すときはここだけ。 */
-export const LEGAL_UPDATED_ON = "2026年10月31日";
+export const LEGAL_UPDATED_ON = "2026年11月1日";
 
 /** 空のときは、お問い合わせを出さない。 */
 export const CONTACT_EMAIL = "otemachi.sec9@gmail.com";

@@ -1,21 +1,19 @@
 import { createHash, randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { getAdvisor, isAdvisorId, type AdvisorId } from "@/lib/advisors";
-import { getAdvisorComment } from "@/lib/advisor-store";
+import { getAdvisorComment, getAdvisorPreference } from "@/lib/advisor-store";
+import { getDiaryEntry } from "@/lib/diary";
+import { shareExcerpt } from "@/lib/diary-text";
 import { tokyoToday } from "@/lib/calendar";
 import { loadStreakDays } from "@/lib/engagement";
 import { loadSituationReply } from "@/lib/share-reply";
 import {
-  DEFAULT_SHARE_SITUATION_ID,
   formatShareWeightLabel,
-  isShareSituationId,
   isShareWeightLabel,
   sharePostText,
   shareSituationById,
   shareSituationByText,
   visibleStreakDays,
-  type ShareSituationId,
-  type ShareSituationText,
 } from "@/lib/share-situations";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createDataClient } from "@/lib/supabase/server";
@@ -32,7 +30,7 @@ export type ShareCard = {
   id: string;
   characterId: AdvisorId;
   text: string;
-  situation: ShareSituationText | null;
+  situation: string | null;
   showStreak: boolean;
   showWeight: boolean;
   streakDays: number | null;
@@ -45,7 +43,9 @@ export type ShareDraft = {
   name: string;
   streakDays: number;
   weightLabel: string | null;
-  situationId: ShareSituationId;
+  shareText: string;
+  includeReply: boolean;
+  replyLocked: boolean;
   showStreak: boolean;
   showWeight: boolean;
   reply: string | null;
@@ -87,25 +87,35 @@ export function sharePagePath(id: string) {
   return `/s/${id}`;
 }
 
-function mapCard(row: CardRow): ShareCard | null {
-  if (!isAdvisorId(row.character_id) || typeof row.text !== "string" || !row.text.trim()) {
+function shareLine(value: string | null | undefined) {
+  const text = (value ?? "").trim();
+  if (!text || Array.from(text).length > 80) {
     return null;
   }
-  const situation = shareSituationByText(row.situation ?? "");
+  return shareSituationByText(text)?.text ?? text;
+}
+
+function mapCard(row: CardRow): ShareCard | null {
+  if (!isAdvisorId(row.character_id) || typeof row.text !== "string") {
+    return null;
+  }
+  const situation = shareLine(row.situation);
+  const reply = row.text.trim();
   const showStreak = row.show_streak !== false;
   const showWeight = row.show_weight === true;
   const streakDays =
-    situation && showStreak && typeof row.streak_days === "number" && row.streak_days >= 2
-      ? row.streak_days
-      : null;
-  const weightLabel = situation && showWeight && isShareWeightLabel(row.weight_label) ? row.weight_label : null;
+    showStreak && typeof row.streak_days === "number" && row.streak_days >= 2 ? row.streak_days : null;
+  const weightLabel = showWeight && isShareWeightLabel(row.weight_label) ? row.weight_label : null;
+  if (!reply && !situation && streakDays == null && !weightLabel) {
+    return null;
+  }
   return {
     id: row.id,
     characterId: row.character_id,
-    text: row.text,
-    situation: situation?.text ?? null,
-    showStreak: situation ? showStreak : false,
-    showWeight: situation ? showWeight : false,
+    text: reply,
+    situation,
+    showStreak,
+    showWeight,
     streakDays,
     weightLabel,
     createdAt: row.created_at,
@@ -232,33 +242,44 @@ async function currentStreakDays(userId: string) {
   }
 }
 
+function dayShareHash(date: string) {
+  return createHash("sha256").update(`diary-share\n${date}`).digest("hex");
+}
+
 export async function prepareShareDraft(userId: string, date: string): Promise<
   { ok: false; error: string } | { ok: true; draft: ShareDraft }
 > {
-  const comment = await requireOwnComment(userId, date);
-  if (!comment) {
-    return { ok: false, error: "この日のコメントがまだないので、シェアできません。" };
+  const [preference, diary] = await Promise.all([
+    getAdvisorPreference(userId),
+    getDiaryEntry(userId, date).catch(() => null),
+  ]);
+  const advisorId = diary?.advisorId ?? preference;
+  if (!advisorId) {
+    return { ok: false, error: "アドバイザーを選ぶと、シェアできます。" };
   }
   const [existing, streakDays, weightLabel] = await Promise.all([
-    findOwnedCard(userId, comment.sourceHash),
+    findOwnedCard(userId, dayShareHash(date)),
     currentStreakDays(userId),
     currentWeightLabel(userId),
   ]);
   if (existing.missing) {
     return { ok: false, error: "シェア用のテーブルがありません。マイグレーションを適用してください。" };
   }
-  const saved = existing.card?.situation ? shareSituationByText(existing.card.situation) : null;
+  const replyLocked = Boolean(diary?.replySensitive);
+  const reply = diary?.aiReply && !replyLocked ? diary.aiReply : null;
   return {
     ok: true,
     draft: {
-      characterId: comment.advisorId,
-      name: getAdvisor(comment.advisorId).name,
+      characterId: advisorId,
+      name: getAdvisor(advisorId).name,
       streakDays,
       weightLabel,
-      situationId: saved?.id ?? DEFAULT_SHARE_SITUATION_ID,
-      showStreak: existing.card?.situation ? existing.card.showStreak : true,
-      showWeight: existing.card?.situation ? existing.card.showWeight : false,
-      reply: saved && existing.card ? existing.card.text : null,
+      shareText: shareExcerpt(diary?.body ?? ""),
+      includeReply: Boolean(reply) && (diary?.shareReply ?? true),
+      replyLocked,
+      showStreak: existing.card ? existing.card.showStreak : true,
+      showWeight: existing.card ? existing.card.showWeight : false,
+      reply,
       card: existing.card,
     },
   };
@@ -277,40 +298,50 @@ export async function replyForShare(userId: string, date: string, situationId: s
   return { ok: true as const, text };
 }
 
+function shareConstraintProblem(error: { message?: string; code?: string } | null) {
+  const message = error?.message ?? "";
+  return error?.code === "23514" || /share_cards_situation_check|share_cards_text_length_check/.test(message);
+}
+
 export async function publishShareCard(
   userId: string,
   date: string,
-  input: { situationId: string; showStreak: boolean; showWeight: boolean },
+  input: { shareText: string; includeReply: boolean; showStreak: boolean; showWeight: boolean },
 ) {
-  if (!isShareSituationId(input.situationId)) {
-    return { ok: false as const, error: "状況を選び直してください。" };
+  const shareText = shareExcerpt(input.shareText).slice(0, 80);
+  const [preference, diary] = await Promise.all([
+    getAdvisorPreference(userId),
+    getDiaryEntry(userId, date).catch(() => null),
+  ]);
+  const advisorId = diary?.advisorId ?? preference;
+  if (!advisorId) {
+    return { ok: false as const, error: "アドバイザーを選ぶと、シェアできます。" };
   }
-  const situation = shareSituationById(input.situationId);
-  if (!situation) {
-    return { ok: false as const, error: "状況を選び直してください。" };
-  }
-  const comment = await requireOwnComment(userId, date);
-  if (!comment) {
-    return { ok: false as const, error: "この日のコメントがまだないので、シェアできません。" };
-  }
-
+  const replyLocked = Boolean(diary?.replySensitive);
+  const includeReply = input.includeReply && !replyLocked && Boolean(diary?.aiReply?.trim());
+  const replyText = includeReply ? (diary?.aiReply ?? "").trim().slice(0, 150) : "";
   const [streakDays, weightChange] = await Promise.all([
     currentStreakDays(userId),
     currentWeightLabel(userId),
   ]);
   const publishedStreak = visibleStreakDays(input.showStreak, streakDays);
   const publishedWeight = input.showWeight ? weightChange : null;
-  const text = await loadSituationReply(comment.advisorId, situation.text);
-  const existing = await findOwnedCard(userId, comment.sourceHash);
+  if (!shareText && !replyText && publishedStreak == null && !publishedWeight) {
+    return { ok: false as const, error: "載せる文を書いてください。" };
+  }
+  const text = replyText || " ";
+  const existing = await findOwnedCard(userId, dayShareHash(date));
   if (existing.missing) {
     return { ok: false as const, error: "シェア用のテーブルがありません。マイグレーションを適用してください。" };
   }
 
   const admin = createAdminClient();
+  const advisorName = getAdvisor(advisorId).name;
+  const postLine = shareText || "今日の記録";
   const fields = {
-    character_id: comment.advisorId,
+    character_id: advisorId,
     text,
-    situation: situation.text,
+    situation: shareText || null,
     streak_days: publishedStreak,
     weight_label: publishedWeight,
     show_streak: input.showStreak,
@@ -320,7 +351,7 @@ export async function publishShareCard(
   if (existing.card) {
     const updated = await admin.from("share_cards").update(fields).eq("id", existing.card.id).select(CARD_COLUMNS).maybeSingle();
     if (updated.error) {
-      if (storageProblem(updated.error)) {
+      if (storageProblem(updated.error) || shareConstraintProblem(updated.error)) {
         return { ok: false as const, error: "シェア用のテーブルを更新してください。マイグレーションを適用してください。" };
       }
       throw new Error(updated.error.message);
@@ -329,7 +360,7 @@ export async function publishShareCard(
     if (!card) {
       return { ok: false as const, error: "シェアカードを作れませんでした。もう一度お試しください。" };
     }
-    return { ok: true as const, card, postText: sharePostText(situation.text, getAdvisor(comment.advisorId).name, comment.advisorId) };
+    return { ok: true as const, card, postText: sharePostText(postLine, advisorName, advisorId) };
   }
 
   const madeToday = await countToday(userId);
@@ -343,7 +374,7 @@ export async function publishShareCard(
   const id = randomBytes(18).toString("base64url");
   const cardInsert = await admin.from("share_cards").insert({ id, ...fields });
   if (cardInsert.error) {
-    if (storageProblem(cardInsert.error)) {
+    if (storageProblem(cardInsert.error) || shareConstraintProblem(cardInsert.error)) {
       return { ok: false as const, error: "シェア用のテーブルを更新してください。マイグレーションを適用してください。" };
     }
     throw new Error(cardInsert.error.message);
@@ -351,17 +382,17 @@ export async function publishShareCard(
   const ownerInsert = await admin.from("share_card_owners").insert({
     card_id: id,
     user_id: userId,
-    source_hash: comment.sourceHash,
+    source_hash: dayShareHash(date),
   });
   if (ownerInsert.error) {
     await admin.from("share_cards").delete().eq("id", id);
     if (ownerInsert.error.code === "23505") {
-      const again = await findOwnedCard(userId, comment.sourceHash);
+      const again = await findOwnedCard(userId, dayShareHash(date));
       if (again.card) {
         return {
           ok: true as const,
           card: again.card,
-          postText: sharePostText(situation.text, getAdvisor(comment.advisorId).name, comment.advisorId),
+          postText: sharePostText(postLine, advisorName, advisorId),
         };
       }
     }
@@ -380,16 +411,16 @@ export async function publishShareCard(
     ok: true as const,
     card: {
       id,
-      characterId: comment.advisorId,
-      text,
-      situation: situation.text,
+      characterId: advisorId,
+      text: replyText,
+      situation: shareText || null,
       showStreak: input.showStreak,
       showWeight: input.showWeight,
       streakDays: publishedStreak,
       weightLabel: publishedWeight,
       createdAt: new Date().toISOString(),
     } satisfies ShareCard,
-    postText: sharePostText(situation.text, getAdvisor(comment.advisorId).name, comment.advisorId),
+    postText: sharePostText(postLine, advisorName, advisorId),
   };
 }
 

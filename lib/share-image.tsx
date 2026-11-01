@@ -3,7 +3,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getAdvisor, type AdvisorId } from "@/lib/advisors";
 import type { ShareCard } from "@/lib/share-store";
-import { SHARE_BRAND, SHARE_DISCLAIMER, SHARE_DOMAIN, situationBubble } from "@/lib/share-situations";
+import { SHARE_BRAND, SHARE_DISCLAIMER, SHARE_DOMAIN, displayShareLine } from "@/lib/share-situations";
 
 export const SHARE_IMAGE_SIZE = { width: 1200, height: 630 };
 
@@ -157,7 +157,8 @@ function legacyCardImage(card: ShareCard) {
 function chatCardImage(card: ShareCard) {
   const advisor = getAdvisor(card.characterId);
   const portrait = portraitSrc(card.characterId);
-  const situation = card.situation ?? "";
+  const situation = card.situation ? displayShareLine(card.situation) : "";
+  const reply = card.text.trim();
   return new ImageResponse(
     (
       <div
@@ -180,22 +181,25 @@ function chatCardImage(card: ShareCard) {
             padding: 40,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                maxWidth: 760,
-                background: "#F5821F",
-                color: "#FFFFFF",
-                borderRadius: 28,
-                padding: "22px 28px",
-              }}
-            >
-              <div style={{ display: "flex", fontSize: 22, color: "#FFE7CC" }}>わたし</div>
-              <div style={{ display: "flex", marginTop: 8, fontSize: 36, lineHeight: 1.4 }}>{situationBubble(situation)}</div>
+          {situation ? (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  maxWidth: 760,
+                  background: "#F5821F",
+                  color: "#FFFFFF",
+                  borderRadius: 28,
+                  padding: "22px 28px",
+                }}
+              >
+                <div style={{ display: "flex", fontSize: 22, color: "#FFE7CC" }}>わたし</div>
+                <div style={{ display: "flex", marginTop: 8, fontSize: 36, lineHeight: 1.4 }}>{situation}</div>
+              </div>
             </div>
-          </div>
+          ) : null}
+          {reply ? (
           <div style={{ display: "flex", alignItems: "flex-end", marginTop: 28 }}>
             <div style={{ display: "flex", width: 148, height: 148, marginRight: 22 }}>
               {portrait ? (
@@ -218,10 +222,11 @@ function chatCardImage(card: ShareCard) {
                   lineHeight: 1.4,
                 }}
               >
-                {card.text}
+                {reply}
               </div>
             </div>
           </div>
+          ) : null}
           <div style={{ display: "flex", marginTop: 24 }}>
             {card.streakDays ? (
               <div
