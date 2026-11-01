@@ -5,7 +5,7 @@ import { GuideLinks } from "@/components/guide-links";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
-import { MonthTrendChart } from "@/components/month-trend-chart";
+import { TrendChartSwitch } from "@/components/trend-chart-switch";
 import { getMealCalorieRecords, type DailyCalorieRecord } from "@/lib/calories";
 import {
   buildMonthCalendar,
@@ -139,7 +139,7 @@ async function HomeMonthTrend({
     today,
     axis,
   });
-  return <MonthTrendChart model={model} />;
+  return <TrendChartSwitch model={model} />;
 }
 
 export async function HomeHealth({ userId }: { userId: string }) {

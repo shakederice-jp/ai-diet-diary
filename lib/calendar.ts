@@ -146,7 +146,10 @@ function weekdayIndex(year: number, month: number, day: number) {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
-function averageRecordedKcal(days: CalendarDay[], excludeDate?: string) {
+export function recordedDaysAverage(
+  days: Array<{ date: string; recorded: boolean; kcal: number }>,
+  excludeDate?: string,
+) {
   let sum = 0;
   let count = 0;
   for (const day of days) {
@@ -156,7 +159,15 @@ function averageRecordedKcal(days: CalendarDay[], excludeDate?: string) {
     sum += day.kcal;
     count += 1;
   }
-  return count === 0 ? null : sum / count;
+  return {
+    average: count === 0 ? null : sum / count,
+    count,
+    total: sum,
+  };
+}
+
+function averageRecordedKcal(days: CalendarDay[], excludeDate?: string) {
+  return recordedDaysAverage(days, excludeDate).average;
 }
 
 export function buildMonthCalendar(input: {
@@ -235,15 +246,7 @@ export function buildMonthCalendar(input: {
     0,
   );
 
-  let recordedSum = 0;
-  let recordedCount = 0;
-  for (const day of days) {
-    if (!day.recorded || day.date === todayDate) {
-      continue;
-    }
-    recordedSum += day.kcal;
-    recordedCount += 1;
-  }
+  const monthStats = recordedDaysAverage(days, todayDate);
   const title =
     input.year === today.year ? `${input.month}月` : `${input.year}年${input.month}月`;
 
@@ -255,6 +258,6 @@ export function buildMonthCalendar(input: {
     weeks,
     weekdayAverages,
     monthTotalKcal,
-    averageKcal: recordedCount === 0 ? null : recordedSum / recordedCount,
+    averageKcal: monthStats.average,
   };
 }

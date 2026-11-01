@@ -1,6 +1,7 @@
 import { createDataClient } from "@/lib/supabase/server";
 import {
   latestDailyWeights,
+  tokyoDateFromInstant,
   tokyoDayRange,
   tokyoMonthRange,
   type WeightDayRecord,
@@ -71,6 +72,49 @@ export async function listWeightsInMonth(userId: string, year: number, month: nu
       weightKg: asWeight(row.weight_kg),
     })),
   ).filter((row) => row.date.startsWith(`${monthKey}-`));
+}
+
+export async function listWeightsBetween(userId: string, startDate: string, endDate: string) {
+  const start = tokyoDayRange(startDate).start;
+  const end = tokyoDayRange(endDate).end;
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("weight_records")
+    .select("measured_at, weight_kg")
+    .eq("user_id", userId)
+    .gte("measured_at", start)
+    .lt("measured_at", end)
+    .order("measured_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to load weight records: ${error.message}`);
+  }
+
+  return latestDailyWeights(
+    ((data ?? []) as Array<{ measured_at: string; weight_kg: number | string }>).map((row) => ({
+      measuredAt: row.measured_at,
+      weightKg: asWeight(row.weight_kg),
+    })),
+  );
+}
+
+export async function earliestWeightDate(userId: string) {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("weight_records")
+    .select("measured_at")
+    .eq("user_id", userId)
+    .order("measured_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load earliest weight date: ${error.message}`);
+  }
+  if (!data?.measured_at) {
+    return null;
+  }
+  return tokyoDateFromInstant(data.measured_at);
 }
 
 export async function insertManualWeight(input: {

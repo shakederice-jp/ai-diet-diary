@@ -119,6 +119,23 @@ export async function listMealKcalBetween(userId: string, start: string, end: st
   return (data ?? []) as Array<{ recorded_on: string; kcal: number }>;
 }
 
+export async function earliestMealDate(userId: string) {
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("meal_records")
+    .select("recorded_on")
+    .eq("user_id", userId)
+    .order("recorded_on", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load earliest meal date: ${error.message}`);
+  }
+
+  return data?.recorded_on ?? null;
+}
+
 export async function getMeal(userId: string, id: string) {
   const supabase = await createDataClient();
   const { data, error } = await supabase

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { InstantLink } from "@/components/instant-link";
 import { formatKcal, formatKcalAmount } from "@/lib/calendar";
 import {
@@ -21,6 +21,7 @@ const GAP = 22;
 const CAL_H = 104;
 const AXIS_H = 20;
 const HEIGHT = PAD_T + WEIGHT_H + GAP + CAL_H + AXIS_H;
+export const TREND_CHART_HEIGHT = HEIGHT;
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 const LINE = "#9A3412";
@@ -62,26 +63,34 @@ function annotationY(y: number, top: number, bottom: number) {
   return y - 11;
 }
 
-export function MonthTrendChart({ model }: { model: MonthTrendModel }) {
+export function MonthTrendChart({
+  model,
+  controls,
+}: {
+  model: MonthTrendModel;
+  controls?: ReactNode;
+}) {
   if (!model.hasData) {
     return (
       <section
         className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm sm:p-6"
         data-trend-chart="empty"
+        data-trend-span="day"
         data-month={`${model.year}-${String(model.month).padStart(2, "0")}`}
       >
         <h2 className="text-sm font-medium text-[#F5821F]">体重とカロリー</h2>
         <p className="px-3 py-10 text-center text-sm leading-6 text-zinc-600">
           この月の記録はまだありません
         </p>
+        {controls}
       </section>
     );
   }
 
-  return <TrendFigure key={`${model.year}-${model.month}`} model={model} />;
+  return <TrendFigure key={`${model.year}-${model.month}`} model={model} controls={controls} />;
 }
 
-function TrendFigure({ model }: { model: MonthTrendModel }) {
+function TrendFigure({ model, controls }: { model: MonthTrendModel; controls?: ReactNode }) {
   const frame = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
@@ -169,6 +178,7 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
       className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm select-none sm:p-6"
       aria-label={`${model.year}年${model.month}月の体重とカロリー`}
       data-trend-chart="ready"
+      data-trend-span="day"
       data-month={`${model.year}-${String(model.month).padStart(2, "0")}`}
       data-goal-set={model.goalSet ? "true" : "false"}
       data-weight-min={model.weight?.min ?? ""}
@@ -458,6 +468,7 @@ function TrendFigure({ model }: { model: MonthTrendModel }) {
           </svg>
         )}
       </div>
+      {controls}
       <p aria-live="polite" data-trend-readout="" className="mt-2 min-h-6 text-center text-sm leading-6 text-zinc-800">
         {selectedDay ? (
           dayReadout(selectedDay)

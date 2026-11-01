@@ -156,6 +156,47 @@ export function weightScale(
   };
 }
 
+export function periodWeightScale(values: number[]): MonthTrendScale | null {
+  const finite = values.filter((value) => Number.isFinite(value));
+  if (finite.length === 0) {
+    return null;
+  }
+  let min = Math.floor(Math.min(...finite) - 1);
+  let max = Math.ceil(Math.max(...finite) + 1);
+  if (max - min < 3) {
+    const extra = 3 - (max - min);
+    const lower = Math.floor(extra / 2);
+    min -= lower;
+    max += extra - lower;
+  }
+  return {
+    min,
+    max,
+    ticks: chooseTicks(min, max, [1, 2, 5, 10], 6),
+    goal: null,
+  };
+}
+
+export function periodCalorieScale(limit: number | null, values: number[]): MonthTrendScale | null {
+  const finite = values.filter((value) => Number.isFinite(value) && value >= 0);
+  const base = calorieScale(limit, finite);
+  if (!base || finite.length === 0) {
+    return base;
+  }
+  const low = Math.min(...finite);
+  if (low >= base.min - 1e-6) {
+    return base;
+  }
+  const min = Math.max(0, floorHundreds(low));
+  const max = base.max > min ? base.max : min + 100;
+  return {
+    min,
+    max,
+    ticks: chooseTicks(min, max, [100, 200, 500, 1000], 5),
+    goal: base.goal,
+  };
+}
+
 export function calorieScale(dailyGoal: number | null, values: number[]): MonthTrendScale | null {
   const finite = values.filter((value) => Number.isFinite(value) && value >= 0);
   const peak = finite.length > 0 ? Math.max(...finite) : 0;

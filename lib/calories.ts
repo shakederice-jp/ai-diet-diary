@@ -24,3 +24,16 @@ export async function getMealCalorieRecords(
 
   return [...totals.entries()].map(([date, totalKcal]) => ({ date, totalKcal }));
 }
+
+export async function getMealCalorieRecordsBetween(
+  userId: string,
+  start: string,
+  end: string,
+): Promise<DailyCalorieRecord[]> {
+  const rows = await listMealKcalBetween(userId, start, end);
+  const totals = new Map<string, number>();
+  for (const row of rows) {
+    totals.set(row.recorded_on, (totals.get(row.recorded_on) ?? 0) + row.kcal);
+  }
+  return [...totals.entries()].map(([date, totalKcal]) => ({ date, totalKcal }));
+}
