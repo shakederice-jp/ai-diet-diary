@@ -1,4 +1,5 @@
 import { InstantLink } from "@/components/instant-link";
+import { MEMOLEVER_GUIDE } from "@/lib/guide-links";
 import { LEGAL_PAGES } from "@/lib/legal";
 import { OPERATOR_NAME } from "@/lib/site";
 
@@ -13,6 +14,9 @@ export function SiteFooter({ className = "" }: { className?: string }) {
     <div className={className}>
       <p className="text-sm text-zinc-700">運営：{OPERATOR_NAME}</p>
       <nav aria-label="法務" className="mt-2 flex flex-col">
+        <InstantLink href={MEMOLEVER_GUIDE.href} className={howtoLinkClass}>
+          {MEMOLEVER_GUIDE.label}
+        </InstantLink>
         <InstantLink href="/howto" className={howtoLinkClass}>
           使い方
         </InstantLink>

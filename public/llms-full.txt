@@ -6,6 +6,13 @@
 
 - [トップ](https://diet.finance-tower.com/): 食事名からAIがカロリーを推定し、体重をグラフ化する無料の記録アプリです。
 - [使い方](https://diet.finance-tower.com/howto): 食事と体重の記録、グラフ、目標、AIアドバイザー、連続記録の使い方です。
+- [メモレバ ガイド](https://diet.finance-tower.com/guide): メモレバの紹介です。食事名からAIがカロリーを推定し、体重と週の上限、5人のAIアドバイザーで続ける、無料のAIダイエットマネジメント手帳（Webアプリ）です。運営は大手町調査室九課です。医療上の助言ではありません。
+- [メモレバとは](https://diet.finance-tower.com/guide/what-is-memolever): メモレバの定義、できること、料金、運営者の説明です。
+- [AIによるカロリー推定の仕組みと限界](https://diet.finance-tower.com/guide/ai-calorie): 食事名から一般的な量を想定する目安であること、誤差があること、手入力で直せることを説明します。誤差の一律の幅は公表していません。
+- [ダイエットは週の上限で考える](https://diet.finance-tower.com/guide/weekly-limit): カロリーの上限を1週間の合計で見る考え方です。仮の上限は1週間14,000kcalで、食べ切る目標ではありません。
+- [食事記録ダイエットのやり方と続けるコツ](https://diet.finance-tower.com/guide/record-diet-tips): 名前を残し、わかる数字だけ直し、週で見返す手順です。結果は約束しません。
+- [Health Planet連携で体重を自動で記録する方法](https://diet.finance-tower.com/guide/health-planet): タニタのHealth Planetから取り込むのは体重だけです。体脂肪は保存しません。手順はマイページの外部サービス連携です。
+- [音声入力とまとめて入力](https://diet.finance-tower.com/guide/voice-and-bulk-input): 1日の終わりに食事名を音声や複数行で入れ、空のカロリーはAIが推定します。音声データは保存しません。
 - [外食ランチ・定食のカロリー目安](https://diet.finance-tower.com/eating-out): 外食74品の、1食あたりのカロリー・たんぱく質・野菜の目安です。◎は低い(または多い)、○はふつう、△は高い(または少ない)の目安です。カロリーは◎650kcal以下、○651〜850kcal、△851kcal以上。たんぱく質は◎30g以上、○20〜29g、△20g未満。野菜は◎120g以上、○70〜119g、△70g未満です。
 - [お菓子・スイーツのカロリー目安](https://diet.finance-tower.com/sweets): 包装されていない菓子・スイーツ102品の、間食1回分のカロリーの目安です。◎は100kcal以下、○は101〜200kcal、△は201kcal以上です。
 - [ご飯・パン・麺のカロリー早見表](https://diet.finance-tower.com/staples): ご飯、パン、麺など主食のカロリーを、量ごとに一覧にしています。
@@ -19,6 +26,22 @@
 ## 注意
 
 数値は目安で、一部は推定です。効果や結果には個人差があり、医療上の助言ではありません。出典は、文部科学省「日本食品標準成分表(八訂)増補2023」(https://fooddb.mext.go.jp/) です。お菓子ページの「間食は1日200kcal程度」は、農林水産省「食事バランスガイド」(https://www.maff.go.jp/j/balance_guide/) を参照しています。外食の数値には、公開されている栄養情報や、成分表をもとにした推定を含みます。
+
+## メモレバ ガイド
+
+[メモレバ ガイド](https://diet.finance-tower.com/guide)は、アプリの紹介ページです。食事名を入力するとAIがカロリーを推定し、体重とあわせて管理できる、無料のAIダイエットマネジメント手帳（Webアプリ）です。運営は大手町調査室九課です。カロリーは目安で、効果や結果には個人差があり、医療上の助言ではありません。
+
+[メモレバとは](https://diet.finance-tower.com/guide/what-is-memolever)は、定義、記録の残り方、週の上限、アドバイザー、料金、運営をまとめます。新規登録はメールアドレスとパスワードで、確認メールのあとログインします。
+
+[AIによるカロリー推定の仕組みと限界](https://diet.finance-tower.com/guide/ai-calorie)は、料理名から一般的な量を想定する仕組みです。量や調理法や商品で実際とは違います。誤差の一律の幅は公表していません。わかる数字は手入力に置き換えられます。
+
+[ダイエットは週の上限で考える](https://diet.finance-tower.com/guide/weekly-limit)は、毎日同じ量に合わせず、1週間の合計で見る考え方です。まだ目標を保存していないときの仮の上限は1週間14,000kcalです。画面の1日の数字は食べ切る量ではなく、収めるための上限です。
+
+[食事記録ダイエットのやり方と続けるコツ](https://diet.finance-tower.com/guide/record-diet-tips)は、名前を残し、わかる数字だけ直し、週で見返す手順です。記録したから結果が出るとは書いていません。
+
+[Health Planet連携で体重を自動で記録する方法](https://diet.finance-tower.com/guide/health-planet)は、タニタのHealth Planetから体重だけを取り込む手順です。体脂肪、食事、歩数は自動では入りません。連携はマイページの「外部サービス連携」から行います。連携した体重は、このアプリの画面では修正も削除もできません。
+
+[音声入力とまとめて入力](https://diet.finance-tower.com/guide/voice-and-bulk-input)は、1日の終わりに食事名をマイクや複数行の貼り付けで入れ、空のカロリーをAIが推定する手順です。一度に30品まで、1行は100文字までです。音声データはメモレバでは保存しません。
 
 ## ガイドの使い方
 

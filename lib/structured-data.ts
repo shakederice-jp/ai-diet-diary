@@ -36,6 +36,70 @@ export function breadcrumbNode(items: readonly BreadcrumbItem[]) {
   };
 }
 
+export function memoleverGuideStructuredData(input: {
+  name: string;
+  description: string;
+  dateModified: string;
+  breadcrumbs: readonly BreadcrumbItem[];
+  faqs: readonly { question: string; answer: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        name: input.name,
+        description: input.description,
+        url: pageUrl("/guide"),
+        inLanguage: "ja",
+        dateModified: input.dateModified,
+      },
+      {
+        "@type": "FAQPage",
+        url: pageUrl("/guide"),
+        inLanguage: "ja",
+        mainEntity: input.faqs.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      },
+      breadcrumbNode(input.breadcrumbs),
+    ],
+  };
+}
+
+export function guideArticleStructuredData(input: {
+  headline: string;
+  description: string;
+  path: string;
+  datePublished: string;
+  dateModified: string;
+  breadcrumbs: readonly BreadcrumbItem[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      organizationNode(),
+      {
+        "@type": "Article",
+        headline: input.headline,
+        description: input.description,
+        inLanguage: "ja",
+        mainEntityOfPage: pageUrl(input.path),
+        datePublished: input.datePublished,
+        dateModified: input.dateModified,
+        author: organizationRef(),
+        publisher: organizationRef(),
+      },
+      breadcrumbNode(input.breadcrumbs),
+    ],
+  };
+}
+
 export function guideStructuredData(input: {
   name: string;
   description: string;

@@ -1,7 +1,14 @@
 "use client";
 
 import { InstantLink } from "@/components/instant-link";
-import { GUIDE_LINKS, GUIDE_PAGES, guidePageByHref, type GuideLink, type GuidePage } from "@/lib/guide-links";
+import {
+  GUIDE_LINKS,
+  GUIDE_PAGES,
+  MEMOLEVER_GUIDE,
+  guidePageByHref,
+  type GuideLink,
+  type GuidePage,
+} from "@/lib/guide-links";
 
 const linkClass =
   "inline-flex min-h-11 min-w-0 max-w-full items-center gap-1 text-sm text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
@@ -57,6 +64,9 @@ export function OtherGuides({
             {link.label} →
           </InstantLink>
         ))}
+        <InstantLink href={MEMOLEVER_GUIDE.href} className={quietLinkClass}>
+          {MEMOLEVER_GUIDE.label} →
+        </InstantLink>
       </nav>
     </section>
   );

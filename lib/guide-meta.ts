@@ -7,15 +7,32 @@ export const GUIDE_UPDATED_ON = {
   "/staples": "2026-10-30",
 } as const;
 
+/** メモレバ ガイド（/guide と記事）の最終更新日。表示、JSON-LD、sitemap はここを見る。 */
+export const MEMOLEVER_GUIDE_UPDATED_ON = "2026-11-02";
+
 export type GuideUpdatedHref = keyof typeof GUIDE_UPDATED_ON;
 
+export function formatGuideIsoLabel(iso: string) {
+  const matched = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!matched) {
+    throw new Error("guide date");
+  }
+  return `${matched[1]}年${Number(matched[2])}月${Number(matched[3])}日`;
+}
+
+export function guideIsoDate(iso: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    throw new Error("guide date");
+  }
+  return new Date(`${iso}T00:00:00.000Z`);
+}
+
 export function guideUpdatedLabel(href: GuideUpdatedHref) {
-  const [year, month, day] = GUIDE_UPDATED_ON[href].split("-");
-  return `${year}年${Number(month)}月${Number(day)}日`;
+  return formatGuideIsoLabel(GUIDE_UPDATED_ON[href]);
 }
 
 export function guideUpdatedDate(href: GuideUpdatedHref) {
-  return new Date(`${GUIDE_UPDATED_ON[href]}T00:00:00.000Z`);
+  return guideIsoDate(GUIDE_UPDATED_ON[href]);
 }
 
 export const GUIDE_OG: Record<GuideUpdatedHref, PageOgImage> = {
