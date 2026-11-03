@@ -79,7 +79,9 @@ export function guideArticleStructuredData(input: {
   datePublished: string;
   dateModified: string;
   breadcrumbs: readonly BreadcrumbItem[];
+  faqs?: readonly { question: string; answer: string }[];
 }) {
+  const faqs = input.faqs ?? [];
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -95,6 +97,23 @@ export function guideArticleStructuredData(input: {
         author: organizationRef(),
         publisher: organizationRef(),
       },
+      ...(faqs.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              url: pageUrl(input.path),
+              inLanguage: "ja",
+              mainEntity: faqs.map((item) => ({
+                "@type": "Question",
+                name: item.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: item.answer,
+                },
+              })),
+            },
+          ]
+        : []),
       breadcrumbNode(input.breadcrumbs),
     ],
   };

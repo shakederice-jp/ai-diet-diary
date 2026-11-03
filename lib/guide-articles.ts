@@ -4,11 +4,21 @@ import { GUIDE_PAGES } from "@/lib/guide-links";
 import { MEMOLEVER_GUIDE_UPDATED_ON } from "@/lib/guide-meta";
 import { OPERATOR_NAME } from "@/lib/site";
 
+export type GuideInline = string | { readonly href: string; readonly label: string };
+
 export type GuideArticleBlock =
   | { type: "h2"; text: string }
-  | { type: "p"; text: string }
-  | { type: "ul"; items: readonly string[] }
-  | { type: "links"; items: readonly { href: string; label: string }[] };
+  | { type: "h3"; text: string }
+  | { type: "p"; text: string | readonly GuideInline[] }
+  | { type: "ul"; items: readonly (string | readonly GuideInline[])[] }
+  | { type: "links"; items: readonly { href: string; label: string }[] }
+  | {
+      type: "table";
+      caption: string;
+      headers: readonly string[];
+      rows: readonly (readonly string[])[];
+    }
+  | { type: "faq"; items: readonly { question: string; answer: string }[] };
 
 export type GuideArticle = {
   slug: string;
@@ -85,6 +95,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
       {
         type: "links",
         items: [{ href: "/howto", label: pageLabel("/howto") }],
+      },
+      {
+        type: "links",
+        items: [{ href: "/guide/recording-diet-vs-ai", label: "紙の手帳との違いはこちら" }],
       },
     ],
     related: ["ai-calorie", "weekly-limit", "health-planet"],
@@ -280,6 +294,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
           { href: "/howto", label: pageLabel("/howto") },
         ],
       },
+      {
+        type: "links",
+        items: [{ href: "/guide/recording-diet-vs-ai", label: "紙の手帳との違いはこちら" }],
+      },
     ],
     related: ["weekly-limit", "voice-and-bulk-input", "ai-calorie"],
   },
@@ -410,6 +428,110 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     ],
     related: ["record-diet-tips", "ai-calorie", "what-is-memolever"],
   },
+  {
+    slug: "recording-diet-vs-ai",
+    title: `レコーディングダイエットとAI食事記録の違い｜続かなかった理由と${APP_NAME}の工夫`,
+    description: `食べたものを書き出すレコーディングダイエットが続きにくい5つの場面と、AIによるカロリー推定を使う${APP_NAME}が手間と落ち込みをどう減らすのかを、わかりやすく整理します。`,
+    updatedOn: "2026-11-03",
+    lead: [
+      `レコーディングダイエットは、食べたものを書き出して自分の食生活に気づく方法として、今も役に立つ考え方です。一方で、カロリーを調べる手間、毎日の合計を計算する手間、目標を超えた日の落ち込みが、続けにくさの原因になりがちでした。${APP_SUBTITLE}「${APP_NAME}」は、この手間と落ち込みを減らす工夫を加えた、AI時代の食事記録アプリです。`,
+    ],
+    blocks: [
+      { type: "h2", text: "レコーディングダイエットとは？今も役立つところ" },
+      {
+        type: "p",
+        text: "レコーディングダイエットとは、食べたものや体重を毎日記録し、自分の食生活を見直す方法です。紙のノートがあれば始められ、書くことで「思ったより食べていた」「間食が多かった」と気づけるのが長所です。この「気づく」効果は、紙でもアプリでも変わりません。変わったのは、記録にかかる手間のほうです。",
+      },
+      { type: "h2", text: `続かなくなりやすい5つの場面と、${APP_NAME}の工夫` },
+      {
+        type: "table",
+        caption: `つまずきやすい場面と、紙の手帳・${APP_NAME}の違い`,
+        headers: ["つまずきやすい場面", "紙の手帳・従来の記録の例", `${APP_NAME}の工夫`],
+        rows: [
+          ["カロリーを調べる", "本や一覧表で、自分で探して書く", "食事名を入れると、AIがカロリーを推定する"],
+          ["1日の合計を出す", "自分で足し算をする", "自動で合計し、体重と同じ画面で見られる"],
+          ["目標を超えた日", "失敗と感じて、記録をやめがち", "1週間の合計で調整できる「週の上限」"],
+          ["ひとりで書き続ける", "書いても反応がない", "AIアドバイザーが返事をくれる"],
+          ["振り返る", "見返すのが大変", "月のまとめとCSVで、あとから確認できる"],
+        ],
+      },
+      { type: "h3", text: "1. カロリーを調べる手間" },
+      {
+        type: "p",
+        text: `紙の手帳では、食べるたびに食品のカロリーを調べる必要があります。外食やお菓子は特に探しにくく、ここで面倒になってやめる人が少なくありません。${APP_NAME}は、食事名を入れればAIが目安のカロリーを推定します。調べる作業が減るぶん、記録そのものに集中できます。`,
+      },
+      { type: "h3", text: "2. 毎日の合計を計算する手間" },
+      {
+        type: "p",
+        text: `足し算や、体重との見比べも、手作業だと負担になります。${APP_NAME}は合計を自動で出し、カレンダーと、日・週・月のグラフで表示します。`,
+      },
+      { type: "h3", text: "3. 目標を超えた日の落ち込み" },
+      {
+        type: "p",
+        text: [
+          `毎日の目標をきっちり守る形式は、1日でも超えると「もうだめだ」と感じてやめる原因になります。${APP_NAME}は、1日ではなく1週間の合計で考える「週の上限」を採用しました。詳しくは、`,
+          { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "4. ひとりで書き続ける孤独" },
+      {
+        type: "p",
+        text: `紙のノートは、書いても何も返ってきません。${APP_NAME}では、記録に対してAIアドバイザーが短い返事を書きます。励ましや気づきが返ってくることで、続けるきっかけを作ります。`,
+      },
+      { type: "h3", text: "5. 振り返りにくさ" },
+      {
+        type: "p",
+        text: `過去の記録を見返すのも、手帳では手間がかかります。${APP_NAME}では日記として残り、月のまとめと、CSVでの書き出しができます。`,
+      },
+      { type: "h2", text: "変わらないこと、限界もあります" },
+      {
+        type: "ul",
+        items: [
+          [
+            "AIのカロリーは推定で、実際とは差が出ます。目安として使い、記録を続けることを優先してください。詳しくは ",
+            { href: "/guide/ai-calorie", label: "AIによるカロリー推定の仕組みと限界" },
+            " で説明しています。",
+          ],
+          `${APP_NAME}は医療上の助言を行うものではありません。体調に不安がある場合は、医師などの専門家に相談してください。`,
+          "紙の手帳には、自由に書ける、通信が要らないといった良さがあります。どちらが向いているかは、人によって違います。",
+        ],
+      },
+      { type: "h2", text: "どんな人に向いている？" },
+      {
+        type: "p",
+        text: "紙の手帳が合う人：書くこと自体が楽しい、アプリを増やしたくない。",
+      },
+      {
+        type: "p",
+        text: `${APP_NAME}が合う人：調べたり計算したりするのが面倒で続かなかった、毎日きっちりが苦手、体重の記録も一緒にまとめたい。`,
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "レコーディングダイエットは、アプリでもできますか。",
+            answer: `はい。アプリでも、食べたものを記録して見直すという考え方は同じです。${APP_NAME}は、食事名を入れるとAIがカロリーを推定し、体重とあわせて管理できます。`,
+          },
+          {
+            question: `${APP_NAME}のカロリーは正確ですか。`,
+            answer: `${APP_NAME}のカロリーは、AIによる推定の目安です。実際の量や調理法で差が出るため、正確な値ではなく、傾向をつかむために使ってください。`,
+          },
+          {
+            question: `紙の手帳から${APP_NAME}に乗り換える必要はありますか。`,
+            answer: `必要はありません。紙のほうが続けやすい方は、そのままで大丈夫です。調べる手間や計算が負担で続かなかった方は、${APP_NAME}を試してみてください。無料ではじめられます。`,
+          },
+        ],
+      },
+      { type: "h2", text: "まとめ" },
+      {
+        type: "p",
+        text: `レコーディングダイエットの「書き出して気づく」良さはそのままに、調べる・計算する・落ち込む・ひとりで続ける、といったつまずきを減らしたのが${APP_NAME}です。`,
+      },
+    ],
+    related: ["what-is-memolever", "weekly-limit", "ai-calorie", "record-diet-tips"],
+  },
 ];
 
 export function guideArticleBySlug(slug: string) {
@@ -420,13 +542,30 @@ export function guideArticlePath(slug: string) {
   return `/guide/${slug}`;
 }
 
+function guideInlineText(value: string | readonly GuideInline[]) {
+  if (typeof value === "string") {
+    return value;
+  }
+  return value.map((part) => (typeof part === "string" ? part : part.label)).join("");
+}
+
 export function guideArticleCharCount(article: GuideArticle) {
   const parts: string[] = [...article.lead];
   for (const block of article.blocks) {
-    if (block.type === "h2" || block.type === "p") {
+    if (block.type === "h2" || block.type === "h3") {
       parts.push(block.text);
+    } else if (block.type === "p") {
+      parts.push(guideInlineText(block.text));
     } else if (block.type === "ul") {
-      parts.push(...block.items);
+      for (const item of block.items) {
+        parts.push(guideInlineText(item));
+      }
+    } else if (block.type === "table") {
+      parts.push(block.caption, ...block.headers, ...block.rows.flat());
+    } else if (block.type === "faq") {
+      for (const item of block.items) {
+        parts.push(item.question, item.answer);
+      }
     }
   }
   return [...parts.join("")].length;

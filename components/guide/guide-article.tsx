@@ -1,5 +1,6 @@
 import { GuideStartButton } from "@/components/guide/guide-actions";
 import { GuideShell, guideCrumbItems } from "@/components/guide/guide-shell";
+import { GuideTable } from "@/components/guide/guide-table";
 import { InstantLink } from "@/components/instant-link";
 import { APP_NAME } from "@/lib/app-title";
 import {
@@ -7,6 +8,7 @@ import {
   guideArticlePath,
   type GuideArticle,
   type GuideArticleBlock,
+  type GuideInline,
 } from "@/lib/guide-articles";
 import { MEMOLEVER_GUIDE } from "@/lib/guide-links";
 import { formatGuideIsoLabel } from "@/lib/guide-meta";
@@ -14,6 +16,9 @@ import { guideArticleStructuredData } from "@/lib/structured-data";
 
 const linkClass =
   "inline-flex min-h-11 items-center text-lg font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
+
+const inlineLinkClass =
+  "font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
 
 export function articleDocumentTitle(title: string) {
   return title.endsWith(APP_NAME) ? title : `${title}｜${APP_NAME}`;
@@ -24,6 +29,7 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
     label: article.title,
     href: guideArticlePath(article.slug),
   });
+  const faqs = article.blocks.flatMap((block) => (block.type === "faq" ? block.items : []));
 
   return (
     <GuideShell
@@ -35,6 +41,7 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
         datePublished: article.updatedOn,
         dateModified: article.updatedOn,
         breadcrumbs,
+        faqs,
       })}
     >
       <article className="mt-6">
@@ -88,11 +95,16 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
   if (block.type === "h2") {
     return <h2 className="mt-8 text-xl font-semibold text-[#F27A1A]">{block.text}</h2>;
   }
+  if (block.type === "h3") {
+    return <h3 className="mt-6 text-lg font-medium text-zinc-950">{block.text}</h3>;
+  }
   if (block.type === "ul") {
     return (
       <ul className="list-disc space-y-2 pl-5 text-base leading-8 text-zinc-800">
-        {block.items.map((item) => (
-          <li key={item}>{item}</li>
+        {block.items.map((item, index) => (
+          <li key={index}>
+            <GuideText value={item} />
+          </li>
         ))}
       </ul>
     );
@@ -110,5 +122,39 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
       </ul>
     );
   }
-  return <p className="text-base leading-8 text-zinc-800">{block.text}</p>;
+  if (block.type === "table") {
+    return <GuideTable caption={block.caption} headers={block.headers} rows={block.rows} />;
+  }
+  if (block.type === "faq") {
+    return (
+      <div className="flex flex-col gap-6">
+        {block.items.map((item) => (
+          <section key={item.question}>
+            <h3 className="text-lg font-medium text-zinc-950">{item.question}</h3>
+            <p className="mt-2 text-base leading-8 text-zinc-800">{item.answer}</p>
+          </section>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <p className="text-base leading-8 text-zinc-800">
+      <GuideText value={block.text} />
+    </p>
+  );
+}
+
+function GuideText({ value }: { value: string | readonly GuideInline[] }) {
+  if (typeof value === "string") {
+    return value;
+  }
+  return value.map((part, index) =>
+    typeof part === "string" ? (
+      <span key={index}>{part}</span>
+    ) : (
+      <InstantLink key={`${part.href}-${index}`} href={part.href} className={inlineLinkClass}>
+        {part.label}
+      </InstantLink>
+    ),
+  );
 }
