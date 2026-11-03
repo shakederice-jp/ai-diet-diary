@@ -2,6 +2,7 @@ import {
   chooseWeightAxisTicks,
   goalWeightInAxis,
   hasWeightOutsideRange,
+  integerWeightScale,
   type WeightAxisRange,
 } from "./weight-axis";
 
@@ -73,39 +74,100 @@ export function formatRecordedKg(value: number) {
   return `${text}kg`;
 }
 
-function floorHundreds(value: number) {
-  return Math.floor((value + 1e-6) / 100) * 100;
+const KCAL_STEPS = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+
+function snap(value: number, step: number) {
+  const places = step < 1 ? 1 : 0;
+  return Math.round(value * 10 ** places) / 10 ** places;
 }
 
-function ceilHundreds(value: number) {
-  return Math.ceil((value - 1e-6) / 100) * 100;
-}
-
-export function chooseTicks(min: number, max: number, candidates: number[], maxLabels: number) {
-  const span = Math.max(max - min, 0);
-  let step = candidates[candidates.length - 1] ?? 1;
-  for (const candidate of candidates) {
-    if (Math.floor(span / candidate) + 1 <= maxLabels) {
-      step = candidate;
-      break;
+/** 表示中の最小〜最大を、等間隔の目盛り3つで覆い、上下に目盛り間隔の2割を余白として足す。 */
+export function paddedThreeTicks(
+  low: number,
+  high: number,
+  steps: readonly number[],
+  options?: { floor?: number; minPad?: number },
+) {
+  const minPad = options?.minPad ?? 0;
+  const floor = options?.floor;
+  let bottom = low;
+  let top = high;
+  if (!(top > bottom)) {
+    const bump = Math.max(minPad, steps[0] ?? 1);
+    bottom -= bump;
+    top += bump;
+  }
+  if (floor != null) {
+    bottom = Math.max(floor, bottom);
+    if (!(top > bottom)) {
+      top = bottom + (steps[0] ?? 1);
     }
   }
 
-  const ticks: number[] = [];
-  const start = Math.ceil((min - 1e-9) / step) * step;
-  for (let value = start; value <= max + 1e-9; value += step) {
-    const rounded = Math.round(value * 1000) / 1000;
-    if (rounded < min - 1e-6 || rounded > max + 1e-6) {
+  for (const step of steps) {
+    if (step * 2 + 1e-9 < top - bottom) {
       continue;
     }
-    if (ticks[ticks.length - 1] !== rounded) {
-      ticks.push(rounded);
+    let start = Math.floor((bottom + step * 1e-9) / step) * step;
+    if (floor != null && start < floor - 1e-9) {
+      start = floor;
     }
+    const end = start + step * 2;
+    if (start - 1e-6 > bottom || end + 1e-6 < top) {
+      continue;
+    }
+    const ticks = [0, 1, 2].map((index) => snap(start + index * step, step));
+    const slack = step * 0.2;
+    let min = ticks[0] - slack;
+    let max = ticks[2] + slack;
+    if (step >= 1) {
+      min = Math.floor(min);
+      max = Math.ceil(max);
+      if (min >= ticks[0]) {
+        min = floor != null ? Math.max(floor, ticks[0]) : ticks[0] - 1;
+      }
+      if (max <= ticks[2]) {
+        max = ticks[2] + 1;
+      }
+    } else {
+      min = snap(min, 0.1);
+      max = snap(max, 0.1);
+    }
+    if (floor != null) {
+      min = Math.max(floor, min);
+    }
+    return { min, max, ticks };
   }
-  if (ticks.length === 0) {
-    ticks.push(Math.round(min * 10) / 10);
+
+  const step = steps[steps.length - 1] ?? 1;
+  const start = floor != null ? Math.max(floor, snap(bottom, step)) : snap(bottom, step);
+  const ticks = [0, 1, 2].map((index) => snap(start + index * step, step));
+  return { min: ticks[0], max: ticks[2], ticks };
+}
+
+export function sharedWeightScale(
+  extent: { minKg: number; maxKg: number } | null,
+  axis: WeightAxisRange | null,
+): MonthTrendScale | null {
+  const saved =
+    axis &&
+    Number.isFinite(axis.minKg) &&
+    Number.isFinite(axis.maxKg) &&
+    axis.maxKg >= axis.minKg + 2
+      ? axis
+      : null;
+  if (saved) {
+    return {
+      min: saved.minKg,
+      max: saved.maxKg,
+      ticks: chooseWeightAxisTicks(saved.minKg, saved.maxKg),
+      goal: null,
+    };
   }
-  return ticks;
+  if (!extent || !Number.isFinite(extent.minKg) || !Number.isFinite(extent.maxKg) || extent.maxKg < extent.minKg) {
+    return null;
+  }
+  return { ...integerWeightScale(extent.minKg, extent.maxKg), goal: null };
 }
 
 export function weightScale(
@@ -123,36 +185,14 @@ export function weightScale(
   }
 
   const finite = values.filter((value) => Number.isFinite(value));
-  let min: number;
-  let max: number;
-  let goalWeight: number | null = null;
-
-  if (goal) {
-    const low = Math.min(goal.currentWeightKg, goal.targetWeightKg);
-    const high = Math.max(goal.currentWeightKg, goal.targetWeightKg);
-    min = low - 5;
-    max = high + 5;
-    goalWeight = goal.targetWeightKg;
-    if (finite.length > 0) {
-      min = Math.min(min, ...finite);
-      max = Math.max(max, ...finite);
-    }
-  } else if (finite.length > 0) {
-    min = Math.min(...finite) - 2;
-    max = Math.max(...finite) + 2;
-  } else {
+  const points = goal ? [...finite, goal.currentWeightKg, goal.targetWeightKg] : finite;
+  if (points.length === 0) {
     return null;
   }
-
-  if (!(max > min)) {
-    max = min + 1;
-  }
-
+  const scale = integerWeightScale(Math.min(...points), Math.max(...points));
   return {
-    min,
-    max,
-    ticks: chooseTicks(min, max, [1, 2, 5, 10], 6),
-    goal: goalWeight,
+    ...scale,
+    goal: goalWeightInAxis(goal?.targetWeightKg ?? null, scale.min, scale.max),
   };
 }
 
@@ -161,70 +201,27 @@ export function periodWeightScale(values: number[]): MonthTrendScale | null {
   if (finite.length === 0) {
     return null;
   }
-  let min = Math.floor(Math.min(...finite) - 1);
-  let max = Math.ceil(Math.max(...finite) + 1);
-  if (max - min < 3) {
-    const extra = 3 - (max - min);
-    const lower = Math.floor(extra / 2);
-    min -= lower;
-    max += extra - lower;
-  }
-  return {
-    min,
-    max,
-    ticks: chooseTicks(min, max, [1, 2, 5, 10], 6),
-    goal: null,
-  };
+  return { ...integerWeightScale(Math.min(...finite), Math.max(...finite)), goal: null };
 }
 
 export function periodCalorieScale(limit: number | null, values: number[]): MonthTrendScale | null {
-  const finite = values.filter((value) => Number.isFinite(value) && value >= 0);
-  const base = calorieScale(limit, finite);
-  if (!base || finite.length === 0) {
-    return base;
-  }
-  const low = Math.min(...finite);
-  if (low >= base.min - 1e-6) {
-    return base;
-  }
-  const min = Math.max(0, floorHundreds(low));
-  const max = base.max > min ? base.max : min + 100;
-  return {
-    min,
-    max,
-    ticks: chooseTicks(min, max, [100, 200, 500, 1000], 5),
-    goal: base.goal,
-  };
+  return calorieScale(limit, values);
 }
 
 export function calorieScale(dailyGoal: number | null, values: number[]): MonthTrendScale | null {
   const finite = values.filter((value) => Number.isFinite(value) && value >= 0);
-  const peak = finite.length > 0 ? Math.max(...finite) : 0;
-
-  if (dailyGoal != null && dailyGoal > 0) {
-    const min = Math.max(0, floorHundreds(dailyGoal - 800));
-    let max = ceilHundreds(Math.max(dailyGoal + 800, peak));
-    if (!(max > min)) {
-      max = min + 100;
-    }
-    return {
-      min,
-      max,
-      ticks: chooseTicks(min, max, [100, 200, 500, 1000], 5),
-      goal: dailyGoal,
-    };
-  }
-
-  if (finite.length === 0) {
+  const goal = dailyGoal != null && dailyGoal > 0 ? dailyGoal : null;
+  const points = goal == null ? finite : [...finite, goal];
+  if (points.length === 0) {
     return null;
   }
-
-  const max = Math.max(100, ceilHundreds(peak));
+  const scale = paddedThreeTicks(Math.min(...points), Math.max(...points), KCAL_STEPS, {
+    floor: 0,
+    minPad: 100,
+  });
   return {
-    min: 0,
-    max,
-    ticks: chooseTicks(0, max, [100, 200, 500, 1000], 5),
-    goal: null,
+    ...scale,
+    goal,
   };
 }
 
@@ -236,6 +233,7 @@ export function buildMonthTrend(input: {
   goal: MonthTrendGoal | null;
   today: string;
   axis?: WeightAxisRange | null;
+  weightScale?: MonthTrendScale | null;
 }): MonthTrendModel {
   const key = monthKey(input.year, input.month);
   const weightByDate = new Map<string, number>();
@@ -291,7 +289,14 @@ export function buildMonthTrend(input: {
     goalSet: goal != null,
     todayIndex: days.findIndex((day) => day.date === input.today),
     days,
-    weight: hasData ? weightScale(goal, weightValues, axis) : null,
+    weight: input.weightScale
+      ? {
+          ...input.weightScale,
+          goal: goalWeightInAxis(goal?.targetWeightKg ?? null, input.weightScale.min, input.weightScale.max),
+        }
+      : hasData
+        ? weightScale(goal, weightValues, axis)
+        : null,
     calories: hasData ? calorieScale(dailyGoal, kcalValues) : null,
     weightOutside: axis ? hasWeightOutsideRange(weightValues, axis.minKg, axis.maxKg) : false,
   };

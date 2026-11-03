@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { EngagementPanel } from "@/components/engagement-panel";
+import { GuideBanners } from "@/components/guide-banners";
 import { HomeCalendar, HomeHealth } from "@/components/home-sections";
 import { AddToHomeButton } from "@/components/add-to-home-button";
 import { SiteFooter } from "@/components/site-footer";
@@ -42,37 +43,48 @@ export default async function Home({
 
   return (
     <div className="flex flex-1 flex-col items-center bg-[#E6D9C8] px-4 py-10 font-sans sm:px-6">
-      <main className="flex w-full max-w-4xl flex-col gap-8">
-        <Suspense fallback={null}>
-          <EngagementPanel surface="home" />
-        </Suspense>
-        {params.claim === "error" ? (
-          <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
-            ログインはできましたが、以前の記録の引き継ぎに失敗しました。
-          </p>
-        ) : null}
-        <Suspense
-          fallback={
-            <div
-              className="h-80 animate-pulse rounded-3xl bg-[#F3EBDD]"
-              aria-busy="true"
-              aria-label="カレンダーを読み込んでいます"
+      <main className="flex w-full max-w-4xl flex-col gap-8 lg:max-w-[76rem] lg:flex-row lg:items-start">
+        <div className="flex min-w-0 w-full flex-1 flex-col gap-8">
+          <Suspense fallback={null}>
+            <EngagementPanel surface="home" />
+          </Suspense>
+          {params.claim === "error" ? (
+            <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
+              ログインはできましたが、以前の記録の引き継ぎに失敗しました。
+            </p>
+          ) : null}
+          <Suspense
+            fallback={
+              <div
+                className="h-80 animate-pulse rounded-3xl bg-[#F3EBDD]"
+                aria-busy="true"
+                aria-label="カレンダーを読み込んでいます"
+              />
+            }
+          >
+            <HomeCalendar
+              userId={userId}
+              year={month.year}
+              month={month.month}
+              weekStartsOn={weekStartsOn}
+              today={today}
             />
-          }
+          </Suspense>
+          <Suspense fallback={null}>
+            <HomeHealth userId={userId} />
+          </Suspense>
+          <SiteFooter />
+          <AddToHomeButton />
+        </div>
+        <aside
+          aria-labelledby="home-guide-heading"
+          className="sticky top-6 hidden w-[280px] shrink-0 lg:block"
         >
-          <HomeCalendar
-            userId={userId}
-            year={month.year}
-            month={month.month}
-            weekStartsOn={weekStartsOn}
-            today={today}
-          />
-        </Suspense>
-        <Suspense fallback={null}>
-          <HomeHealth userId={userId} />
-        </Suspense>
-        <SiteFooter />
-        <AddToHomeButton />
+          <h2 id="home-guide-heading" className="text-xs font-medium text-[#6B4A32]">
+            ガイド・目安
+          </h2>
+          <GuideBanners className="mt-3" />
+        </aside>
       </main>
     </div>
   );

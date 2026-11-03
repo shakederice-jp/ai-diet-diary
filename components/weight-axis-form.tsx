@@ -65,8 +65,8 @@ export function WeightAxisForm({
   const notice = hideNotice || error ? null : state.notice;
 
   return (
-    <section className="mt-8 border-t border-[#E4D7C6] pt-4">
-      <h2 className="text-xs font-medium text-zinc-500">体重グラフの縦軸</h2>
+    <section id="weight-axis" className="mt-8 scroll-mt-6 border-t border-[#E4D7C6] pt-4">
+      <h2 className="text-base font-semibold text-zinc-950">体重グラフの縦軸</h2>
       <p className="mt-2 text-sm leading-6 text-zinc-600">空欄のときは、いままでどおり自動で決まります。</p>
       <form key={formKey} action={formAction} onSubmit={onSubmit} className="mt-3">
         <div className="flex flex-col gap-3 sm:flex-row">

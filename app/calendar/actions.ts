@@ -15,8 +15,9 @@ import {
   weekWindow,
   type TrendSpan,
 } from "@/lib/trend-span";
-import { getCalorieGoal } from "@/lib/user-settings";
-import { earliestWeightDate, listWeightsBetween } from "@/lib/weights";
+import { sharedWeightScale } from "@/lib/month-trend";
+import { getCalorieGoal, getWeightAxis } from "@/lib/user-settings";
+import { earliestWeightDate, listWeightsBetween, weightExtent } from "@/lib/weights";
 
 export async function setWeekStart(formData: FormData) {
   const weekStart = parseWeekStart(String(formData.get("weekStart") ?? ""));
@@ -63,10 +64,12 @@ export async function loadTrendSpan(input: { span: TrendSpan; page: number }) {
   const today = tokyoToday().date;
 
   try {
-    const [mealDate, weightDate, goal] = await Promise.all([
+    const [mealDate, weightDate, goal, axis, extent] = await Promise.all([
       earliestMealDate(userId),
       earliestWeightDate(userId),
       getCalorieGoal(userId).catch(() => null),
+      getWeightAxis(userId).catch(() => null),
+      weightExtent(userId).catch(() => null),
     ]);
     const earliest = earlierDate(mealDate, weightDate);
     const weeklyKcal = goal && goal.weeklyKcal > 0 ? goal.weeklyKcal : null;
@@ -90,7 +93,17 @@ export async function loadTrendSpan(input: { span: TrendSpan; page: number }) {
       getMealCalorieRecordsBetween(userId, start, end),
       listWeightsBetween(userId, start, end),
     ]);
-    const shared = { today, page, weekStartsOn, earliest, weeklyKcal, calories, weights };
+    const weightScale = sharedWeightScale(extent, axis);
+    const shared = {
+      today,
+      page,
+      weekStartsOn,
+      earliest,
+      weeklyKcal,
+      calories,
+      weights,
+      ...(weightScale ? { weightScale } : {}),
+    };
     return {
       ok: true as const,
       model: input.span === "week" ? buildWeekSpan(shared) : buildMonthSpan(shared),

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildMonthCalendar, weekBounds } from "./calendar";
-import { calorieScale, periodCalorieScale, periodWeightScale } from "./month-trend";
+import { buildMonthTrend, calorieScale, periodCalorieScale, periodWeightScale, sharedWeightScale } from "./month-trend";
 import { buildMonthSpan, buildWeekSpan, weekWindow } from "./trend-span";
 
 const today = "2026-11-01";
@@ -128,22 +128,92 @@ describe("month span", () => {
 });
 
 describe("period scales", () => {
-  it("keeps the daily calorie window and widens only the period view", () => {
+  it("uses three calorie ticks and keeps the limit inside them", () => {
     const daily = calorieScale(2000, [100]);
-    assert.equal(daily?.min, 1200);
+    assert.deepEqual(daily?.ticks, [0, 1000, 2000]);
+    assert.equal(daily?.ticks.length, 3);
+    assert.ok(daily && daily.min < daily.ticks[0] + 1e-6);
+    assert.ok(daily && daily.max > daily.ticks[2] - 1e-6);
     const widened = periodCalorieScale(2000, [100]);
-    assert.equal(widened?.min, 100);
+    assert.deepEqual(widened?.ticks, daily?.ticks);
     assert.equal(widened?.goal, 2000);
     const inside = periodCalorieScale(2000, [1800]);
     assert.equal(inside?.min, calorieScale(2000, [1800])?.min);
+    assert.equal(inside?.ticks.length, 3);
+    const week = calorieScale(14000, [11000]);
+    assert.deepEqual(week?.ticks, [10000, 12000, 14000]);
+    assert.equal(week?.ticks.length, 3);
   });
 
-  it("uses an integer weight range at least 3kg wide", () => {
+  it("uses three weight ticks around a single point", () => {
     const tight = periodWeightScale([60]);
     assert.ok(tight);
-    assert.equal(tight.min, Math.floor(tight.min));
-    assert.equal(tight.max, Math.ceil(tight.max));
-    assert.ok(tight.max - tight.min >= 3);
+    assert.equal(tight.ticks.length, 3);
+    assert.ok(tight.min < 60 && tight.max > 60);
     assert.equal(tight.goal, null);
+    const spread = periodWeightScale([62.4, 63.6]);
+    assert.deepEqual(spread?.ticks, [62, 63, 64]);
+  });
+
+  it("uses the same weight axis on the day, week, and month charts", () => {
+    const scale = sharedWeightScale({ minKg: 66.2, maxKg: 68.4 }, { minKg: 65, maxKg: 70 });
+    assert.ok(scale);
+    assert.equal(scale.min, 65);
+    assert.equal(scale.max, 70);
+    assert.deepEqual(scale.ticks, [65, 67.5, 70]);
+    const fromData = sharedWeightScale({ minKg: 66.2, maxKg: 68.4 }, null);
+    assert.deepEqual(fromData?.ticks, [66, 68, 70]);
+    assert.ok(fromData && fromData.min < 66.2 && fromData.max > 68.4);
+
+    const day = buildMonthTrend({
+      year: 2026,
+      month: 11,
+      calories: [{ date: "2026-11-01", totalKcal: 1500 }],
+      weights: [{ date: "2026-11-01", weightKg: 67.2 }],
+      goal: null,
+      today: "2026-11-03",
+      weightScale: scale,
+    });
+    const week = buildWeekSpan({
+      today,
+      page: 0,
+      weekStartsOn: "sunday",
+      earliest: "2026-04-01",
+      weeklyKcal: 14000,
+      calories: [{ date: "2026-11-01", totalKcal: 1500 }],
+      weights: [{ date: "2026-11-01", weightKg: 67.2 }],
+      weightScale: scale,
+    });
+    const month = buildMonthSpan({
+      today,
+      page: 0,
+      weekStartsOn: "sunday",
+      earliest: "2026-04-01",
+      weeklyKcal: 14000,
+      calories: [{ date: "2026-11-01", totalKcal: 1500 }],
+      weights: [{ date: "2026-11-01", weightKg: 67.2 }],
+      weightScale: scale,
+    });
+    const laterWeek = buildWeekSpan({
+      today,
+      page: 1,
+      weekStartsOn: "sunday",
+      earliest: "2026-04-01",
+      weeklyKcal: 14000,
+      calories: [{ date: "2026-04-06", totalKcal: 900 }],
+      weights: [{ date: "2026-04-06", weightKg: 80 }],
+      weightScale: scale,
+    });
+
+    assert.deepEqual(day.weight?.ticks, scale.ticks);
+    assert.deepEqual(week.weight?.ticks, scale.ticks);
+    assert.deepEqual(month.weight?.ticks, scale.ticks);
+    assert.deepEqual(laterWeek.weight?.ticks, scale.ticks);
+    assert.equal(day.weight?.min, scale.min);
+    assert.equal(week.weight?.max, scale.max);
+    assert.equal(month.weight?.min, scale.min);
+    assert.equal(week.calories?.ticks.length, 3);
+    assert.equal(month.calories?.ticks.length, 3);
+    assert.notDeepEqual(week.calories?.ticks, month.calories?.ticks);
   });
 });

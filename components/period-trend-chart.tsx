@@ -142,7 +142,7 @@ export function PeriodTrendChart({
   return (
     <section
       className="w-full rounded-3xl bg-[#F3EBDD] p-3 shadow-sm select-none sm:p-6"
-      aria-label={model.span === "week" ? "週間の体重とカロリー" : "月間の体重とカロリー"}
+      aria-label={model.span === "week" ? "週別の体重とカロリー" : "月別の体重とカロリー"}
       data-trend-chart="ready"
       data-trend-span={model.span}
       data-trend-page={model.page}
@@ -188,7 +188,7 @@ export function PeriodTrendChart({
         ) : (
           <svg
             role="img"
-            aria-label={model.span === "week" ? "週間の体重とカロリー" : "月間の体重とカロリー"}
+            aria-label={model.span === "week" ? "週別の体重とカロリー" : "月別の体重とカロリー"}
             viewBox={`0 0 ${width} ${HEIGHT}`}
             width={width}
             height={HEIGHT}

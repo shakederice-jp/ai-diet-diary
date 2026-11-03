@@ -104,6 +104,11 @@ export default async function MyPage({
         <Suspense fallback={null}>
           <OwnShareCards userId={userId} />
         </Suspense>
+        <WeightAxisForm
+          initialMinKg={weightAxis.minKg}
+          initialMaxKg={weightAxis.maxKg}
+          loadError={weightAxis.loadError}
+        />
         <form action={signOut} className="mt-8">
           <SubmitButton
             pendingLabel="ログアウトしています…"
@@ -114,11 +119,6 @@ export default async function MyPage({
         </form>
         <HealthPlanetSettings userId={userId} status={params.healthplanet} reason={params.reason} />
         <WeekStartForm weekStartsOn={weekStartsOn} />
-        <WeightAxisForm
-          initialMinKg={weightAxis.minKg}
-          initialMaxKg={weightAxis.maxKg}
-          loadError={weightAxis.loadError}
-        />
         <AddToHomeButton className="mt-10" />
         <SiteFooter className="mt-10" />
       </main>

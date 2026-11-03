@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { after } from "next/server";
-import { GuideLinks } from "@/components/guide-links";
+import { GuideBanners } from "@/components/guide-banners";
 import { InstantLink } from "@/components/instant-link";
 import { navSecondary } from "@/components/nav-styles";
 import { MonthCalendar } from "@/components/month-calendar";
@@ -13,12 +13,12 @@ import {
   type WeekStart,
 } from "@/lib/calendar";
 import { DEFAULT_WEEKLY_KCAL_GOAL } from "@/lib/goals";
-import { buildMonthTrend } from "@/lib/month-trend";
+import { buildMonthTrend, sharedWeightScale } from "@/lib/month-trend";
 import { listStepsInMonth } from "@/lib/steps";
 import { getHealthPlanetToken } from "@/lib/supabase/admin";
 import { getCalorieGoal, getWeightAxis, type StoredCalorieGoal } from "@/lib/user-settings";
 import { syncHealthPlanetWeights } from "@/lib/weight-sync";
-import { listWeightsInMonth } from "@/lib/weights";
+import { listWeightsInMonth, weightExtent } from "@/lib/weights";
 
 const FRESH_SYNC_MS = 15 * 60 * 1000;
 
@@ -107,7 +107,7 @@ export async function HomeCalendar({
           today={today.date}
         />
       </Suspense>
-      <GuideLinks className="!flex-col !items-start" />
+      <GuideBanners showHeading className="lg:hidden" />
     </div>
   );
 }
@@ -127,10 +127,12 @@ async function HomeMonthTrend({
   goal: StoredCalorieGoal | null;
   today: string;
 }) {
-  const [weights, axis] = await Promise.all([
+  const [weights, axis, extent] = await Promise.all([
     listWeightsInMonth(userId, year, month).catch(() => []),
     getWeightAxis(userId).catch(() => null),
+    weightExtent(userId).catch(() => null),
   ]);
+  const weightScale = sharedWeightScale(extent, axis);
   const model = buildMonthTrend({
     year,
     month,
@@ -145,8 +147,16 @@ async function HomeMonthTrend({
       : null,
     today,
     axis,
+    ...(weightScale ? { weightScale } : {}),
   });
-  return <TrendChartSwitch model={model} />;
+  return (
+    <>
+      <TrendChartSwitch model={model} />
+      <InstantLink href="/mypage#weight-axis" className="inline-flex min-h-11 items-center text-sm text-[#F5821F]">
+        縦軸の範囲を変える →
+      </InstantLink>
+    </>
+  );
 }
 
 export async function HomeHealth({ userId }: { userId: string }) {

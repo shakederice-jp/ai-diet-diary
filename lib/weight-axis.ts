@@ -10,8 +10,7 @@ export type WeightAxisParseResult =
 const MIN_KG = 20;
 const MAX_KG = 300;
 const MIN_SPAN_KG = 2;
-const PRIMARY_STEPS = [0.5, 1, 2, 5, 10, 20, 50, 100];
-const EXTRA_STEPS = [2.5];
+const INTEGER_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500];
 
 export function parseWeightAxisFields(minText: string, maxText: string): WeightAxisParseResult {
   const minRaw = normalizeKgText(minText);
@@ -75,33 +74,53 @@ export function weightPlotFraction(value: number, min: number, max: number) {
   return (value - min) / span;
 }
 
-export function chooseWeightAxisTicks(min: number, max: number) {
-  return (
-    bestTicks(PRIMARY_STEPS, min, max, (count) => count >= 4 && count <= 6) ??
-    bestTicks([...PRIMARY_STEPS, ...EXTRA_STEPS], min, max, (count) => count >= 4 && count <= 6) ??
-    bestTicks([...PRIMARY_STEPS, ...EXTRA_STEPS], min, max, (count) => count >= 3 && count <= 7) ??
-    bestTicks([...PRIMARY_STEPS, ...EXTRA_STEPS], min, max, (count) => count > 0) ??
-    [roundTenth(min), roundTenth(max)]
-  );
+export function integerWeightScale(low: number, high: number) {
+  let bottom = low;
+  let top = high;
+  if (!Number.isFinite(bottom) || !Number.isFinite(top)) {
+    bottom = 60;
+    top = 70;
+  }
+  if (top < bottom) {
+    const swap = bottom;
+    bottom = top;
+    top = swap;
+  }
+  if (top - bottom < 1e-9) {
+    bottom -= 1;
+    top += 1;
+  }
+
+  for (const step of INTEGER_STEPS) {
+    if (step * 2 + 1e-9 < top - bottom) {
+      continue;
+    }
+    let start = Math.floor(bottom / step + 1e-9) * step;
+    const shifted = start - step;
+    if (bottom - start < 1e-6 && shifted + step * 2 >= top - 1e-6) {
+      start = shifted;
+    }
+    const end = start + step * 2;
+    if (end + 1e-6 < top || start - 1e-6 > bottom) {
+      continue;
+    }
+    const ticks = [start, start + step, end].map((tick) => Math.round(tick));
+    return {
+      min: Math.max(0, ticks[0] - 1),
+      max: ticks[2] + 1,
+      ticks,
+    };
+  }
+
+  const step = INTEGER_STEPS[INTEGER_STEPS.length - 1];
+  const start = Math.floor(bottom / step) * step;
+  const ticks = [start, start + step, start + step * 2];
+  return { min: Math.max(0, ticks[0] - 1), max: ticks[2] + 1, ticks };
 }
 
-function bestTicks(
-  steps: number[],
-  min: number,
-  max: number,
-  accept: (count: number) => boolean,
-) {
-  const options = steps
-    .map((step) => ({ step, ticks: ticksAt(min, max, step) }))
-    .filter((option) => accept(option.ticks.length));
-  options.sort((left, right) => {
-    const distance = Math.abs(left.ticks.length - 5) - Math.abs(right.ticks.length - 5);
-    if (distance !== 0) {
-      return distance;
-    }
-    return right.step - left.step;
-  });
-  return options[0]?.ticks ?? null;
+export function chooseWeightAxisTicks(min: number, max: number) {
+  const mid = Math.round(((min + max) / 2) * 10) / 10;
+  return [min, mid, max];
 }
 
 export function goalWeightInAxis(goalKg: number | null, min: number, max: number) {
@@ -131,24 +150,4 @@ function parseAxisKg(value: string) {
     return null;
   }
   return rounded;
-}
-
-function roundTenth(value: number) {
-  return Math.round(value * 10) / 10;
-}
-
-function ticksAt(min: number, max: number, step: number) {
-  const ticks: number[] = [];
-  const first = Math.ceil(min / step - 1e-8);
-  const last = Math.floor(max / step + 1e-8);
-  for (let index = first; index <= last && ticks.length < 12; index += 1) {
-    const value = roundTenth(index * step);
-    if (value < min - 1e-6 || value > max + 1e-6) {
-      continue;
-    }
-    if (ticks[ticks.length - 1] !== value) {
-      ticks.push(value);
-    }
-  }
-  return ticks;
 }

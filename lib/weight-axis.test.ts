@@ -57,32 +57,22 @@ describe("parseWeightAxisFields", () => {
 });
 
 describe("chooseWeightAxisTicks", () => {
-  it("uses a readable step and about 4 to 6 labels", () => {
-    assert.deepEqual(chooseWeightAxisTicks(60, 70), [60, 62, 64, 66, 68, 70]);
-    assert.deepEqual(chooseWeightAxisTicks(60, 62), [60, 60.5, 61, 61.5, 62]);
-    assert.deepEqual(chooseWeightAxisTicks(60, 80), [60, 65, 70, 75, 80]);
-    assert.deepEqual(chooseWeightAxisTicks(62.5, 70), [64, 66, 68, 70]);
-    const wide = chooseWeightAxisTicks(20, 300);
-    assert.ok(wide.length >= 4 && wide.length <= 6, wide.join(", "));
+  it("uses the saved minimum, midpoint, and maximum as the three labels", () => {
+    assert.deepEqual(chooseWeightAxisTicks(60, 70), [60, 65, 70]);
+    assert.deepEqual(chooseWeightAxisTicks(60, 62), [60, 61, 62]);
+    assert.deepEqual(chooseWeightAxisTicks(60, 80), [60, 70, 80]);
+    assert.deepEqual(chooseWeightAxisTicks(62.5, 70), [62.5, 66.3, 70]);
+    assert.deepEqual(chooseWeightAxisTicks(65, 70), [65, 67.5, 70]);
+    assert.deepEqual(chooseWeightAxisTicks(20, 300), [20, 160, 300]);
 
     for (let min = 20; min <= 80; min += 0.5) {
       for (let span = 2; span <= 40; span += 0.5) {
         const max = Math.round((min + span) * 10) / 10;
         const ticks = chooseWeightAxisTicks(min, max);
-        assert.ok(
-          ticks.length >= 3 && ticks.length <= 7,
-          `${min}–${max} => ${ticks.join(", ")}`,
-        );
-        for (const tick of ticks) {
-          assert.ok(tick >= min - 1e-6 && tick <= max + 1e-6);
-        }
-        if (ticks.length >= 2) {
-          const step = Math.round((ticks[1] - ticks[0]) * 10) / 10;
-          assert.ok([0.5, 1, 2, 2.5, 5, 10, 20, 50, 100].includes(step));
-          for (let index = 2; index < ticks.length; index += 1) {
-            assert.equal(Math.round((ticks[index] - ticks[index - 1]) * 10) / 10, step);
-          }
-        }
+        assert.equal(ticks.length, 3, `${min}–${max} => ${ticks.join(", ")}`);
+        assert.equal(ticks[0], min);
+        assert.equal(ticks[2], max);
+        assert.equal(ticks[1], Math.round(((min + max) / 2) * 10) / 10);
       }
     }
   });
@@ -117,8 +107,9 @@ describe("buildMonthTrend", () => {
 
   it("keeps the automatic weight scale and the calorie scale", () => {
     const model = buildMonthTrend(input);
-    assert.equal(model.weight?.min, 55);
-    assert.equal(model.weight?.max, 75);
+    assert.equal(model.weight?.min, 59);
+    assert.equal(model.weight?.max, 81);
+    assert.deepEqual(model.weight?.ticks, [60, 70, 80]);
     assert.equal(model.weight?.goal, 60);
     assert.equal(model.weightOutside, false);
     assert.ok(model.calories);
@@ -137,7 +128,7 @@ describe("buildMonthTrend", () => {
     assert.equal(model.weight?.max, 70);
     assert.equal(model.weight?.goal, 60);
     assert.equal(model.weightOutside, true);
-    assert.ok(model.weight && model.weight.ticks.length >= 4 && model.weight.ticks.length <= 6);
+    assert.deepEqual(model.weight?.ticks, [60, 65, 70]);
 
     const hiddenGoal = buildMonthTrend({
       ...input,

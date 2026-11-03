@@ -159,6 +159,7 @@ export function buildWeekSpan(input: {
   weeklyKcal: number | null;
   calories: DailyKcal[];
   weights: DailyWeight[];
+  weightScale?: MonthTrendScale | null;
 }): TrendSpanModel {
   const maxPage = maxWeekPage(input.today, input.earliest, input.weekStartsOn);
   const page = Math.min(Math.max(0, Math.floor(input.page)), maxPage);
@@ -205,7 +206,7 @@ export function buildWeekSpan(input: {
       "週",
     ),
     points,
-    weight: periodWeightScale(weightValues),
+    weight: input.weightScale ? input.weightScale : periodWeightScale(weightValues),
     calories: periodCalorieScale(limit, kcalValues),
     limitLabel: limit == null ? null : "上限",
   };
@@ -219,6 +220,7 @@ export function buildMonthSpan(input: {
   weeklyKcal: number | null;
   calories: DailyKcal[];
   weights: DailyWeight[];
+  weightScale?: MonthTrendScale | null;
 }): TrendSpanModel {
   const maxPage = maxMonthPage(input.today, input.earliest);
   const page = Math.min(Math.max(0, Math.floor(input.page)), maxPage);
@@ -270,7 +272,7 @@ export function buildMonthSpan(input: {
       "日",
     ),
     points,
-    weight: periodWeightScale(weightValues),
+    weight: input.weightScale ? input.weightScale : periodWeightScale(weightValues),
     calories: periodCalorieScale(dailyLimit, kcalValues),
     limitLabel: dailyLimit == null ? null : "1日の上限",
   };

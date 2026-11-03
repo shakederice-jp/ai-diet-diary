@@ -13,8 +13,8 @@ const spanListeners = new Set<() => void>();
 
 const OPTIONS: Array<{ id: Span; label: string }> = [
   { id: "day", label: "日別" },
-  { id: "week", label: "週間" },
-  { id: "month", label: "月間" },
+  { id: "week", label: "週別" },
+  { id: "month", label: "月別" },
 ];
 
 function readStoredSpan(): Span {

@@ -98,6 +98,43 @@ export async function listWeightsBetween(userId: string, startDate: string, endD
   );
 }
 
+export async function weightExtent(userId: string) {
+  const supabase = await createDataClient();
+  const [low, high] = await Promise.all([
+    supabase
+      .from("weight_records")
+      .select("weight_kg")
+      .eq("user_id", userId)
+      .order("weight_kg", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("weight_records")
+      .select("weight_kg")
+      .eq("user_id", userId)
+      .order("weight_kg", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (low.error) {
+    throw new Error(`Failed to load weight range: ${low.error.message}`);
+  }
+  if (high.error) {
+    throw new Error(`Failed to load weight range: ${high.error.message}`);
+  }
+  if (!low.data || !high.data) {
+    return null;
+  }
+
+  const minKg = asWeight(low.data.weight_kg);
+  const maxKg = asWeight(high.data.weight_kg);
+  if (!(minKg > 0) || !(maxKg > 0) || maxKg < minKg) {
+    return null;
+  }
+  return { minKg, maxKg };
+}
+
 export async function earliestWeightDate(userId: string) {
   const supabase = await createDataClient();
   const { data, error } = await supabase
