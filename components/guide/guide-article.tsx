@@ -1,4 +1,5 @@
 import { GuideStartButton } from "@/components/guide/guide-actions";
+import { GuideSourceList } from "@/components/guide/guide-source-list";
 import { GuideShell, guideCrumbItems } from "@/components/guide/guide-shell";
 import { GuideTable } from "@/components/guide/guide-table";
 import { InstantLink } from "@/components/instant-link";
@@ -10,8 +11,11 @@ import {
   type GuideArticleBlock,
   type GuideInline,
 } from "@/lib/guide-articles";
+import { chapterNeighbors, sameChapterArticles } from "@/lib/guide-catalog";
+import { guideChapterBySlug, guideChapterPath } from "@/lib/guide-chapters";
 import { MEMOLEVER_GUIDE } from "@/lib/guide-links";
 import { formatGuideIsoLabel } from "@/lib/guide-meta";
+import { externalCitationUrls } from "@/lib/guide-sources";
 import { guideArticleStructuredData } from "@/lib/structured-data";
 
 const linkClass =
@@ -25,11 +29,17 @@ export function articleDocumentTitle(title: string) {
 }
 
 export function GuideArticleView({ article }: { article: GuideArticle }) {
-  const breadcrumbs = guideCrumbItems({
-    label: article.title,
-    href: guideArticlePath(article.slug),
-  });
+  const chapter = guideChapterBySlug(article.chapter);
+  if (!chapter) {
+    throw new Error(article.slug);
+  }
+  const breadcrumbs = guideCrumbItems(
+    { label: chapter.name, href: guideChapterPath(chapter.slug) },
+    { label: article.title, href: guideArticlePath(article.slug) },
+  );
   const faqs = article.blocks.flatMap((block) => (block.type === "faq" ? block.items : []));
+  const sameTheme = sameChapterArticles(article);
+  const neighbors = chapterNeighbors(article);
 
   return (
     <GuideShell
@@ -41,11 +51,18 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
         datePublished: article.updatedOn,
         dateModified: article.updatedOn,
         breadcrumbs,
+        citations: externalCitationUrls(article.sources),
         faqs,
       })}
     >
       <article className="mt-6">
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight text-[#3A2A22]">{article.title}</h1>
+        <InstantLink
+          href={guideChapterPath(chapter.slug)}
+          className="inline-flex min-h-8 items-center rounded-full bg-[#FBF6EE] px-3 text-sm font-medium text-[#C65A0A] hover:bg-[#E7DCC8]"
+        >
+          {chapter.name}
+        </InstantLink>
+        <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#3A2A22]">{article.title}</h1>
         <p className="mt-3 text-sm text-[#6B4A32]">最終更新日: {formatGuideIsoLabel(article.updatedOn)}</p>
         <div className="mt-5 flex flex-col gap-3">
           {article.lead.map((paragraph) => (
@@ -60,6 +77,7 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
           ))}
         </div>
       </article>
+      <GuideSourceList sources={article.sources} />
       <nav className="mt-12" aria-labelledby="related-heading">
         <h2 id="related-heading" className="text-2xl font-semibold text-[#F27A1A]">
           関連記事
@@ -80,14 +98,73 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
             );
           })}
         </ul>
-        <InstantLink href={MEMOLEVER_GUIDE.href} className={`mt-4 ${linkClass}`}>
-          {MEMOLEVER_GUIDE.label}へ戻る
-        </InstantLink>
       </nav>
+      {sameTheme.length > 0 ? (
+        <nav className="mt-12" aria-labelledby="same-theme-heading">
+          <h2 id="same-theme-heading" className="text-2xl font-semibold text-[#F27A1A]">
+            同じテーマの記事
+          </h2>
+          <ul className="mt-4 flex flex-col gap-3">
+            {sameTheme.map((item) => (
+              <li key={item.slug}>
+                <ArticleLinkCard article={item} />
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
+      {neighbors.prev || neighbors.next ? (
+        <nav className="mt-12" aria-label="章の中の前後の記事">
+          <div className="flex flex-col gap-3">
+            {neighbors.prev ? <NeighborLink label="前の記事" article={neighbors.prev} /> : null}
+            {neighbors.next ? <NeighborLink label="次の記事" article={neighbors.next} /> : null}
+          </div>
+        </nav>
+      ) : null}
+      <InstantLink href={MEMOLEVER_GUIDE.href} className={`mt-4 ${linkClass}`}>
+        {MEMOLEVER_GUIDE.label}へ戻る
+      </InstantLink>
       <div className="mt-10">
         <GuideStartButton />
       </div>
     </GuideShell>
+  );
+}
+
+function ArticleLinkCard({ article }: { article: GuideArticle }) {
+  return (
+    <InstantLink href={guideArticlePath(article.slug)} className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]">
+      <span className="text-lg font-medium leading-7 text-zinc-950">{article.title}</span>
+      <span className="mt-2 block text-base leading-7 text-zinc-700">{article.description}</span>
+    </InstantLink>
+  );
+}
+
+function NeighborLink({ label, article }: { label: string; article: GuideArticle }) {
+  return (
+    <InstantLink href={guideArticlePath(article.slug)} className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]">
+      <span className="text-sm font-medium text-[#C65A0A]">{label}</span>
+      <span className="mt-1 block text-lg font-medium leading-7 text-zinc-950">{article.title}</span>
+    </InstantLink>
+  );
+}
+
+function CiteMarks({ cites }: { cites?: readonly number[] }) {
+  if (!cites || cites.length === 0) {
+    return null;
+  }
+  return (
+    <>
+      {cites.map((number) => (
+        <a
+          key={number}
+          href={`#source-${number}`}
+          className="ml-1 text-sm font-medium text-[#C65A0A] underline decoration-[#C65A0A]/40 underline-offset-2"
+        >
+          [{number}]
+        </a>
+      ))}
+    </>
   );
 }
 
@@ -100,13 +177,16 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
   }
   if (block.type === "ul") {
     return (
-      <ul className="list-disc space-y-2 pl-5 text-base leading-8 text-zinc-800">
-        {block.items.map((item, index) => (
-          <li key={index}>
-            <GuideText value={item} />
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul className="list-disc space-y-2 pl-5 text-base leading-8 text-zinc-800">
+          {block.items.map((item, index) => (
+            <li key={index}>
+              <GuideText value={item} />
+            </li>
+          ))}
+        </ul>
+        <CiteMarks cites={block.cites} />
+      </>
     );
   }
   if (block.type === "links") {
@@ -123,7 +203,12 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
     );
   }
   if (block.type === "table") {
-    return <GuideTable caption={block.caption} headers={block.headers} rows={block.rows} />;
+    return (
+      <>
+        <GuideTable caption={block.caption} headers={block.headers} rows={block.rows} />
+        <CiteMarks cites={block.cites} />
+      </>
+    );
   }
   if (block.type === "faq") {
     return (
@@ -134,12 +219,14 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
             <p className="mt-2 text-base leading-8 text-zinc-800">{item.answer}</p>
           </section>
         ))}
+        <CiteMarks cites={block.cites} />
       </div>
     );
   }
   return (
     <p className="text-base leading-8 text-zinc-800">
       <GuideText value={block.text} />
+      <CiteMarks cites={block.cites} />
     </p>
   );
 }

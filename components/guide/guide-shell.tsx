@@ -4,15 +4,12 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { MEMOLEVER_GUIDE } from "@/lib/guide-links";
 
-export function guideCrumbItems(current?: { label: string; href: string }): BreadcrumbItem[] {
-  const items: BreadcrumbItem[] = [
+export function guideCrumbItems(...extra: { label: string; href: string }[]): BreadcrumbItem[] {
+  return [
     { label: "ホーム", href: "/" },
     { label: MEMOLEVER_GUIDE.label, href: MEMOLEVER_GUIDE.href },
+    ...extra,
   ];
-  if (current) {
-    items.push(current);
-  }
-  return items;
 }
 
 export function GuideShell({

@@ -76,14 +76,8 @@ export default async function Home({
           <SiteFooter />
           <AddToHomeButton />
         </div>
-        <aside
-          aria-labelledby="home-guide-heading"
-          className="sticky top-6 hidden w-[280px] shrink-0 lg:block"
-        >
-          <h2 id="home-guide-heading" className="text-xs font-medium text-[#6B4A32]">
-            ガイド・目安
-          </h2>
-          <GuideBanners className="mt-3" />
+        <aside aria-label="ガイド" className="home-guide-column hidden w-[280px] shrink-0 lg:block">
+          <GuideBanners idPrefix="home-guide" />
         </aside>
       </main>
     </div>

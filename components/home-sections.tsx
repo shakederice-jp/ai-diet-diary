@@ -107,7 +107,7 @@ export async function HomeCalendar({
           today={today.date}
         />
       </Suspense>
-      <GuideBanners showHeading className="lg:hidden" />
+      <GuideBanners idPrefix="home-guide-compact" className="lg:hidden" />
     </div>
   );
 }

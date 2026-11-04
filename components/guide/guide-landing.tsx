@@ -1,10 +1,13 @@
+import { GuideArticleSearch } from "@/components/guide/guide-search";
 import { GuideSample } from "@/components/guide/sample-screens";
 import { GuideHowtoButton, GuideStartButton } from "@/components/guide/guide-actions";
 import { GuideShell, guideCrumbItems } from "@/components/guide/guide-shell";
 import { LegalContact } from "@/components/legal-contact";
 import { InstantLink } from "@/components/instant-link";
 import { APP_CATCHCOPY, APP_NAME, APP_SUBTITLE } from "@/lib/app-title";
-import { GUIDE_ARTICLES, guideArticlePath } from "@/lib/guide-articles";
+import { guideChapterEntries, guideSearchDocs, isGuideChapterPublished, newestGuideArticles } from "@/lib/guide-catalog";
+import { guideChapterPath, orderedGuideChapters } from "@/lib/guide-chapters";
+import { guideArticlePath } from "@/lib/guide-articles";
 import { guidePageByHref } from "@/lib/guide-links";
 import { formatGuideIsoLabel } from "@/lib/guide-meta";
 import {
@@ -68,6 +71,65 @@ export function GuideLanding() {
             </p>
           ))}
         </div>
+      </section>
+
+      <section className="mt-12" aria-labelledby="themes-heading">
+        <h2 id="themes-heading" className="text-2xl font-semibold text-[#F27A1A]">
+          テーマから探す
+        </h2>
+        <ul className="mt-4 flex flex-col gap-3">
+          {orderedGuideChapters().map((chapter) => {
+            const total = guideChapterEntries(chapter.slug).length;
+            const published = isGuideChapterPublished(chapter.slug);
+            const body = (
+              <>
+                <span className={`text-lg font-medium leading-7 ${published ? "text-zinc-950" : "text-[#6B4A32]"}`}>
+                  {chapter.name}
+                </span>
+                <span className={`mt-2 block text-base leading-7 ${published ? "text-zinc-800" : "text-[#6B4A32]"}`}>
+                  {chapter.description}
+                </span>
+                <span className={`mt-2 block text-sm font-medium ${published ? "text-[#C65A0A]" : "text-[#8A7360]"}`}>
+                  {published ? `${total}本` : "準備中"}
+                </span>
+              </>
+            );
+            return (
+              <li key={chapter.slug}>
+                {published ? (
+                  <InstantLink href={guideChapterPath(chapter.slug)} className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]">
+                    {body}
+                  </InstantLink>
+                ) : (
+                  <div aria-disabled="true" className="rounded-2xl bg-[#E4DDD4] p-4">
+                    {body}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <GuideArticleSearch docs={guideSearchDocs()} />
+
+      <section className="mt-12" aria-labelledby="latest-heading">
+        <h2 id="latest-heading" className="text-2xl font-semibold text-[#F27A1A]">
+          新着の記事
+        </h2>
+        <ul className="mt-4 flex flex-col gap-3">
+          {newestGuideArticles(5).map((article) => (
+            <li key={article.slug}>
+              <InstantLink
+                href={guideArticlePath(article.slug)}
+                className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]"
+              >
+                <span className="text-lg font-medium leading-7 text-zinc-950">{article.title}</span>
+                <span className="mt-2 block text-base leading-7 text-zinc-700">{article.description}</span>
+              </InstantLink>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mt-12" aria-labelledby="audience-heading">
@@ -137,6 +199,11 @@ export function GuideLanding() {
         <p className="mt-4 text-base leading-8 text-zinc-800">
           外食、お菓子、主食のカロリー目安は、ログインしなくても読めます。数値は目安です。
         </p>
+        <p className="mt-3">
+          <InstantLink href={guideChapterPath("calorie-guides")} className={linkClass}>
+            カロリー目安のテーマを見る
+          </InstantLink>
+        </p>
         <ul className="mt-4 flex flex-col gap-3">
           {GUIDE_RESOURCE_LINKS.map((item) => {
             const page = guidePageByHref(item.href);
@@ -174,25 +241,6 @@ export function GuideLanding() {
             </section>
           ))}
         </div>
-      </section>
-
-      <section className="mt-12" aria-labelledby="articles-heading">
-        <h2 id="articles-heading" className="text-2xl font-semibold text-[#F27A1A]">
-          記事一覧
-        </h2>
-        <ul className="mt-4 flex flex-col gap-3">
-          {GUIDE_ARTICLES.map((article) => (
-            <li key={article.slug}>
-              <InstantLink
-                href={guideArticlePath(article.slug)}
-                className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]"
-              >
-                <span className="text-lg font-medium leading-7 text-zinc-950">{article.title}</span>
-                <span className="mt-2 block text-base leading-7 text-zinc-700">{article.description}</span>
-              </InstantLink>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <section className="mt-12" aria-labelledby="faq-heading">

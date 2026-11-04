@@ -1,30 +1,46 @@
 import { ADVISOR_DISCLAIMER } from "@/lib/advisors";
 import { APP_NAME, APP_SUBTITLE } from "@/lib/app-title";
+import { assertGuideCatalog } from "@/lib/guide-check";
+import type { GuideChapterSlug } from "@/lib/guide-chapters";
 import { GUIDE_PAGES } from "@/lib/guide-links";
 import { MEMOLEVER_GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import type { GuideSourceId } from "@/lib/guide-sources";
 import { OPERATOR_NAME } from "@/lib/site";
 
 export type GuideInline = string | { readonly href: string; readonly label: string };
 
+type GuideCites = { readonly cites?: readonly number[] };
+
 export type GuideArticleBlock =
   | { type: "h2"; text: string }
   | { type: "h3"; text: string }
-  | { type: "p"; text: string | readonly GuideInline[] }
-  | { type: "ul"; items: readonly (string | readonly GuideInline[])[] }
+  | ({ type: "p"; text: string | readonly GuideInline[] } & GuideCites)
+  | ({ type: "ul"; items: readonly (string | readonly GuideInline[])[] } & GuideCites)
   | { type: "links"; items: readonly { href: string; label: string }[] }
-  | {
+  | ({
       type: "table";
       caption: string;
       headers: readonly string[];
       rows: readonly (readonly string[])[];
-    }
-  | { type: "faq"; items: readonly { question: string; answer: string }[] };
+    } & GuideCites)
+  | ({ type: "faq"; items: readonly { question: string; answer: string }[] } & GuideCites);
+
+export type GuideArticleSourceRef = {
+  id: GuideSourceId;
+  note?: string;
+};
 
 export type GuideArticle = {
   slug: string;
   title: string;
   description: string;
   updatedOn: string;
+  chapter: GuideChapterSlug;
+  order?: number;
+  keywords?: readonly string[];
+  /** 栄養・健康の断定を含む本文。official の出典が無いときは警告する。 */
+  needsOfficial?: boolean;
+  sources: readonly GuideArticleSourceRef[];
   lead: readonly string[];
   blocks: readonly GuideArticleBlock[];
   related: readonly string[];
@@ -46,6 +62,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: `メモレバとは？AIがカロリーを推定する無料のダイエット手帳アプリ`,
     description: `${APP_NAME}は、食事名からAIがカロリーを推定し、体重とあわせて管理できる無料のWebアプリです。できること、料金、運営者を短くまとめます。`,
     updatedOn,
+    chapter: "using-memolever",
+    order: 1,
+    keywords: ["メモレバ", "無料", "ダイエット手帳", "カロリー推定", "運営"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       `${APP_NAME}は、食事名を入力するとAIがカロリーを推定し、体重とあわせて管理できる、無料の${APP_SUBTITLE}（Webアプリ）です。運営は${OPERATOR_NAME}です。`,
       "ブラウザで新規登録をすると、その日から食事と体重を残し始められます。ストアからのインストールは必須ではありません。",
@@ -108,6 +128,17 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: "AIによるカロリー推定の仕組みと限界",
     description: `${APP_NAME}のカロリー推定は、食事名から一般的な量を想定した目安です。誤差が出る理由と、手入力で直す使い方を説明します。`,
     updatedOn,
+    chapter: "using-memolever",
+    order: 2,
+    keywords: ["カロリー", "AI推定", "誤差", "手入力", "目安", "成分表"],
+    needsOfficial: true,
+    sources: [
+      {
+        id: "mext-food-composition-2023",
+        note: "食品のエネルギー量を調べるときの公的な成分表です。アプリの推定値が、表の数値と一致するとは限りません。",
+      },
+      { id: "memolever-howto" },
+    ],
     lead: [
       `${APP_NAME}のカロリーは、食事名からAIが一般的な量を想定して出す目安です。計って出した数値ではありません。`,
       "量、調理法、商品、食べ残しで、実際の値とは違います。わかる数字があるときは、手入力に置き換えて使います。",
@@ -117,6 +148,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
       { type: "h2", text: "名前を送って、一般的な量で推定する" },
       {
         type: "p",
+        cites: [2],
         text: "カロリーの欄を空にして記録すると、料理名が推定に使われます。日付のページで「まとめて登録」を押したときも、空欄の品は同じです。推定された記録には「AI推定」と出ます。メールアドレスは、この推定には送っていません。",
       },
       {
@@ -153,7 +185,8 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
       },
       {
         type: "p",
-        text: "外食、お菓子、主食は、別ページに一般的な量の早見があります。気になる品は早見を見て、必要なら手入力してください。推定も早見も、医療上の助言ではありません。",
+        cites: [1],
+        text: "外食、お菓子、主食は、別ページに一般的な量の早見があります。食品のエネルギー量を成分表で見るときの公的な一覧は、文部科学省の日本食品標準成分表です。気になる品は早見を見て、必要なら手入力してください。推定も早見も、医療上の助言ではありません。",
       },
       {
         type: "p",
@@ -175,6 +208,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: "ダイエットは「週の上限」で考える｜毎日きっちりが続かない人へ",
     description: `${APP_NAME}は、カロリーの上限を1週間の合計で見られます。毎日同じ量に合わせなくても記録を続けるための考え方を説明します。`,
     updatedOn,
+    chapter: "worries",
+    order: 1,
+    keywords: ["週の上限", "続かない", "カロリー", "14000", "食べすぎ"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       "食事の上限を、毎日同じ残りで埋め切るのではなく、1週間の合計で見る考え方です。ある日が多くても、週の中で見返せます。",
       `${APP_NAME}の上限は、食べ切る目標ではありません。収めるための天井です。残りが多い日に、その分を食べる必要はありません。`,
@@ -234,6 +271,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: "食事記録ダイエットのやり方と続けるコツ",
     description: `食事記録を続けるときの入れ方、直し方、週の見方を、${APP_NAME}の機能に沿って説明します。効果を約束するものではありません。`,
     updatedOn,
+    chapter: "worries",
+    order: 2,
+    keywords: ["食事記録", "続ける", "コツ", "記録ダイエット", "間食"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       "食事記録は、食べた名前を残し、あとから見返すやり方です。毎食を完璧に計ることが、続ける条件ではありません。",
       `${APP_NAME}では、名前からカロリーの目安を出し、わかる数字だけ手入力します。上限は週の合計で見ます。`,
@@ -306,6 +347,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: "Health Planet連携で体重を自動で記録する方法",
     description: `${APP_NAME}は、タニタのHealth Planetと連携すると体重を取り込めます。手順と、体脂肪は保存しないことなど、取り込まれる範囲を説明します。`,
     updatedOn,
+    chapter: "using-memolever",
+    order: 3,
+    keywords: ["Health Planet", "タニタ", "体重", "連携", "体脂肪"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       `${APP_NAME}がHealth Planetから自動で取り込むのは、体重です。体組成計で測れる体脂肪などは、現在の連携では保存しません。`,
       "連携はマイページの「外部サービス連携」から行います。連携したあとは、カレンダーを開くと体重が取り込まれます。",
@@ -370,6 +415,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: "音声入力とまとめて入力｜1日の終わりに食事を記録する方法",
     description: `${APP_NAME}では、食事名を音声で入れたり、複数行をまとめて登録したりできます。1日の終わりに記録するときの手順です。`,
     updatedOn,
+    chapter: "using-memolever",
+    order: 4,
+    keywords: ["音声入力", "まとめて入力", "マイク", "まとめて登録"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       `${APP_NAME}は、食事を食べた直後でなくても記録できます。その日のページを開き、名前をまとめて入れてから登録します。`,
       "対応ブラウザではマイクが使え、複数行の貼り付けで品を分けられます。カロリーが空の品はAIが推定し、数字を入れた品はその数字になります。",
@@ -433,6 +482,10 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     title: `レコーディングダイエットとAI食事記録の違い｜続かなかった理由と${APP_NAME}の工夫`,
     description: `食べたものを書き出すレコーディングダイエットが続きにくい5つの場面と、AIによるカロリー推定を使う${APP_NAME}が手間と落ち込みをどう減らすのかを、わかりやすく整理します。`,
     updatedOn: "2026-11-03",
+    chapter: "worries",
+    order: 3,
+    keywords: ["レコーディングダイエット", "紙の手帳", "続かない", "AI食事記録"],
+    sources: [{ id: "memolever-howto" }],
     lead: [
       `レコーディングダイエットは、食べたものを書き出して自分の食生活に気づく方法として、今も役に立つ考え方です。一方で、カロリーを調べる手間、毎日の合計を計算する手間、目標を超えた日の落ち込みが、続けにくさの原因になりがちでした。${APP_SUBTITLE}「${APP_NAME}」は、この手間と落ち込みを減らす工夫を加えた、AI時代の食事記録アプリです。`,
     ],
@@ -440,7 +493,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
       { type: "h2", text: "レコーディングダイエットとは？今も役立つところ" },
       {
         type: "p",
-        text: "レコーディングダイエットとは、食べたものや体重を毎日記録し、自分の食生活を見直す方法です。紙のノートがあれば始められ、書くことで「思ったより食べていた」「間食が多かった」と気づけるのが長所です。この「気づく」効果は、紙でもアプリでも変わりません。変わったのは、記録にかかる手間のほうです。",
+        text: "レコーディングダイエットとは、食べたものや体重を毎日記録し、自分の食生活を見直す方法です。紙のノートがあれば始められ、書くことで「思ったより食べていた」「間食が多かった」と気づきやすい点が、長所として挙げられます。一般に、その気づきやすさは、紙でもアプリでも同じです。変わったのは、記録にかかる手間のほうです。",
       },
       { type: "h2", text: `続かなくなりやすい5つの場面と、${APP_NAME}の工夫` },
       {
@@ -548,6 +601,8 @@ function guideInlineText(value: string | readonly GuideInline[]) {
   }
   return value.map((part) => (typeof part === "string" ? part : part.label)).join("");
 }
+
+assertGuideCatalog(GUIDE_ARTICLES);
 
 export function guideArticleCharCount(article: GuideArticle) {
   const parts: string[] = [...article.lead];

@@ -18,6 +18,40 @@
 - [お菓子・スイーツのカロリー目安](https://diet.finance-tower.com/sweets): 包装されていない菓子・スイーツ102品の、間食1回分のカロリーの目安です。◎は100kcal以下、○は101〜200kcal、△は201kcal以上です。
 - [ご飯・パン・麺のカロリー早見表](https://diet.finance-tower.com/staples): ご飯、パン、麺など主食のカロリーを、量ごとに一覧にしています。
 
+## ガイドの章
+
+ガイドの記事は、次の5つの章に分かれています。出典は各記事の末尾に明記しています。記事が3本未満の章は準備中で、一覧ページは検索向けに公開していません。
+
+### 悩みに答える
+続かない、食べすぎた、体重が動かない。ダイエットの記録でつまずきやすい場面ごとに、考え方と対処を整理します。
+- [章の一覧](https://diet.finance-tower.com/guide/theme/worries)
+- [ダイエットは「週の上限」で考える](https://diet.finance-tower.com/guide/weekly-limit)
+- [食事記録ダイエットのやり方と続けるコツ](https://diet.finance-tower.com/guide/record-diet-tips)
+- [レコーディングダイエットとAI食事記録の違い](https://diet.finance-tower.com/guide/recording-diet-vs-ai)
+
+### 基礎知識
+カロリー、体重の増減、体脂肪率など、記録を続けるために知っておきたい基本を、出典つきで解説します。数値を断定する記事では、末尾に出典を示します。
+準備中。記事はまだありません。
+
+### 季節・場面
+年末年始や新生活など、食生活が変わりやすい時期や場面での、記録と調整の考え方です。特別な食べ方を勧める章ではなく、記録を続けるための見方をまとめます。
+準備中。記事はまだありません。
+
+### カロリー目安
+外食、お菓子、主食、飲み物など、食べ物ごとのカロリーの目安をまとめたガイドです。数値は目安で、店や商品、量によって変わります。
+- [章の一覧](https://diet.finance-tower.com/guide/theme/calorie-guides)
+- [外食ランチ・定食のカロリー目安](https://diet.finance-tower.com/eating-out)
+- [お菓子・スイーツのカロリー目安](https://diet.finance-tower.com/sweets)
+- [ご飯・パン・麺のカロリー早見表](https://diet.finance-tower.com/staples)
+
+### メモレバの使い方
+メモレバの機能と使い方、AIの仕組みと限界、続けるための工夫を紹介します。細かい操作の手順は、使い方のページにもまとめています。
+- [章の一覧](https://diet.finance-tower.com/guide/theme/using-memolever)
+- [メモレバとは](https://diet.finance-tower.com/guide/what-is-memolever)
+- [AIによるカロリー推定の仕組みと限界](https://diet.finance-tower.com/guide/ai-calorie)
+- [Health Planet連携で体重を自動で記録する方法](https://diet.finance-tower.com/guide/health-planet)
+- [音声入力とまとめて入力](https://diet.finance-tower.com/guide/voice-and-bulk-input)
+
 ## 運営・規約
 
 - [プライバシーポリシー](https://diet.finance-tower.com/privacy): 取得する情報、利用目的、外部サービスへの委託、Cookie、開示と削除の請求です。

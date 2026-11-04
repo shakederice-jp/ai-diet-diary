@@ -79,9 +79,11 @@ export function guideArticleStructuredData(input: {
   datePublished: string;
   dateModified: string;
   breadcrumbs: readonly BreadcrumbItem[];
+  citations?: readonly string[];
   faqs?: readonly { question: string; answer: string }[];
 }) {
   const faqs = input.faqs ?? [];
+  const citations = input.citations ?? [];
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -96,6 +98,7 @@ export function guideArticleStructuredData(input: {
         dateModified: input.dateModified,
         author: organizationRef(),
         publisher: organizationRef(),
+        ...(citations.length > 0 ? { citation: [...citations] } : {}),
       },
       ...(faqs.length > 0
         ? [
@@ -114,6 +117,27 @@ export function guideArticleStructuredData(input: {
             },
           ]
         : []),
+      breadcrumbNode(input.breadcrumbs),
+    ],
+  };
+}
+
+export function guideChapterStructuredData(input: {
+  name: string;
+  description: string;
+  path: string;
+  breadcrumbs: readonly BreadcrumbItem[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        name: input.name,
+        description: input.description,
+        url: pageUrl(input.path),
+        inLanguage: "ja",
+      },
       breadcrumbNode(input.breadcrumbs),
     ],
   };
