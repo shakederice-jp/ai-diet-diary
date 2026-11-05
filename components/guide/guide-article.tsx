@@ -7,13 +7,14 @@ import { APP_NAME } from "@/lib/app-title";
 import {
   guideArticleBySlug,
   guideArticlePath,
+  guideInlinePlainText,
   type GuideArticle,
   type GuideArticleBlock,
   type GuideInline,
 } from "@/lib/guide-articles";
 import { chapterNeighbors, sameChapterArticles } from "@/lib/guide-catalog";
 import { guideChapterBySlug, guideChapterPath } from "@/lib/guide-chapters";
-import { MEMOLEVER_GUIDE } from "@/lib/guide-links";
+import { GUIDE_PAGES, MEMOLEVER_GUIDE } from "@/lib/guide-links";
 import { formatGuideIsoLabel } from "@/lib/guide-meta";
 import { externalCitationUrls } from "@/lib/guide-sources";
 import { guideArticleStructuredData } from "@/lib/structured-data";
@@ -37,7 +38,14 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
     { label: chapter.name, href: guideChapterPath(chapter.slug) },
     { label: article.title, href: guideArticlePath(article.slug) },
   );
-  const faqs = article.blocks.flatMap((block) => (block.type === "faq" ? block.items : []));
+  const faqs = article.blocks.flatMap((block) =>
+    block.type === "faq"
+      ? block.items.map((item) => ({
+          question: item.question,
+          answer: guideInlinePlainText(item.answer),
+        }))
+      : [],
+  );
   const sameTheme = sameChapterArticles(article);
   const neighbors = chapterNeighbors(article);
 
@@ -84,6 +92,16 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
         </h2>
         <ul className="mt-4 flex flex-col gap-3">
           {article.related.map((slug) => {
+            const page = GUIDE_PAGES.find((item) => item.href === slug);
+            if (page) {
+              return (
+                <li key={slug}>
+                  <InstantLink href={page.href} className="block rounded-2xl bg-[#FBF6EE] p-4 hover:bg-[#E7DCC8]">
+                    <span className="text-lg font-medium leading-7 text-zinc-950">{page.label}</span>
+                  </InstantLink>
+                </li>
+              );
+            }
             const related = guideArticleBySlug(slug);
             if (!related) {
               return null;
@@ -216,7 +234,9 @@ function ArticleBlock({ block }: { block: GuideArticleBlock }) {
         {block.items.map((item) => (
           <section key={item.question}>
             <h3 className="text-lg font-medium text-zinc-950">{item.question}</h3>
-            <p className="mt-2 text-base leading-8 text-zinc-800">{item.answer}</p>
+            <p className="mt-2 text-base leading-8 text-zinc-800">
+              <GuideText value={item.answer} />
+            </p>
           </section>
         ))}
         <CiteMarks cites={block.cites} />
@@ -235,13 +255,25 @@ function GuideText({ value }: { value: string | readonly GuideInline[] }) {
   if (typeof value === "string") {
     return value;
   }
-  return value.map((part, index) =>
-    typeof part === "string" ? (
-      <span key={index}>{part}</span>
-    ) : (
+  return value.map((part, index) => {
+    if (typeof part === "string") {
+      return <span key={index}>{part}</span>;
+    }
+    if ("cite" in part) {
+      return (
+        <a
+          key={`cite-${part.cite}-${index}`}
+          href={`#source-${part.cite}`}
+          className="text-sm font-medium text-[#C65A0A] underline decoration-[#C65A0A]/40 underline-offset-2"
+        >
+          [{part.cite}]
+        </a>
+      );
+    }
+    return (
       <InstantLink key={`${part.href}-${index}`} href={part.href} className={inlineLinkClass}>
         {part.label}
       </InstantLink>
-    ),
-  );
+    );
+  });
 }

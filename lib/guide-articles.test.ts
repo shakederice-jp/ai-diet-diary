@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { GUIDE_ARTICLES, guideArticleCharCount, type GuideInline } from "./guide-articles";
+import { GUIDE_ARTICLES, guideArticleCharCount, guideInlinePlainText } from "./guide-articles";
+import { GUIDE_PAGES } from "./guide-links";
 import { MEMOLEVER_GUIDE_UPDATED_ON } from "./guide-meta";
 
 const SLUGS = [
@@ -11,16 +12,15 @@ const SLUGS = [
   "health-planet",
   "voice-and-bulk-input",
   "recording-diet-vs-ai",
+  "why-diet-log-stops",
+  "eating-out-recording",
+  "after-overeating",
 ] as const;
 
-const BANNED = ["必ず痩せる", "必ず痩せ", "kg減", "治療", "病気", "口コミ", "利用者の声"];
+const ADDED_ON = "2026-11-05";
+const ADDED = new Set<string>(["why-diet-log-stops", "eating-out-recording", "after-overeating"]);
 
-function inlineText(value: string | readonly GuideInline[]) {
-  if (typeof value === "string") {
-    return value;
-  }
-  return value.map((part) => (typeof part === "string" ? part : part.label)).join("");
-}
+const BANNED = ["必ず痩せる", "必ず痩せ", "kg減", "治療", "病気", "口コミ", "利用者の声"];
 
 function articleText(article: (typeof GUIDE_ARTICLES)[number]) {
   return [article.title, article.description, ...article.lead, ...article.blocks.flatMap((block) => {
@@ -28,10 +28,10 @@ function articleText(article: (typeof GUIDE_ARTICLES)[number]) {
       return [block.text];
     }
     if (block.type === "p") {
-      return [inlineText(block.text)];
+      return [guideInlinePlainText(block.text)];
     }
     if (block.type === "ul") {
-      return block.items.map((item) => inlineText(item));
+      return block.items.map((item) => guideInlinePlainText(item));
     }
     if (block.type === "links") {
       return block.items.map((item) => item.label);
@@ -39,12 +39,12 @@ function articleText(article: (typeof GUIDE_ARTICLES)[number]) {
     if (block.type === "table") {
       return [block.caption, ...block.headers, ...block.rows.flat()];
     }
-    return block.items.flatMap((item) => [item.question, item.answer]);
+    return block.items.flatMap((item) => [item.question, guideInlinePlainText(item.answer)]);
   })].join("\n");
 }
 
 describe("guide articles", () => {
-  it("lists the seven public slugs", () => {
+  it("lists the public slugs", () => {
     assert.deepEqual(
       GUIDE_ARTICLES.map((article) => article.slug),
       [...SLUGS],
@@ -56,11 +56,12 @@ describe("guide articles", () => {
       const count = guideArticleCharCount(article);
       assert.ok(count >= 1200 && count <= 2000, `${article.slug} ${count}`);
       const headings = article.blocks.filter((block) => block.type === "h2");
-      const headingMax = article.slug === "recording-diet-vs-ai" ? 6 : 5;
-      assert.ok(headings.length >= 3 && headings.length <= headingMax, article.slug);
-      const leadMin = article.slug === "recording-diet-vs-ai" ? 1 : 2;
+      const headingMax = article.slug === "recording-diet-vs-ai" || article.slug === "eating-out-recording" ? 6 : 5;
+      assert.ok(headings.length >= 3 && headings.length <= headingMax, `${article.slug} ${headings.length}`);
+      const leadMin = article.slug === "recording-diet-vs-ai" || ADDED.has(article.slug) ? 1 : 2;
       assert.ok(article.lead.length >= leadMin && article.lead.length <= 3, article.slug);
-      const updatedOn = article.slug === "recording-diet-vs-ai" ? "2026-11-03" : MEMOLEVER_GUIDE_UPDATED_ON;
+      const updatedOn =
+        article.slug === "recording-diet-vs-ai" ? "2026-11-03" : ADDED.has(article.slug) ? ADDED_ON : MEMOLEVER_GUIDE_UPDATED_ON;
       assert.equal(article.updatedOn, updatedOn);
       assert.ok(article.description.length > 0);
       const text = articleText(article);
@@ -69,6 +70,10 @@ describe("guide articles", () => {
       }
       for (const slug of article.related) {
         assert.notEqual(slug, article.slug);
+        if (slug.startsWith("/")) {
+          assert.ok(GUIDE_PAGES.some((page) => page.href === slug), slug);
+          continue;
+        }
         assert.ok(GUIDE_ARTICLES.some((item) => item.slug === slug), slug);
       }
     }

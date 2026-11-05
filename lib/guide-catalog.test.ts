@@ -29,7 +29,7 @@ describe("guide chapters and sources", () => {
       ["worries", "calorie-guides", "using-memolever"],
     );
     assert.equal(isGuideChapterPublished("worries"), true);
-    assert.equal(guideChapterEntries("worries").length, 3);
+    assert.equal(guideChapterEntries("worries").length, 6);
     assert.equal(isGuideChapterPublished("basics"), false);
     assert.equal(guideChapterEntries("basics").length, 0);
     assert.equal(isGuideChapterPublished("seasons"), false);
@@ -53,11 +53,11 @@ describe("guide chapters and sources", () => {
     assert.equal(neighbors.next?.slug, "record-diet-tips");
     assert.deepEqual(
       sameChapterArticles(weekly).map((article) => article.slug),
-      ["record-diet-tips", "recording-diet-vs-ai"],
+      ["record-diet-tips", "recording-diet-vs-ai", "why-diet-log-stops", "eating-out-recording", "after-overeating"],
     );
     assert.deepEqual(
       newestGuideArticles(5).map((article) => article.slug),
-      ["recording-diet-vs-ai", "what-is-memolever", "ai-calorie", "weekly-limit", "record-diet-tips"],
+      ["why-diet-log-stops", "eating-out-recording", "after-overeating", "recording-diet-vs-ai", "what-is-memolever"],
     );
   });
 
@@ -65,8 +65,19 @@ describe("guide chapters and sources", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05"],
     );
+    const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
+    assert.ok(eating);
+    assert.deepEqual(externalCitationUrls(eating.sources), [
+      "https://www.caa.go.jp/policies/policy/food_labeling/nutrient_declearation/",
+      "https://www.mext.go.jp/content/20230428-mxt_kagsei-mext_00001_011.pdf",
+    ]);
+    const after = GUIDE_ARTICLES.find((article) => article.slug === "after-overeating");
+    assert.ok(after);
+    assert.deepEqual(externalCitationUrls(after.sources), [
+      "https://tanita.com/posts/why-do-my-measurements-change-throughout-the-day",
+    ]);
     const ai = GUIDE_ARTICLES.find((article) => article.slug === "ai-calorie");
     assert.ok(ai);
     assert.deepEqual(externalCitationUrls(ai.sources), [

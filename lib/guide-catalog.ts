@@ -80,7 +80,7 @@ export function newestGuideArticles(limit = 5) {
     .map((item) => item.article);
 }
 
-export function sameChapterArticles(article: GuideArticle, limit = 4) {
+export function sameChapterArticles(article: GuideArticle, limit = 5) {
   return orderedChapterArticles(article.chapter)
     .filter((item) => item.slug !== article.slug)
     .slice(0, limit);

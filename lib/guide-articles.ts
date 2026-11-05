@@ -7,7 +7,10 @@ import { MEMOLEVER_GUIDE_UPDATED_ON } from "@/lib/guide-meta";
 import type { GuideSourceId } from "@/lib/guide-sources";
 import { OPERATOR_NAME } from "@/lib/site";
 
-export type GuideInline = string | { readonly href: string; readonly label: string };
+export type GuideInline =
+  | string
+  | { readonly href: string; readonly label: string }
+  | { readonly cite: number };
 
 type GuideCites = { readonly cites?: readonly number[] };
 
@@ -23,7 +26,10 @@ export type GuideArticleBlock =
       headers: readonly string[];
       rows: readonly (readonly string[])[];
     } & GuideCites)
-  | ({ type: "faq"; items: readonly { question: string; answer: string }[] } & GuideCites);
+  | ({
+      type: "faq";
+      items: readonly { question: string; answer: string | readonly GuideInline[] }[];
+    } & GuideCites);
 
 export type GuideArticleSourceRef = {
   id: GuideSourceId;
@@ -264,7 +270,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         text: "カレンダーでは、今日がオレンジで、1日の上限より多く食べた日はうすいオレンジになります。グラフでは、上限より多い日の棒が濃くなり、上限を保存していると上限の線も出ます。週のカードと日の色は、同じ上限を別の幅で見ているものです。上限を変える操作は、ログインしたマイページの目標設定にあります。仮の14,000kcalのまま使い続けることもできます。その数字は、全員に合う摂取量という意味ではありません。",
       },
     ],
-    related: ["record-diet-tips", "what-is-memolever", "ai-calorie"],
+    related: ["record-diet-tips", "what-is-memolever", "ai-calorie", "why-diet-log-stops", "after-overeating"],
   },
   {
     slug: "record-diet-tips",
@@ -340,7 +346,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         items: [{ href: "/guide/recording-diet-vs-ai", label: "紙の手帳との違いはこちら" }],
       },
     ],
-    related: ["weekly-limit", "voice-and-bulk-input", "ai-calorie"],
+    related: ["weekly-limit", "voice-and-bulk-input", "ai-calorie", "why-diet-log-stops", "after-overeating"],
   },
   {
     slug: "health-planet",
@@ -585,6 +591,313 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     ],
     related: ["what-is-memolever", "weekly-limit", "ai-calorie", "record-diet-tips"],
   },
+  {
+    slug: "why-diet-log-stops",
+    title: "食事記録が三日坊主になる原因と、続けるための5つの工夫",
+    description:
+      "食事記録が続かなくなる5つの理由と、手間と気まずさを減らして続けるための5つの工夫を、メモレバの運営者の視点で整理します。",
+    updatedOn: "2026-11-05",
+    chapter: "worries",
+    order: 4,
+    keywords: ["三日坊主", "食事記録", "続かない", "ダイエット", "記録 続ける"],
+    sources: [
+      {
+        id: "memolever-howto",
+        note: "この記事は、研究結果の紹介ではなく、運営者の整理です",
+      },
+    ],
+    lead: [
+      "食事記録が続かなくなる大きな原因は、意志の弱さではなく、毎回きっちり書こうとして手間が増えることと、書けなかった日の気まずさにあります。この記事では、記録アプリの運営者の視点で、続かなくなる理由と、手間と気まずさを減らす5つの工夫を整理します。",
+    ],
+    blocks: [
+      { type: "h2", text: "続かなくなりやすい5つの理由" },
+      { type: "h3", text: "1. 毎回きっちり書こうとする" },
+      {
+        type: "p",
+        text: "最初は意気込んで、食べたものを細かく書きます。ところが、忙しい日が来ると、その手間が重くなって、1日抜けただけで「もう続けられない」と感じやすくなります。",
+      },
+      { type: "h3", text: "2. カロリーを調べるのに時間がかかる" },
+      {
+        type: "p",
+        text: "食事名から1つずつカロリーを調べると、1食ぶんでもかなりの手間になります。外食やお菓子のように、数字が見つけにくい食事では、特に負担になります。",
+      },
+      { type: "h3", text: "3. 1日の終わりにまとめると思い出せない" },
+      {
+        type: "p",
+        text: "夜にまとめて書こうとすると、昼に何を食べたか思い出せないことがあります。思い出せない食事があると、記録そのものが気になって、書く気持ちが重くなります。",
+      },
+      { type: "h3", text: "4. 食べすぎた日の記録が書きにくい" },
+      {
+        type: "p",
+        text: "たくさん食べた日は、数字を見るのが気まずくて、記録を後回しにしがちです。その結果、記録のない日が続いて、やめてしまうきっかけになります。",
+      },
+      { type: "h3", text: "5. ひとりで続けていて、手ごたえがない" },
+      {
+        type: "p",
+        text: "記録しても何も返ってこないと、続ける理由が見えにくくなります。",
+      },
+      { type: "h2", text: "続けるための5つの工夫" },
+      { type: "h3", text: "1. 最初は1日1食だけにする" },
+      {
+        type: "p",
+        text: "全部を書こうとせず、まずは朝食だけ、または夕食だけから始めます。続いてから、増やせば十分です。",
+      },
+      { type: "h3", text: "2. 正確さより、「記録した」ことを優先する" },
+      {
+        type: "p",
+        text: [
+          "数字が多少ずれても、記録を続けるほうが、食事の傾向をつかむ材料になります。メモレバは、食事名を入れるとAIがカロリーを推定します（推定なので誤差はあります）。仕組みと限界は、",
+          { href: "/guide/ai-calorie", label: "AIによるカロリー推定の仕組みと限界" },
+          " で説明しています。",
+        ],
+      },
+      { type: "h3", text: "3. 食べたらすぐ、一言だけメモする" },
+      {
+        type: "p",
+        text: [
+          "後回しにせず、食べた直後に一言だけ入れると、思い出す手間がなくなります。メモレバでは、音声入力も使えます。詳しくは、",
+          { href: "/guide/voice-and-bulk-input", label: "音声入力とまとめて入力" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "4. 1日ではなく、1週間で見る" },
+      {
+        type: "p",
+        text: [
+          "食べすぎた日があっても、週の中で調整できると考えれば、気まずさは減ります。メモレバの「週の上限」は、この考え方にもとづいています。",
+          { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+          " もあわせてご覧ください。",
+        ],
+      },
+      { type: "h3", text: "5. 空白の日があっても、次の日に戻る" },
+      {
+        type: "p",
+        text: "記録が抜けた日があっても、そこで終わりにせず、次の日から再開します。空白があっても、戻れることが大切です。",
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "この記事は、記録アプリを運営する立場からの整理で、研究結果を紹介するものではありません。効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。体調に不安がある場合は、医師などの専門家に相談してください。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "毎日記録しないと、意味がありませんか。",
+            answer:
+              "毎日でなくても、記録した日の食事は、あとから振り返る材料になります。まずは記録できる食事から始めて、少しずつ増やしてください。",
+          },
+          {
+            question: "記録を忘れた日は、あとから入力できますか。",
+            answer: [
+              "メモレバでは、日付を選んで入力できます。使い方は、",
+              { href: "/howto", label: "このサイトの使い方" },
+              " をご覧ください。",
+            ],
+          },
+          {
+            question: "食べすぎた日の記録が、気が重いです。",
+            answer:
+              "1日の数字だけを見るのではなく、1週間の合計で見ると、気持ちが軽くなることがあります。メモレバの「週の上限」を、ご活用ください。",
+          },
+        ],
+      },
+    ],
+    related: ["record-diet-tips", "weekly-limit", "voice-and-bulk-input", "ai-calorie"],
+  },
+  {
+    slug: "eating-out-recording",
+    title: "外食が多い人の食事記録のコツ｜正確さより続けることを優先する",
+    description:
+      "外食の食事記録が難しい理由と、お店の栄養成分表や目安ページの使い方、幅をもたせた記録のしかたを、公的な資料の出典つきで説明します。",
+    updatedOn: "2026-11-05",
+    chapter: "worries",
+    order: 5,
+    keywords: ["外食", "食事記録", "カロリー", "栄養成分表", "外食 ダイエット"],
+    needsOfficial: true,
+    sources: [
+      { id: "caa-nutrition-labeling" },
+      { id: "mext-food-composition-2023" },
+      { id: "memolever-howto" },
+    ],
+    lead: [
+      "外食の食事記録は、量や味つけがお店ごとに違うため、家庭の食事より正確に出しにくいのが実情です。正確さを求めすぎず、お店が公開している栄養成分表があればそれを使い、なければ近いメニューの目安で幅をもたせて記録すると、続けやすくなります。",
+    ],
+    blocks: [
+      { type: "h2", text: "外食の記録が難しい理由" },
+      {
+        type: "p",
+        text: [
+          "外食は、同じ料理名でも、量、具材、調理法がお店によって違います。さらに、メニューにカロリーが載っているとは限りません。消費者庁の「栄養成分表示について」では、栄養成分表示の制度の対象は、容器包装に入れられた一般用加工食品と説明されています",
+          { cite: 1 },
+          "。お店で提供される料理の表示は、この制度の説明には含まれていないため、表示の有無は、お店によって異なると考えておくのが安全です。",
+        ],
+      },
+      { type: "h2", text: "外食を記録するときの3つの順番" },
+      { type: "h3", text: "1. お店が公開している栄養成分表を使う" },
+      {
+        type: "p",
+        text: "お店の公式サイトやメニューに、栄養成分表（カロリーなど）がある場合は、それを使うのが、いちばん近い数字になります。メモには、お店の名前とメニュー名も残しておくと、あとで見返しやすくなります。",
+      },
+      { type: "h3", text: "2. なければ、近いメニューの目安を使う" },
+      {
+        type: "p",
+        text: [
+          "表示が見つからないときは、似た料理の目安を使います。メモレバの ",
+          { href: "/eating-out", label: "外食ランチ・定食のカロリー目安" },
+          " では、外食メニューの目安と、選ぶときのヒントをまとめています。",
+        ],
+      },
+      { type: "h3", text: "3. 数字は「幅」で考える" },
+      {
+        type: "p",
+        text: "外食のカロリーは、量や調理法で上下します。1つの数字に決めきれないときは、「このくらい」という幅で考えて、記録を続けることを優先します。目安の数字には、誤差があります。",
+      },
+      { type: "h2", text: "記録を続けやすくする4つのコツ" },
+      {
+        type: "ul",
+        items: [
+          "「大盛り」「少なめ」「ご飯を残した」など、量の違いを一言メモする。",
+          "写真をあとで見返すために撮っておく（個人情報や他人が写らないように）。",
+          "外食の日の記録は、細かさより「記録した」ことを優先する。",
+          [
+            "1日で調整しようとせず、1週間の合計で見る。詳しくは、",
+            { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+            " をご覧ください。",
+          ],
+        ],
+      },
+      { type: "h2", text: "食品の成分値について" },
+      {
+        type: "p",
+        text: [
+          "家庭で使う食材のカロリーを調べたいときは、文部科学省が公表している「日本食品標準成分表（八訂）増補2023年」が、食品ごとの成分値をまとめた資料です",
+          { cite: 2 },
+          "。ただし、外食の料理は、複数の食材や調理法が組み合わさっているため、この表だけで正確に出すのは難しい点にご注意ください。",
+        ],
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "数字はあくまで目安です。効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。持病やアレルギーがある場合は、お店の表示や医師の指示を優先してください。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "外食のカロリーは、正確に分かりますか。",
+            answer:
+              "お店が栄養成分表を公開している場合は参考にできますが、公開していないメニューも多くあります。その場合は、近いメニューの目安を使い、幅をもたせて記録してください。",
+          },
+          {
+            question: "メモレバに、外食のメニュー名を入れて大丈夫ですか。",
+            answer: [
+              "はい。メニュー名を入れると、AIがカロリーを推定します。推定なので、誤差があります。仕組みは、",
+              { href: "/guide/ai-calorie", label: "AIによるカロリー推定の仕組みと限界" },
+              " で説明しています。",
+            ],
+          },
+          {
+            question: "外食が続いた週は、どう考えればいいですか。",
+            answer: "1日ごとに気にせず、1週間の合計で見る考え方があります。メモレバの「週の上限」を、ご活用ください。",
+          },
+        ],
+      },
+    ],
+    related: ["ai-calorie", "record-diet-tips", "why-diet-log-stops", "/eating-out"],
+  },
+  {
+    slug: "after-overeating",
+    title: "食べすぎた日のあと、どうする？体重の増減に落ち込まない考え方",
+    description:
+      "食べすぎた翌日に体重が増えて見える理由（水分や食事の重さなど）と、落ち込まずに記録を続けるための考え方を、出典つきで説明します。",
+    updatedOn: "2026-11-05",
+    chapter: "worries",
+    order: 6,
+    keywords: ["食べすぎた", "翌日", "体重 増えた", "体重 変動", "ダイエット"],
+    sources: [{ id: "tanita-us-fluctuation" }, { id: "memolever-howto" }],
+    lead: [
+      "食べすぎた翌日に体重が増えて見えても、すぐに脂肪が増えたとは限りません。体重は、水分や食事の重さなどでも変わります。極端に落ち込んだり、無理に取り戻そうとしたりせず、同じ条件で測り、数日から1週間の傾向で見ることが、続けるうえで大切です。",
+    ],
+    blocks: [
+      { type: "h2", text: "体重は、1日の中でも変わります" },
+      {
+        type: "p",
+        text: [
+          "体重計メーカーのTANITA USの解説では、1日の中の体重の変動は、一般に1〜5ポンド（約0.5〜2.3kg）ほどとされ、体脂肪の増減ではなく、水分、食事量、消化管内の内容物、ホルモンの変化などによるものと説明されています",
+          { cite: 1 },
+          "。同じ解説は、塩分の多い食事や炭水化物が水分をためやすいこと、食べたものや飲んだ水がそのまま体重に加わることも挙げています",
+          { cite: 1 },
+          "。",
+        ],
+      },
+      { type: "h2", text: "食べすぎた翌日の体重は、どう考える？" },
+      {
+        type: "p",
+        text: "上の解説は1日の中の変動についてのもので、食べすぎた翌日の体重そのものを説明したものではありません。ただ、食事の量や塩分、水分が関わるという点は共通しているため、食べすぎた翌日の体重の増加にも、同じような要素が含まれる可能性があります（これは運営者の推測で、断定ではありません）。翌日の1つの数字だけで、結果を判断しないことが大切です。",
+      },
+      { type: "h2", text: "落ち込まずに続けるための4つの考え方" },
+      { type: "h3", text: "1. 記録は、その日のうちに書く" },
+      {
+        type: "p",
+        text: "食べすぎた日ほど、記録が後回しになりがちです。数字を見るのが気まずくても、事実として残しておくと、あとで傾向を見るときの材料になります。",
+      },
+      { type: "h3", text: "2. 次の食事を、極端に減らさない" },
+      {
+        type: "p",
+        text: "食べすぎた分を、すぐ取り戻そうとしなくて大丈夫です。無理な調整は、記録が続かない原因にもなります。体調に不安がある場合は、医師や管理栄養士などの専門家に相談してください。",
+      },
+      { type: "h3", text: "3. 同じ条件で測る" },
+      {
+        type: "p",
+        text: [
+          "TANITA USの解説では、毎日同じ時間に、朝の起床後、トイレのあと、飲食の前に測ることがすすめられています",
+          { cite: 1 },
+          "。測る条件をそろえると、日々の差が、比べやすくなります。",
+        ],
+      },
+      { type: "h3", text: "4. 1日ではなく、週の傾向で見る" },
+      {
+        type: "p",
+        text: [
+          "同じ解説では、日々の上下ではなく、週の平均や長期的な傾向で判断することも挙げられています",
+          { cite: 1 },
+          "。メモレバの「週の上限」と、日・週・月のグラフは、この見方に合わせて使えます。",
+          { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+          " もご覧ください。",
+        ],
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。体調や体重の変化が気になる場合は、医師などの専門家に相談してください。出典1は英語で書かれたメーカーの情報で、日本の公的な基準ではありません。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "食べすぎた翌日に、体重が増えていました。脂肪が増えたのでしょうか。",
+            answer:
+              "1日の体重の変動は、水分や食事の量などでも起こるとされています（出典1）。1日の数字だけで判断せず、数日から1週間の傾向で見てください。",
+          },
+          {
+            question: "体重は、いつ測るのがよいですか。",
+            answer:
+              "TANITA USの解説では、毎日同じ時間に、朝、起床後のトイレのあと、飲食の前がすすめられています（出典1）。",
+          },
+          {
+            question: "食べすぎた日の記録は、残したほうがいいですか。",
+            answer:
+              "事実として残しておくと、あとで1週間の傾向を見るときの材料になります。メモレバは、1週間の合計で見る「週の上限」も使えます。",
+          },
+        ],
+      },
+    ],
+    related: ["weekly-limit", "why-diet-log-stops", "record-diet-tips", "recording-diet-vs-ai"],
+  },
 ];
 
 export function guideArticleBySlug(slug: string) {
@@ -595,11 +908,21 @@ export function guideArticlePath(slug: string) {
   return `/guide/${slug}`;
 }
 
-function guideInlineText(value: string | readonly GuideInline[]) {
+export function guideInlinePlainText(value: string | readonly GuideInline[]) {
   if (typeof value === "string") {
     return value;
   }
-  return value.map((part) => (typeof part === "string" ? part : part.label)).join("");
+  return value
+    .map((part) => {
+      if (typeof part === "string") {
+        return part;
+      }
+      if ("cite" in part) {
+        return `[${part.cite}]`;
+      }
+      return part.label;
+    })
+    .join("");
 }
 
 assertGuideCatalog(GUIDE_ARTICLES);
@@ -610,16 +933,16 @@ export function guideArticleCharCount(article: GuideArticle) {
     if (block.type === "h2" || block.type === "h3") {
       parts.push(block.text);
     } else if (block.type === "p") {
-      parts.push(guideInlineText(block.text));
+      parts.push(guideInlinePlainText(block.text));
     } else if (block.type === "ul") {
       for (const item of block.items) {
-        parts.push(guideInlineText(item));
+        parts.push(guideInlinePlainText(item));
       }
     } else if (block.type === "table") {
       parts.push(block.caption, ...block.headers, ...block.rows.flat());
     } else if (block.type === "faq") {
       for (const item of block.items) {
-        parts.push(item.question, item.answer);
+        parts.push(item.question, guideInlinePlainText(item.answer));
       }
     }
   }

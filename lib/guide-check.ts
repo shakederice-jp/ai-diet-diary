@@ -21,14 +21,36 @@ export type GuideArticleRecord = {
 const CHAPTER_SLUGS = new Set<string>(GUIDE_CHAPTERS.map((chapter) => chapter.slug));
 
 function citesInBlock(block: unknown) {
-  if (!block || typeof block !== "object" || !("cites" in block)) {
-    return [];
+  const found: number[] = [];
+  collectCites(block, found);
+  return found;
+}
+
+function collectCites(value: unknown, found: number[]) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectCites(item, found);
+    }
+    return;
   }
-  const cites = block.cites;
-  if (!Array.isArray(cites)) {
-    return [];
+  if (!value || typeof value !== "object") {
+    return;
   }
-  return cites.filter((item): item is number => typeof item === "number");
+  if ("cite" in value && typeof value.cite === "number") {
+    found.push(value.cite);
+  }
+  if ("cites" in value && Array.isArray(value.cites)) {
+    for (const item of value.cites) {
+      if (typeof item === "number") {
+        found.push(item);
+      }
+    }
+  }
+  for (const child of Object.values(value)) {
+    if (child && typeof child === "object") {
+      collectCites(child, found);
+    }
+  }
 }
 
 export function guideSourceRecordErrors(sources: readonly GuideSourceRecord[]) {

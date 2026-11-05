@@ -43,6 +43,23 @@ export const GUIDE_SOURCES = [
     url: "/howto",
     checkedAt: CHECKED_ON,
   },
+  {
+    id: "caa-nutrition-labeling",
+    type: "official",
+    publisher: "消費者庁",
+    title: "栄養成分表示について",
+    url: "https://www.caa.go.jp/policies/policy/food_labeling/nutrient_declearation/",
+    checkedAt: "2026-11-05",
+  },
+  {
+    id: "tanita-us-fluctuation",
+    type: "company",
+    publisher: "TANITA US（TANITA Corporation of America, Inc.）",
+    title: "Why Do My Measurements Change Throughout the Day? Understanding the Science Behind Fluctuations",
+    url: "https://tanita.com/posts/why-do-my-measurements-change-throughout-the-day",
+    checkedAt: "2026-11-05",
+    note: "英語の解説（2026年3月10日公開）。メーカーの情報です。",
+  },
 ] as const;
 
 export type GuideSource = (typeof GUIDE_SOURCES)[number];
