@@ -92,6 +92,22 @@ export const GUIDE_SOURCES = [
     url: "https://www.mhlw.go.jp/stf/newpage_38541.html",
     checkedAt: "2026-11-05",
   },
+  {
+    id: "memolever-privacy",
+    type: "internal",
+    publisher: "大手町調査室九課（メモレバ運営）",
+    title: "プライバシーポリシー",
+    url: "/privacy",
+    checkedAt: "2026-11-05",
+  },
+  {
+    id: "memolever-terms",
+    type: "internal",
+    publisher: "大手町調査室九課（メモレバ運営）",
+    title: "利用規約",
+    url: "/terms",
+    checkedAt: "2026-11-05",
+  },
 ] as const;
 
 export type GuideSource = (typeof GUIDE_SOURCES)[number];

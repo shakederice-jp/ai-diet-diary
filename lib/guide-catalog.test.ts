@@ -40,7 +40,7 @@ describe("guide chapters and sources", () => {
       ["/eating-out", "/sweets", "/staples"],
     );
     assert.equal(isGuideChapterPublished("using-memolever"), true);
-    assert.equal(guideChapterEntries("using-memolever").length, 4);
+    assert.equal(guideChapterEntries("using-memolever").length, 7);
     const chapterSlugs: readonly string[] = GUIDE_CHAPTERS.map((chapter) => chapter.slug);
     assert.equal(chapterSlugs.includes("theme"), false);
     assert.equal(GUIDE_ARTICLES.some((article) => article.slug === "theme"), false);
@@ -78,7 +78,7 @@ describe("guide chapters and sources", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
     );
     const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
     assert.ok(eating);
