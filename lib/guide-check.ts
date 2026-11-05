@@ -15,6 +15,7 @@ export type GuideArticleRecord = {
   chapter: string;
   sources?: readonly { id: string; note?: string }[] | null;
   needsOfficial?: boolean;
+  lead?: readonly unknown[];
   blocks?: readonly unknown[];
 };
 
@@ -112,7 +113,7 @@ export function guideArticleRecordReport(articles: readonly GuideArticleRecord[]
         official += 1;
       }
     }
-    for (const block of article.blocks ?? []) {
+    for (const block of [...(article.lead ?? []), ...(article.blocks ?? [])]) {
       for (const number of citesInBlock(block)) {
         if (!Number.isInteger(number) || number < 1 || number > sources.length) {
           errors.push(

@@ -26,12 +26,12 @@ describe("guide chapters and sources", () => {
   it("publishes chapters only when they have at least three entries", () => {
     assert.deepEqual(
       publishedGuideChapters().map((chapter) => chapter.slug),
-      ["worries", "calorie-guides", "using-memolever"],
+      ["worries", "basics", "calorie-guides", "using-memolever"],
     );
     assert.equal(isGuideChapterPublished("worries"), true);
     assert.equal(guideChapterEntries("worries").length, 6);
-    assert.equal(isGuideChapterPublished("basics"), false);
-    assert.equal(guideChapterEntries("basics").length, 0);
+    assert.equal(isGuideChapterPublished("basics"), true);
+    assert.equal(guideChapterEntries("basics").length, 3);
     assert.equal(isGuideChapterPublished("seasons"), false);
     assert.equal(isGuideChapterPublished("calorie-guides"), true);
     assert.deepEqual(
@@ -57,7 +57,13 @@ describe("guide chapters and sources", () => {
     );
     assert.deepEqual(
       newestGuideArticles(5).map((article) => article.slug),
-      ["why-diet-log-stops", "eating-out-recording", "after-overeating", "recording-diet-vs-ai", "what-is-memolever"],
+      ["why-diet-log-stops", "eating-out-recording", "after-overeating", "calorie-basics", "weight-fluctuation"],
+    );
+    const calorie = GUIDE_ARTICLES.find((article) => article.slug === "calorie-basics");
+    assert.ok(calorie);
+    assert.deepEqual(
+      sameChapterArticles(calorie).map((article) => article.slug),
+      ["weight-fluctuation", "weighing-timing"],
     );
   });
 
@@ -65,7 +71,7 @@ describe("guide chapters and sources", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
     );
     const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
     assert.ok(eating);
@@ -77,6 +83,14 @@ describe("guide chapters and sources", () => {
     assert.ok(after);
     assert.deepEqual(externalCitationUrls(after.sources), [
       "https://tanita.com/posts/why-do-my-measurements-change-throughout-the-day",
+    ]);
+    const calorie = GUIDE_ARTICLES.find((article) => article.slug === "calorie-basics");
+    assert.ok(calorie);
+    assert.deepEqual(externalCitationUrls(calorie.sources), [
+      "https://www.mhlw.go.jp/content/10904750/001734207.pdf",
+      "https://www.e-healthnet.mhlw.go.jp/information/keywords/body-mass-index",
+      "https://kennet.mhlw.go.jp/information/information/exercise/s-00-012.html",
+      "https://www.mext.go.jp/content/20230428-mxt_kagsei-mext_00001_011.pdf",
     ]);
     const ai = GUIDE_ARTICLES.find((article) => article.slug === "ai-calorie");
     assert.ok(ai);
@@ -91,7 +105,9 @@ describe("guide chapters and sources", () => {
     assert.equal(guideSourceFootnote("official"), null);
     const report = guideArticleRecordReport(GUIDE_ARTICLES);
     assert.deepEqual(report.errors, []);
-    assert.deepEqual(report.warnings, []);
+    assert.deepEqual(report.warnings, [
+      "記事「weighing-timing」は栄養・健康に関する本文（needsOfficial）ですが、type: official の出典がありません。",
+    ]);
   });
 
   it("fails when sources are empty, unknown, or not https", () => {

@@ -60,6 +60,30 @@ export const GUIDE_SOURCES = [
     checkedAt: "2026-11-05",
     note: "英語の解説（2026年3月10日公開）。メーカーの情報です。",
   },
+  {
+    id: "mhlw-dri-2025-summary",
+    type: "official",
+    publisher: "厚生労働省",
+    title: "「日本人の食事摂取基準（2025年版）」概要資料（策定検討会報告書にもとづく・2025年2月）",
+    url: "https://www.mhlw.go.jp/content/10904750/001734207.pdf",
+    checkedAt: "2026-11-05",
+  },
+  {
+    id: "mhlw-ehealthnet-bmi",
+    type: "official",
+    publisher: "厚生労働省 e-ヘルスネット",
+    title: "BMI",
+    url: "https://www.e-healthnet.mhlw.go.jp/information/keywords/body-mass-index",
+    checkedAt: "2026-11-05",
+  },
+  {
+    id: "mhlw-ehealthnet-energy-sheet",
+    type: "official",
+    publisher: "厚生労働省 e-ヘルスネット",
+    title: "「健康づくりのための身体活動・運動ガイド2023」情報シート：身体活動とエネルギー・栄養素",
+    url: "https://kennet.mhlw.go.jp/information/information/exercise/s-00-012.html",
+    checkedAt: "2026-11-05",
+  },
 ] as const;
 
 export type GuideSource = (typeof GUIDE_SOURCES)[number];

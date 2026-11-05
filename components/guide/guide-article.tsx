@@ -73,9 +73,9 @@ export function GuideArticleView({ article }: { article: GuideArticle }) {
         <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#3A2A22]">{article.title}</h1>
         <p className="mt-3 text-sm text-[#6B4A32]">最終更新日: {formatGuideIsoLabel(article.updatedOn)}</p>
         <div className="mt-5 flex flex-col gap-3">
-          {article.lead.map((paragraph) => (
-            <p key={paragraph} className="text-lg font-medium leading-8 text-zinc-900">
-              {paragraph}
+          {article.lead.map((paragraph, index) => (
+            <p key={index} className="text-lg font-medium leading-8 text-zinc-900">
+              <GuideText value={paragraph} />
             </p>
           ))}
         </div>
