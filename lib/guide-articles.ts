@@ -270,7 +270,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         text: "カレンダーでは、今日がオレンジで、1日の上限より多く食べた日はうすいオレンジになります。グラフでは、上限より多い日の棒が濃くなり、上限を保存していると上限の線も出ます。週のカードと日の色は、同じ上限を別の幅で見ているものです。上限を変える操作は、ログインしたマイページの目標設定にあります。仮の14,000kcalのまま使い続けることもできます。その数字は、全員に合う摂取量という意味ではありません。",
       },
     ],
-    related: ["record-diet-tips", "what-is-memolever", "ai-calorie", "why-diet-log-stops", "after-overeating"],
+    related: ["record-diet-tips", "what-is-memolever", "ai-calorie", "why-diet-log-stops", "after-overeating", "new-year-holidays"],
   },
   {
     slug: "record-diet-tips",
@@ -481,7 +481,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         items: [{ href: "/howto", label: pageLabel("/howto") }],
       },
     ],
-    related: ["record-diet-tips", "ai-calorie", "what-is-memolever"],
+    related: ["record-diet-tips", "ai-calorie", "what-is-memolever", "travel-events-week"],
   },
   {
     slug: "recording-diet-vs-ai",
@@ -806,7 +806,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         ],
       },
     ],
-    related: ["ai-calorie", "record-diet-tips", "why-diet-log-stops", "/eating-out"],
+    related: ["ai-calorie", "record-diet-tips", "why-diet-log-stops", "/eating-out", "travel-events-week"],
   },
   {
     slug: "after-overeating",
@@ -896,7 +896,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
         ],
       },
     ],
-    related: ["weekly-limit", "why-diet-log-stops", "record-diet-tips", "recording-diet-vs-ai", "weight-fluctuation"],
+    related: ["weekly-limit", "why-diet-log-stops", "record-diet-tips", "recording-diet-vs-ai", "weight-fluctuation", "new-year-holidays"],
   },
   {
     slug: "calorie-basics",
@@ -1255,6 +1255,310 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
       },
     ],
     related: ["weight-fluctuation", "health-planet", "after-overeating"],
+  },
+  {
+    slug: "new-year-holidays",
+    title: "年末年始の食べすぎをリセットする、週の上限の使い方",
+    description:
+      "年末年始の食事が乱れやすい理由と、記録を止めずに1週間で調整する考え方、お酒の純アルコール量の計算方法を、出典つきで説明します。",
+    updatedOn: "2026-11-05",
+    chapter: "seasons",
+    order: 1,
+    keywords: ["年末年始", "食べすぎ", "ダイエット", "週の上限", "純アルコール量"],
+    needsOfficial: true,
+    sources: [
+      { id: "mhlw-alcohol-guideline" },
+      { id: "tanita-us-fluctuation" },
+      { id: "mhlw-dri-2025-summary" },
+      { id: "mhlw-ehealthnet-energy-sheet" },
+      { id: "memolever-howto" },
+    ],
+    lead: [
+      "年末年始は、集まりや外食、お酒、間食が増えて、食事が乱れやすい時期です。1日ごとにきっちり調整しようとすると、記録が止まりやすくなります。記録は止めず、1週間の合計で整える考え方と、お酒は「純アルコール量」で把握する方法を知っておくと、年明けも落ち込まずに続けやすくなります。",
+    ],
+    blocks: [
+      { type: "h2", text: "年末年始に食事が乱れやすい理由" },
+      {
+        type: "p",
+        text: "行事や帰省で、いつもと違う時間に食事をしたり、外食や集まりが続いたりして、量や回数が増えやすくなります（運営者の整理です）。普段の生活のリズムが変わるため、記録そのものも抜けやすくなります。",
+      },
+      { type: "h2", text: "記録を止めないための3つの準備" },
+      { type: "h3", text: "1. 予定をあらかじめ書いておく" },
+      {
+        type: "p",
+        text: "集まりや外食の予定を、カレンダーに入れておくと、その前後の食事の量を、あらかじめ軽めにするかを選べます。",
+      },
+      { type: "h3", text: "2. 数字は「幅」で記録する" },
+      {
+        type: "p",
+        text: [
+          "家庭の食事と違い、集まりや外食の料理は、量や調理法で差が出ます。正確さより、記録を続けることを優先してください。外食の記録のコツは、",
+          { href: "/guide/eating-out-recording", label: "外食が多い人の食事記録のコツ" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "3. 1日ではなく、1週間で調整する" },
+      {
+        type: "p",
+        text: [
+          "メモレバの「週の上限」は、1週間の合計で見る考え方です。詳しくは、",
+          { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h2", text: "お酒は「純アルコール量」で把握する" },
+      {
+        type: "p",
+        text: [
+          "厚生労働省の「健康に配慮した飲酒に関するガイドライン」のページでは、飲酒量は、お酒の量（ml）ではなく、純アルコール量（g）で把握することの大切さが説明されています。計算式は、お酒の量（ml）×アルコール度数（%）÷100×0.8 です。例として、アルコール度数5%のビール500mlは、純アルコール量が20gになると示されています",
+          { cite: 1 },
+          "。このガイドラインは、国民一人ひとりが、アルコールに関連する問題への関心と理解を深め、不適切な飲酒を減らすために活用されることを目的としています",
+          { cite: 1 },
+          "。飲酒量は、体質や体調によっても違うため、ガイドライン本文もあわせてご確認ください。",
+        ],
+      },
+      { type: "h2", text: "年明けの体重の見方" },
+      {
+        type: "p",
+        text: [
+          "年末年始の翌朝の体重は、体脂肪の増減だけでなく、水分や食事の重さなどでも変わります",
+          { cite: 2 },
+          "。TANITA USの解説では、日々の上下ではなく、週の平均や長期の傾向で判断することが挙げられています",
+          { cite: 2 },
+          "。体脂肪1kgを減らすには約7,000kcalが必要とされるという目安もありますが、これはあくまで目安で、体重の動きはそのとおりにならないことがあります",
+          { cite: 4 },
+          "。エネルギーの過不足は、体重の変化やBMIで評価するよう、食事摂取基準の概要資料に示されています",
+          { cite: 3 },
+          "。",
+        ],
+      },
+      { type: "h2", text: "年明けの戻し方" },
+      {
+        type: "p",
+        text: "年明けに、食事を極端に減らす必要はありません。まずは、記録を続けることを優先してください。体調に不安がある場合は、医師などの専門家に相談してください。",
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "出典2は、英語で書かれたメーカーの情報です。効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。お酒については、体質や持病、服薬の状況によって異なります。気になる場合は、専門家に相談してください。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "年末年始に食べすぎてしまいました。記録は続けたほうがいいですか。",
+            answer: "事実として残しておくと、あとで1週間の傾向を見るときの材料になります。",
+          },
+          {
+            question: "純アルコール量は、どう計算しますか。",
+            answer: "お酒の量（ml）×アルコール度数（%）÷100×0.8 で計算します。度数5%のビール500mlは、約20gです（出典1）。",
+          },
+          {
+            question: "年明けに体重が増えていました。脂肪が増えたのでしょうか。",
+            answer: "体重は、水分や食事の重さでも変わります（出典2）。1日の数字だけで判断せず、1週間の傾向で見てください。",
+          },
+        ],
+      },
+    ],
+    related: ["weekly-limit", "after-overeating", "weight-fluctuation", "travel-events-week"],
+  },
+  {
+    slug: "travel-events-week",
+    title: "旅行・帰省・イベントが続く週の、食事記録の考え方",
+    description:
+      "旅行や帰省、イベントが続く週に、記録を止めずに続けるための考え方と、お酒の純アルコール量、帰宅後の体重の見方を、出典つきで説明します。",
+    updatedOn: "2026-11-05",
+    chapter: "seasons",
+    order: 2,
+    keywords: ["旅行", "帰省", "イベント", "食事記録", "ダイエット", "純アルコール量"],
+    needsOfficial: true,
+    sources: [{ id: "tanita-us-fluctuation" }, { id: "mhlw-alcohol-guideline" }, { id: "memolever-howto" }],
+    lead: [
+      "旅行や帰省、イベントが続く週は、食事の時間や内容が普段と変わり、記録が止まりやすくなります。細かさをあきらめて、一言メモで残し、1週間の合計で見る考え方にすると、続けやすくなります。",
+    ],
+    blocks: [
+      { type: "h2", text: "記録が止まりやすい場面" },
+      {
+        type: "ul",
+        items: [
+          "食事の時間や回数が、普段と違う。",
+          "外食や集まりが続いて、料理名や量が分かりにくい。",
+          "移動中で、入力する時間が取れない。",
+        ],
+      },
+      { type: "p", text: "（運営者の整理です）" },
+      { type: "h2", text: "続けるための4つの考え方" },
+      { type: "h3", text: "1. 一言メモを優先する" },
+      {
+        type: "p",
+        text: [
+          "細かいカロリーや量ではなく、「何を食べたか」の一言を、その場でメモします。メモレバでは、音声入力も使えます。詳しくは、",
+          { href: "/guide/voice-and-bulk-input", label: "音声入力とまとめて入力" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "2. 外食の数字は幅で考える" },
+      {
+        type: "p",
+        text: [
+          "外食は、量や調理法で差が出ます。お店が栄養成分表を公開している場合は、それを使います。ない場合の考え方は、",
+          { href: "/guide/eating-out-recording", label: "外食が多い人の食事記録のコツ" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "3. お酒は純アルコール量で把握する" },
+      {
+        type: "p",
+        text: [
+          "厚生労働省の「健康に配慮した飲酒に関するガイドライン」のページでは、お酒の量（ml）×アルコール度数（%）÷100×0.8 で、純アルコール量（g）を出すことが説明されています。例として、度数5%のビール500mlは、約20gとされています",
+          { cite: 2 },
+          "。お酒の量の目安は、体質や体調で異なります。ガイドライン本文もご確認ください。",
+        ],
+      },
+      { type: "h3", text: "4. 生活のできごとも一緒にメモする" },
+      {
+        type: "p",
+        text: [
+          "TANITA USの解説では、旅行、体調不良、飲酒、運動の強さなどの生活のできごとも、体重と一緒に記録することが挙げられています",
+          { cite: 1 },
+          "。あとで、体重が動いた理由を振り返る手がかりになります。",
+        ],
+      },
+      { type: "h2", text: "帰宅後の体重の見方" },
+      {
+        type: "p",
+        text: [
+          "旅行や帰省のあとに体重が変わって見えても、水分や食事の重さなどが関わることがあります",
+          { cite: 1 },
+          "。TANITA USの解説では、日々の上下ではなく、週の平均や長期の傾向で判断することが挙げられています",
+          { cite: 1 },
+          "。測り方は、",
+          { href: "/guide/weighing-timing", label: "体重を測るタイミングの目安" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "出典1は、英語で書かれたメーカーの情報です。効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。体調に不安がある場合は、医師などの専門家に相談してください。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "旅行中は、記録をやめてもいいですか。",
+            answer: "細かく書かなくても、一言メモを残すと、あとで振り返る材料になります。",
+          },
+          {
+            question: "旅行から帰ったら、体重が増えていました。",
+            answer: "体重は水分や食事の重さでも変わります（出典1）。1日の数字だけで判断せず、1週間の傾向で見てください。",
+          },
+          {
+            question: "記録を忘れた日は、あとから入力できますか。",
+            answer: [
+              "メモレバでは、日付を選んで入力できます。使い方は、",
+              { href: "/howto", label: "このサイトの使い方" },
+              " をご覧ください。",
+            ],
+          },
+        ],
+      },
+    ],
+    related: ["eating-out-recording", "voice-and-bulk-input", "new-year-holidays", "weekly-limit"],
+  },
+  {
+    slug: "new-year-start",
+    title: "新年に始めるダイエット｜無理のない記録のはじめ方",
+    description:
+      "新年に食事記録を始める人に向けて、最初の1週間は記録だけにする3週間のはじめ方と、BMIの目標範囲の参考値を、厚生労働省の資料にもとづいて説明します。",
+    updatedOn: "2026-11-05",
+    chapter: "seasons",
+    order: 3,
+    keywords: ["新年 ダイエット", "食事記録 始め方", "BMI 目標", "ダイエット 無理なく"],
+    needsOfficial: true,
+    sources: [{ id: "mhlw-dri-2025-summary" }, { id: "mhlw-ehealthnet-bmi" }, { id: "memolever-howto" }],
+    lead: [
+      "新年のダイエットは、いきなり食事を大きく変えるより、最初の1週間を「記録だけ」にして、自分の食事の傾向をつかむところから始めると、無理なく続けやすくなります。体重の目標は、専門家に相談しながら決めてください。",
+    ],
+    blocks: [
+      { type: "h2", text: "無理なく始める3週間の流れ（運営者の提案です）" },
+      { type: "h3", text: "1週目：記録だけをする" },
+      {
+        type: "p",
+        text: [
+          "食事を変えず、食べたものを、一言でメモします。数字の正確さは気にしません。目標は「記録した日数」です。コツは、",
+          { href: "/guide/why-diet-log-stops", label: "食事記録が三日坊主になる原因と、続けるための5つの工夫" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "2週目：「週の上限」を見る" },
+      {
+        type: "p",
+        text: [
+          "記録がたまったら、1週間の合計で見ます。メモレバの「週の上限」の考え方は、",
+          { href: "/guide/weekly-limit", label: "ダイエットは「週の上限」で考える" },
+          " をご覧ください。",
+        ],
+      },
+      { type: "h3", text: "3週目：振り返る" },
+      {
+        type: "p",
+        text: "1か月の記録を、月のまとめで見ます。多く食べがちな時間帯や、間食の傾向が分かると、次の工夫が見つけやすくなります。",
+      },
+      { type: "h2", text: "体重の目標をどう考えるか" },
+      {
+        type: "p",
+        text: [
+          "厚生労働省の「日本人の食事摂取基準（2025年版）」の概要資料には、目標とするBMIの範囲が示されています。18〜49歳は18.5〜24.9、50〜64歳は20.0〜24.9、65歳以上は21.5〜24.9（kg/m²）です。ただし、資料には「あくまでも参考として使用すべきである」と書かれています",
+          { cite: 1 },
+          "。BMIは、体重(kg)÷身長(m)の2乗で計算します",
+          { cite: 2 },
+          "。BMIが同じでも、脂肪のつき方によって健康への影響は変わるとも説明されています",
+          { cite: 2 },
+          "。ご自身の目標は、医師や管理栄養士などの専門家に相談して決めてください。",
+        ],
+      },
+      { type: "h2", text: "始めるときに避けたい3つのこと" },
+      {
+        type: "ul",
+        items: [
+          "最初から、毎日きっちり書こうとする。",
+          "食事を極端に減らす。体調に不安がある場合は、専門家に相談してください。",
+          [
+            "数日の体重の上下で、結果を判断する。体重の変動については、",
+            { href: "/guide/weight-fluctuation", label: "体重は1日でも変わる" },
+            " をご覧ください。",
+          ],
+        ],
+      },
+      { type: "h2", text: "この記事について" },
+      {
+        type: "p",
+        text: "効果や結果には個人差があります。メモレバは医療上の助言を行うものではありません。持病がある方、妊娠中・授乳中の方、18歳未満の方、高齢の方は、自己判断で食事を変えず、医師などの専門家に相談してください。",
+      },
+      { type: "h2", text: "よくある質問" },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "新年から始めるなら、最初に何をすればいいですか。",
+            answer: "最初の1週間は、食事を変えず、記録だけをしてみてください。傾向がつかめます。",
+          },
+          {
+            question: "目標のBMIは、どう決めればいいですか。",
+            answer:
+              "食事摂取基準には、年齢別の目標範囲が参考として示されています（出典1）。個人の目標は、専門家に相談して決めてください。",
+          },
+          {
+            question: "途中で記録が抜けたら、どうすればいいですか。",
+            answer: "空白の日があっても、次の日から再開して大丈夫です。",
+          },
+        ],
+      },
+    ],
+    related: ["why-diet-log-stops", "calorie-basics", "weekly-limit", "new-year-holidays"],
   },
 ];
 

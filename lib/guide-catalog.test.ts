@@ -26,13 +26,14 @@ describe("guide chapters and sources", () => {
   it("publishes chapters only when they have at least three entries", () => {
     assert.deepEqual(
       publishedGuideChapters().map((chapter) => chapter.slug),
-      ["worries", "basics", "calorie-guides", "using-memolever"],
+      ["worries", "basics", "seasons", "calorie-guides", "using-memolever"],
     );
     assert.equal(isGuideChapterPublished("worries"), true);
     assert.equal(guideChapterEntries("worries").length, 6);
     assert.equal(isGuideChapterPublished("basics"), true);
     assert.equal(guideChapterEntries("basics").length, 3);
-    assert.equal(isGuideChapterPublished("seasons"), false);
+    assert.equal(isGuideChapterPublished("seasons"), true);
+    assert.equal(guideChapterEntries("seasons").length, 3);
     assert.equal(isGuideChapterPublished("calorie-guides"), true);
     assert.deepEqual(
       guideChapterEntries("calorie-guides").map((entry) => entry.href),
@@ -65,13 +66,19 @@ describe("guide chapters and sources", () => {
       sameChapterArticles(calorie).map((article) => article.slug),
       ["weight-fluctuation", "weighing-timing"],
     );
+    const holiday = GUIDE_ARTICLES.find((article) => article.slug === "new-year-holidays");
+    assert.ok(holiday);
+    assert.deepEqual(
+      sameChapterArticles(holiday).map((article) => article.slug),
+      ["travel-events-week", "new-year-start"],
+    );
   });
 
   it("keeps registered sources and external citations", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
     );
     const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
     assert.ok(eating);

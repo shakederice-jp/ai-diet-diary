@@ -18,6 +18,9 @@ const SLUGS = [
   "calorie-basics",
   "weight-fluctuation",
   "weighing-timing",
+  "new-year-holidays",
+  "travel-events-week",
+  "new-year-start",
 ] as const;
 
 const ADDED_ON = "2026-11-05";
@@ -28,6 +31,9 @@ const ADDED = new Set<string>([
   "calorie-basics",
   "weight-fluctuation",
   "weighing-timing",
+  "new-year-holidays",
+  "travel-events-week",
+  "new-year-start",
 ]);
 
 const BANNED = ["必ず痩せる", "必ず痩せ", "kg減", "治療", "病気", "口コミ", "利用者の声"];
@@ -64,11 +70,17 @@ describe("guide articles", () => {
   it("keeps length, headings, dates, and related links", () => {
     for (const article of GUIDE_ARTICLES) {
       const count = guideArticleCharCount(article);
-      const countMin = article.slug === "weighing-timing" || article.slug === "weight-fluctuation" ? 900 : 1200;
+      const countMin =
+        article.slug === "weighing-timing" ||
+        article.slug === "weight-fluctuation" ||
+        article.slug === "travel-events-week" ||
+        article.slug === "new-year-start"
+          ? 900
+          : 1200;
       assert.ok(count >= countMin && count <= 2000, `${article.slug} ${count}`);
       const headings = article.blocks.filter((block) => block.type === "h2");
       const headingMax =
-        article.slug === "calorie-basics" ? 7 : article.slug === "recording-diet-vs-ai" || article.slug === "eating-out-recording" ? 6 : 5;
+        article.slug === "calorie-basics" || article.slug === "new-year-holidays" ? 7 : article.slug === "recording-diet-vs-ai" || article.slug === "eating-out-recording" ? 6 : 5;
       assert.ok(headings.length >= 3 && headings.length <= headingMax, `${article.slug} ${headings.length}`);
       const leadMin = article.slug === "recording-diet-vs-ai" || ADDED.has(article.slug) ? 1 : 2;
       assert.ok(article.lead.length >= leadMin && article.lead.length <= 3, article.slug);

@@ -84,6 +84,14 @@ export const GUIDE_SOURCES = [
     url: "https://kennet.mhlw.go.jp/information/information/exercise/s-00-012.html",
     checkedAt: "2026-11-05",
   },
+  {
+    id: "mhlw-alcohol-guideline",
+    type: "official",
+    publisher: "厚生労働省",
+    title: "健康に配慮した飲酒に関するガイドラインについて",
+    url: "https://www.mhlw.go.jp/stf/newpage_38541.html",
+    checkedAt: "2026-11-05",
+  },
 ] as const;
 
 export type GuideSource = (typeof GUIDE_SOURCES)[number];
