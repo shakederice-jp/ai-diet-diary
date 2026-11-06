@@ -115,7 +115,24 @@ export const GUIDE_SOURCES = [
     title: "日本食品標準成分表（八訂）増補2023年 第2章 本表データ（Excel）",
     url: "https://www.mext.go.jp/a_menu/syokuhinseibun/mext_00001.html",
     checkedAt: "2026-11-06",
-    note: "文部科学省の掲載ページで公開されているExcelデータ（ファイル名の日付は2026年3月27日）の値を使用しています。数値は食品100gあたりです。",
+    note: "文部科学省の掲載ページで公開されているExcelデータ（ファイル名の日付は2026年3月27日）の値を使用しています。数値は食品100gあたりです。食品成分データベース（fooddb.mext.go.jp）は、2026年3月27日公表の正誤表に対応済みと表示しています。",
+  },
+  {
+    id: "mext-fooddb",
+    type: "official",
+    publisher: "文部科学省",
+    title: "食品成分データベース（日本食品標準成分表（八訂）増補2023年に対応）",
+    url: "https://fooddb.mext.go.jp/",
+    checkedAt: "2026-11-06",
+    note: "文部科学省が公開している検索サイトです。サイトに「試験的に公開している」旨の表示があります。2026年3月27日公表の正誤表に対応済みと表示されています。",
+  },
+  {
+    id: "maff-balance-guide-usage",
+    type: "official",
+    publisher: "農林水産省",
+    title: "「食事バランスガイド」の適量と料理区分",
+    url: "https://www.maff.go.jp/j/syokuiku/kenzensyokuseikatsu/about_b_guide.html",
+    checkedAt: "2026-11-06",
   },
 ] as const;
 

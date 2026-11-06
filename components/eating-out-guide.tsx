@@ -28,7 +28,8 @@ import { JsonLd } from "@/components/json-ld";
 import { StaplesGuide } from "@/components/staples-guide";
 import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
-import { GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { GUIDE_PAGE_SOURCE_IDS, GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { externalCitationUrls } from "@/lib/guide-sources";
 import { guideStructuredData } from "@/lib/structured-data";
 
 const CRITERIA = [
@@ -117,6 +118,7 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
             path: "/eating-out",
             dateModified: GUIDE_UPDATED_ON["/eating-out"],
             breadcrumbs: guideBreadcrumbItems("/eating-out"),
+            citations: externalCitationUrls(GUIDE_PAGE_SOURCE_IDS["/eating-out"].map((id) => ({ id }))),
           })}
         />
         <header id="eating-out-intro">

@@ -1,11 +1,19 @@
+import type { GuideSourceId } from "@/lib/guide-sources";
 import type { PageOgImage } from "@/lib/site";
 
 /** ガイドページの最終更新日。表示と JSON-LD と sitemap は、ここだけを見る。 */
 export const GUIDE_UPDATED_ON = {
-  "/eating-out": "2026-10-30",
-  "/sweets": "2026-10-30",
-  "/staples": "2026-10-30",
+  "/eating-out": "2026-11-06",
+  "/sweets": "2026-11-06",
+  "/staples": "2026-11-06",
 } as const;
+
+/** 目安ページに出す出典。JSON-LD の citation もここを見る。 */
+export const GUIDE_PAGE_SOURCE_IDS = {
+  "/eating-out": ["mext-fooddb"],
+  "/sweets": ["mext-fooddb", "maff-balance-guide-usage"],
+  "/staples": ["mext-fooddb"],
+} as const satisfies Record<GuideUpdatedHref, readonly GuideSourceId[]>;
 
 /** メモレバ ガイド（/guide と記事）の最終更新日。表示、JSON-LD、sitemap はここを見る。 */
 export const MEMOLEVER_GUIDE_UPDATED_ON = "2026-11-02";

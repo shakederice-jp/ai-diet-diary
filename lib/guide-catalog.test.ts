@@ -92,7 +92,7 @@ describe("guide chapters and sources", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-06"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-06", "2026-11-06", "2026-11-06"],
     );
     const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
     assert.ok(eating);

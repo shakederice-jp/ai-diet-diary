@@ -14,7 +14,7 @@ export const SWEETS_LEAD =
   "間食1回分のカロリーの目安です。印は1回分の目安の真ん中の数字で判定しています。推定を含みます。";
 
 export const SWEETS_SNACK_NOTE =
-  "間食の目安は1日200kcal程度とされています(食事バランスガイドより)。";
+  "農林水産省の「食事バランスガイド」では、菓子・嗜好飲料は1日200kcal程度が目安とされています。";
 
 export const SWEETS_MARK_EXCELLENT_MAX = 100;
 export const SWEETS_MARK_GOOD_MAX = 200;

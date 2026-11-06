@@ -5,7 +5,8 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { StaplesTables } from "@/components/staples-guide";
 import { TryAppCta } from "@/components/try-app-cta";
-import { GUIDE_OG, GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { GUIDE_OG, GUIDE_PAGE_SOURCE_IDS, GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { externalCitationUrls } from "@/lib/guide-sources";
 import {
   STAPLES_DESCRIPTION,
   STAPLES_PAGE_HEADING,
@@ -39,6 +40,7 @@ export default async function StaplesPage() {
             path: "/staples",
             dateModified: GUIDE_UPDATED_ON["/staples"],
             breadcrumbs,
+            citations: externalCitationUrls(GUIDE_PAGE_SOURCE_IDS["/staples"].map((id) => ({ id }))),
           })}
         />
         <Breadcrumbs items={breadcrumbs} includeJsonLd={false} />

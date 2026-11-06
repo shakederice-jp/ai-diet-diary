@@ -149,7 +149,9 @@ export function guideStructuredData(input: {
   path: string;
   dateModified: string;
   breadcrumbs: readonly BreadcrumbItem[];
+  citations?: readonly string[];
 }) {
+  const citations = input.citations ?? [];
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -163,6 +165,7 @@ export function guideStructuredData(input: {
         dateModified: input.dateModified,
         publisher: organizationRef(),
         author: organizationRef(),
+        ...(citations.length > 0 ? { citation: [...citations] } : {}),
       },
       breadcrumbNode(input.breadcrumbs),
     ],

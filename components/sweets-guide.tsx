@@ -28,8 +28,14 @@ import {
   type SweetsMarkFilter,
   type SweetsSort,
 } from "@/lib/sweets-guide";
-import { GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { GUIDE_PAGE_SOURCE_IDS, GUIDE_UPDATED_ON } from "@/lib/guide-meta";
+import { externalCitationUrls, guideSourceById } from "@/lib/guide-sources";
 import { guideStructuredData } from "@/lib/structured-data";
+
+const SNACK_SOURCE = guideSourceById("maff-balance-guide-usage");
+if (!SNACK_SOURCE) {
+  throw new Error("maff-balance-guide-usage");
+}
 
 const ROW_GRID =
   "grid w-full grid-cols-[minmax(0,1fr)_4.75rem_4.25rem_1.5rem] items-center gap-x-1 px-1 md:grid-cols-[minmax(0,1.1fr)_5.5rem_4.5rem_2rem_minmax(0,1.4fr)] md:gap-x-2 md:px-2";
@@ -101,6 +107,7 @@ export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
             path: "/sweets",
             dateModified: GUIDE_UPDATED_ON["/sweets"],
             breadcrumbs: guideBreadcrumbItems("/sweets"),
+            citations: externalCitationUrls(GUIDE_PAGE_SOURCE_IDS["/sweets"].map((id) => ({ id }))),
           })}
         />
         <header id="sweets-intro">
@@ -120,6 +127,16 @@ export function SweetsGuide({ startHref }: { startHref: "/" | "/signup" }) {
             </tbody>
           </table>
           <p className="mt-1 text-[11px] leading-4 text-[#6B4A32]">{SWEETS_SNACK_NOTE}</p>
+          <p className="mt-1 text-[11px] leading-4">
+            <a
+              href={SNACK_SOURCE.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]"
+            >
+              {SNACK_SOURCE.title}
+            </a>
+          </p>
         </header>
 
         <div className="mt-2 flex flex-col gap-1">
