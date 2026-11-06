@@ -8,16 +8,18 @@ export function GuideTable({
   rows: readonly (readonly string[])[];
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 max-w-full overflow-x-auto">
       <table className="w-full min-w-[52rem] border-collapse text-left text-sm leading-7 text-zinc-800">
-        <caption className="caption-top mb-2 text-left text-base font-medium text-[#3A2A22]">{caption}</caption>
+        {caption ? (
+          <caption className="caption-top mb-2 text-left text-base font-medium text-[#3A2A22]">{caption}</caption>
+        ) : null}
         <thead>
           <tr>
             {headers.map((header) => (
               <th
                 key={header}
                 scope="col"
-                className="border-b border-[#E7DCC8] bg-[#FBF6EE] px-3 py-2 font-medium text-[#6B4A32]"
+                className="whitespace-nowrap border-b border-[#E7DCC8] bg-[#FBF6EE] px-3 py-2 font-medium text-[#6B4A32]"
               >
                 {header}
               </th>
@@ -25,19 +27,22 @@ export function GuideTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row[0]}>
+          {rows.map((row, rowIndex) => (
+            <tr key={`${rowIndex}-${row[0]}`}>
               {row.map((cell, index) =>
                 index === 0 ? (
                   <th
-                    key={cell}
+                    key={`${rowIndex}-0`}
                     scope="row"
-                    className="border-b border-[#E7DCC8] px-3 py-2 align-top font-medium text-zinc-950"
+                    className="whitespace-nowrap border-b border-[#E7DCC8] px-3 py-2 align-top font-medium text-zinc-950"
                   >
                     {cell}
                   </th>
                 ) : (
-                  <td key={`${row[0]}-${index}`} className="border-b border-[#E7DCC8] px-3 py-2 align-top">
+                  <td
+                    key={`${rowIndex}-${index}`}
+                    className="whitespace-nowrap border-b border-[#E7DCC8] px-3 py-2 align-top"
+                  >
                     {cell}
                   </td>
                 ),

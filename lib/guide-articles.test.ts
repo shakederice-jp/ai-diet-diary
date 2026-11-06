@@ -24,9 +24,14 @@ const SLUGS = [
   "ai-advisors",
   "diary-and-share",
   "monthly-summary-csv",
+  "drinks-calorie-guide",
+  "alcohol-calorie-guide",
+  "home-dishes-calorie-guide",
 ] as const;
 
 const ADDED_ON = "2026-11-05";
+const CALORIE_ON = "2026-11-06";
+const CALORIE = new Set<string>(["drinks-calorie-guide", "alcohol-calorie-guide", "home-dishes-calorie-guide"]);
 const ADDED = new Set<string>([
   "why-diet-log-stops",
   "eating-out-recording",
@@ -83,7 +88,8 @@ describe("guide articles", () => {
         article.slug === "new-year-start"
           ? 900
           : 1200;
-      assert.ok(count >= countMin && count <= 2000, `${article.slug} ${count}`);
+      const countMax = CALORIE.has(article.slug) ? 4500 : 2000;
+      assert.ok(count >= countMin && count <= countMax, `${article.slug} ${count}`);
       const headings = article.blocks.filter((block) => block.type === "h2");
       const headingMax =
         article.slug === "diary-and-share"
@@ -93,14 +99,21 @@ describe("guide articles", () => {
             : article.slug === "recording-diet-vs-ai" ||
                 article.slug === "eating-out-recording" ||
                 article.slug === "ai-advisors" ||
-                article.slug === "monthly-summary-csv"
+                article.slug === "monthly-summary-csv" ||
+                article.slug === "alcohol-calorie-guide"
               ? 6
               : 5;
       assert.ok(headings.length >= 3 && headings.length <= headingMax, `${article.slug} ${headings.length}`);
-      const leadMin = article.slug === "recording-diet-vs-ai" || ADDED.has(article.slug) ? 1 : 2;
+      const leadMin =
+        article.slug === "recording-diet-vs-ai" || ADDED.has(article.slug) || CALORIE.has(article.slug) ? 1 : 2;
       assert.ok(article.lead.length >= leadMin && article.lead.length <= 3, article.slug);
-      const updatedOn =
-        article.slug === "recording-diet-vs-ai" ? "2026-11-03" : ADDED.has(article.slug) ? ADDED_ON : MEMOLEVER_GUIDE_UPDATED_ON;
+      const updatedOn = CALORIE.has(article.slug)
+        ? CALORIE_ON
+        : article.slug === "recording-diet-vs-ai"
+          ? "2026-11-03"
+          : ADDED.has(article.slug)
+            ? ADDED_ON
+            : MEMOLEVER_GUIDE_UPDATED_ON;
       assert.equal(article.updatedOn, updatedOn);
       assert.ok(article.description.length > 0);
       const text = articleText(article);

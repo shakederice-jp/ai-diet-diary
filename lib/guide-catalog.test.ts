@@ -37,8 +37,16 @@ describe("guide chapters and sources", () => {
     assert.equal(isGuideChapterPublished("calorie-guides"), true);
     assert.deepEqual(
       guideChapterEntries("calorie-guides").map((entry) => entry.href),
-      ["/eating-out", "/sweets", "/staples"],
+      [
+        "/eating-out",
+        "/sweets",
+        "/staples",
+        "/guide/drinks-calorie-guide",
+        "/guide/alcohol-calorie-guide",
+        "/guide/home-dishes-calorie-guide",
+      ],
     );
+    assert.equal(guideChapterEntries("calorie-guides").length, 6);
     assert.equal(isGuideChapterPublished("using-memolever"), true);
     assert.equal(guideChapterEntries("using-memolever").length, 7);
     const chapterSlugs: readonly string[] = GUIDE_CHAPTERS.map((chapter) => chapter.slug);
@@ -58,7 +66,13 @@ describe("guide chapters and sources", () => {
     );
     assert.deepEqual(
       newestGuideArticles(5).map((article) => article.slug),
-      ["why-diet-log-stops", "eating-out-recording", "after-overeating", "calorie-basics", "weight-fluctuation"],
+      [
+        "drinks-calorie-guide",
+        "alcohol-calorie-guide",
+        "home-dishes-calorie-guide",
+        "why-diet-log-stops",
+        "eating-out-recording",
+      ],
     );
     const calorie = GUIDE_ARTICLES.find((article) => article.slug === "calorie-basics");
     assert.ok(calorie);
@@ -78,7 +92,7 @@ describe("guide chapters and sources", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
-      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05"],
+      ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-06"],
     );
     const eating = GUIDE_ARTICLES.find((article) => article.slug === "eating-out-recording");
     assert.ok(eating);

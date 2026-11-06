@@ -108,6 +108,15 @@ export const GUIDE_SOURCES = [
     url: "/terms",
     checkedAt: "2026-11-05",
   },
+  {
+    id: "mext-food-composition-data",
+    type: "official",
+    publisher: "文部科学省",
+    title: "日本食品標準成分表（八訂）増補2023年 第2章 本表データ（Excel）",
+    url: "https://www.mext.go.jp/a_menu/syokuhinseibun/mext_00001.html",
+    checkedAt: "2026-11-06",
+    note: "文部科学省の掲載ページで公開されているExcelデータ（ファイル名の日付は2026年3月27日）の値を使用しています。数値は食品100gあたりです。",
+  },
 ] as const;
 
 export type GuideSource = (typeof GUIDE_SOURCES)[number];
