@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { GUIDE_ARTICLES } from "./guide-articles";
+import { GUIDE_PAGE_SOURCE_IDS } from "./guide-meta";
 import {
   chapterNeighbors,
   guideChapterEntries,
@@ -18,6 +19,7 @@ import {
   GUIDE_COMPANY_SOURCE_NOTE,
   GUIDE_INTERNAL_SOURCE_LABEL,
   GUIDE_SOURCES,
+  guideSourceById,
   guideSourceFootnote,
   guideSourcePublisherLabel,
 } from "./guide-sources";
@@ -90,6 +92,11 @@ describe("guide chapters and sources", () => {
 
   it("keeps registered sources and external citations", () => {
     assert.deepEqual(guideSourceRecordErrors(GUIDE_SOURCES), []);
+    for (const ids of Object.values(GUIDE_PAGE_SOURCE_IDS)) {
+      for (const id of ids) {
+        assert.ok(guideSourceById(id), id);
+      }
+    }
     assert.deepEqual(
       GUIDE_SOURCES.map((source) => source.checkedAt),
       ["2026-11-04", "2026-11-04", "2026-11-04", "2026-11-04", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-05", "2026-11-06", "2026-11-06", "2026-11-06"],
