@@ -20,7 +20,7 @@ export const EATING_OUT_VEGETABLE_NOTE =
   "野菜は、いも類・豆類・きのこ類・海藻類・薬味を含まない量です。";
 
 export const EATING_OUT_DISCLAIMER =
-  "掲載の数値は、各チェーン店などが公表している栄養成分や、文部科学省の日本食品標準成分表をもとにした目安で、一部は推定です。店や量、ご飯の量によって変わります。*は、公式の栄養成分で確認できた数値を含みます。";
+  "掲載の数値は、運営者がまとめた目安の幅で、多くは推定です。店や量、ご飯の量によって変わります。実際の栄養成分は、お店の公式の表示でご確認ください。";
 
 export const EATING_OUT_EMPTY = "該当するメニューはありません";
 
@@ -284,8 +284,8 @@ export function isBalancedDish(dish: EatingOutDish) {
   );
 }
 
-export function formatEatingOutRange(range: EatingOutRange, unit: string, official = false) {
-  return `${range[0]}〜${range[1]}${unit}${official ? "*" : ""}`;
+export function formatEatingOutRange(range: EatingOutRange, unit: string) {
+  return `${range[0]}〜${range[1]}${unit}`;
 }
 
 export function eatingOutGenreLabel(genre: EatingOutGenre) {

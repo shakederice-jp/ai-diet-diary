@@ -10,7 +10,10 @@ export function GuideAbout({ href }: { href: GuideUpdatedHref }) {
       </h2>
       <p className="mt-1">最終更新日: {guideUpdatedLabel(href)}</p>
       <p>運営：{OPERATOR_NAME}</p>
-      <GuideSourceList sources={GUIDE_PAGE_SOURCE_IDS[href].map((id) => ({ id }))} />
+      <GuideSourceList
+        sources={GUIDE_PAGE_SOURCE_IDS[href].map((id) => ({ id }))}
+        heading={href === "/eating-out" ? "参考資料" : "出典・参考資料"}
+      />
       {href === "/eating-out" ? <p>公開されている栄養情報や、成分表をもとにした推定を含みます。</p> : null}
       <p>掲載の数値は目安で、一部は推定です。{APP_DISCLAIMER}</p>
     </section>

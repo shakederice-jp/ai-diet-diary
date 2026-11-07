@@ -28,8 +28,7 @@ import { JsonLd } from "@/components/json-ld";
 import { StaplesGuide } from "@/components/staples-guide";
 import { SiteFooter } from "@/components/site-footer";
 import { TryAppCta } from "@/components/try-app-cta";
-import { GUIDE_PAGE_SOURCE_IDS, GUIDE_UPDATED_ON } from "@/lib/guide-meta";
-import { externalCitationUrls } from "@/lib/guide-sources";
+import { GUIDE_UPDATED_ON } from "@/lib/guide-meta";
 import { guideStructuredData } from "@/lib/structured-data";
 
 const CRITERIA = [
@@ -118,7 +117,6 @@ export function EatingOutGuide({ startHref }: { startHref: "/" | "/signup" }) {
             path: "/eating-out",
             dateModified: GUIDE_UPDATED_ON["/eating-out"],
             breadcrumbs: guideBreadcrumbItems("/eating-out"),
-            citations: externalCitationUrls(GUIDE_PAGE_SOURCE_IDS["/eating-out"].map((id) => ({ id }))),
           })}
         />
         <header id="eating-out-intro">
@@ -324,8 +322,8 @@ function DishRow({
       </button>
       {open ? (
         <div id={detailId} className="space-y-1 px-2 pb-2 text-xs leading-5 text-zinc-800">
-          <p>たんぱく質 {formatEatingOutRange(dish.protein, "g", dish.proteinOfficial)}</p>
-          <p>野菜 {formatEatingOutRange(dish.vegetable, "g", dish.vegetableOfficial)}</p>
+          <p>たんぱく質 {formatEatingOutRange(dish.protein, "g")}</p>
+          <p>野菜 {formatEatingOutRange(dish.vegetable, "g")}</p>
           {dish.note ? <p className="text-[#6B4A32]">{dish.note}</p> : null}
           <p>{dish.comment}</p>
           {balanced ? (

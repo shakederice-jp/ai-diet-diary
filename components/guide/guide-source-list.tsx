@@ -10,13 +10,19 @@ import {
 const linkClass =
   "font-medium text-[#F5821F] underline decoration-[#F5821F]/40 underline-offset-4 hover:text-[#E06E0C]";
 
-export function GuideSourceList({ sources }: { sources: readonly { id: string; note?: string }[] }) {
+export function GuideSourceList({
+  sources,
+  heading = "出典・参考資料",
+}: {
+  sources: readonly { id: string; note?: string }[];
+  heading?: string;
+}) {
   const items = resolveGuideSourceRefs(sources);
 
   return (
     <section className="mt-12" aria-labelledby="sources-heading">
       <h2 id="sources-heading" className="text-2xl font-semibold text-[#F27A1A]">
-        出典・参考資料
+        {heading}
       </h2>
       <ol className="mt-4 flex flex-col gap-3">
         {items.map((item) => {

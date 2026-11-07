@@ -151,7 +151,7 @@ export function guideStructuredData(input: {
   breadcrumbs: readonly BreadcrumbItem[];
   citations?: readonly string[];
 }) {
-  const citations = input.citations ?? [];
+  const citations = input.path === "/eating-out" ? [] : (input.citations ?? []);
   return {
     "@context": "https://schema.org",
     "@graph": [

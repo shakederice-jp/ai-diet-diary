@@ -3,9 +3,9 @@ import type { PageOgImage } from "@/lib/site";
 
 /** ガイドページの最終更新日。表示と JSON-LD と sitemap は、ここだけを見る。 */
 export const GUIDE_UPDATED_ON = {
-  "/eating-out": "2026-11-06",
-  "/sweets": "2026-11-06",
-  "/staples": "2026-11-06",
+  "/eating-out": "2026-11-07",
+  "/sweets": "2026-11-07",
+  "/staples": "2026-11-07",
 } as const;
 
 /** 目安ページに出す出典。JSON-LD の citation もここを見る。 */
