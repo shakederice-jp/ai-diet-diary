@@ -2,7 +2,7 @@ import { APP_NAME } from "@/lib/app-title";
 import { buildXPost } from "@/lib/share-post";
 
 export const SHARE_BRAND = APP_NAME;
-export const SHARE_DOMAIN = "diet.finance-tower.com";
+export const SHARE_DOMAIN = "finance-tower.com/diet";
 export const SHARE_DISCLAIMER = "AIによる一般的な情報です";
 
 export const SHARE_SITUATIONS = [

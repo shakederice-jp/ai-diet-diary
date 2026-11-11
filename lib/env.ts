@@ -1,3 +1,5 @@
+import { BASE_PATH } from "@/lib/base-path";
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -30,9 +32,14 @@ export function getAnthropicApiKey() {
   return required("ANTHROPIC_API_KEY");
 }
 
+/**
+ * Health Planet に登録したリダイレクトURLと完全に同じ値を返す。
+ * 本番は固定(古い環境変数 HEALTHPLANET_REDIRECT_URI が残っていても使わない)。
+ * origin は publicOrigin() を通したものを渡す。
+ */
 export function getHealthPlanetRedirectUri(origin: string) {
-  return (
-    process.env.HEALTHPLANET_REDIRECT_URI ??
-    `${origin}/api/auth/callback/healthplanet`
-  );
+  if (process.env.NODE_ENV !== "production" && process.env.HEALTHPLANET_REDIRECT_URI) {
+    return process.env.HEALTHPLANET_REDIRECT_URI;
+  }
+  return `${origin}${BASE_PATH}/api/auth/callback/healthplanet`;
 }

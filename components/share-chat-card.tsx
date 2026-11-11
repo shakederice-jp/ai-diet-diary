@@ -1,3 +1,4 @@
+import { withBase } from "@/lib/base-path";
 import {
   SHARE_BRAND,
   SHARE_DISCLAIMER,
@@ -35,7 +36,7 @@ export function ShareChatCard({
       {answer ? (
         <div className="mt-4 flex items-end gap-3">
           <img
-            src={`/characters/${characterId}.svg`}
+            src={withBase(`/characters/${characterId}.svg`)}
             alt=""
             width={64}
             height={64}

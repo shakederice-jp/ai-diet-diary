@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { publicOrigin, withBase } from "@/lib/base-path";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 
 // ログインが必要なパスだけ。/ /guide /howto /eating-out /sweets /staples /privacy /terms /tokushoho /login /signup /welcome は入れない。
@@ -36,8 +37,20 @@ function applyCookies(target: NextResponse, source: NextResponse) {
   return target;
 }
 
+/**
+ * 同じサイト内の別パス(/diet 付き)へ向けた、リダイレクト用の絶対URLを作る。
+ * new URL(path, request.url) だと /diet が落ちる。また親サイト経由では request の host が内部の *.vercel.app になるため、
+ * 本番は公開オリジン(finance-tower.com)に固定する。
+ */
+function internalUrl(request: NextRequest, pathnameWithQuery: string) {
+  const [pathname, query] = pathnameWithQuery.split("?");
+  const url = new URL(withBase(pathname), publicOrigin(request.nextUrl.origin));
+  url.search = query ? `?${query}` : "";
+  return url;
+}
+
 function redirectTo(request: NextRequest, pathname: string, source?: NextResponse) {
-  const redirect = NextResponse.redirect(new URL(pathname, request.url));
+  const redirect = NextResponse.redirect(internalUrl(request, pathname));
   return source ? applyCookies(redirect, source) : redirect;
 }
 
@@ -94,7 +107,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!loggedIn && needsLogin) {
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = internalUrl(request, "/login");
     if (isAuthLinkError(request)) {
       redirectUrl.searchParams.set("error", "link");
     }

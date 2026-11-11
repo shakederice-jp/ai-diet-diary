@@ -5,7 +5,7 @@ import { APP_NAME, APP_CATCHCOPY, APP_SUBTITLE } from "@/lib/app-title";
 
 export { APP_NAME, APP_NAME_EN, APP_CATCHCOPY, APP_SUBTITLE } from "@/lib/app-title";
 
-export const SITE_URL = "https://diet.finance-tower.com";
+export const SITE_URL = "https://finance-tower.com/diet";
 
 /** アプリ内の表示名。値は APP_NAME。 */
 export const SITE_NAME = APP_NAME;

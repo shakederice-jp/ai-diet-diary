@@ -1,3 +1,4 @@
+import { withBase } from "@/lib/base-path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -70,7 +71,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
         ) : (
           <>
             <img
-              src={`/s/${card.id}/image`}
+              src={withBase(`/s/${card.id}/image`)}
               alt={`${advisor.name}のシェアカード`}
               width={1200}
               height={630}

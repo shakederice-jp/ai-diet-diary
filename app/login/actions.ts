@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { mapAuthError } from "@/lib/auth-errors";
+import { appBaseUrl, BASE_PATH, PUBLIC_ORIGIN } from "@/lib/base-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type LoginFormState = {
@@ -17,15 +18,19 @@ export type AuthFormState = {
 
 const emptyAuthState: AuthFormState = { error: null, message: null };
 
+/** メール内リンクの戻り先(/diet 付き)。本番は固定、開発はアクセス元のホスト。 */
 function appOrigin(headerList: Headers) {
+  if (process.env.NODE_ENV === "production") {
+    return appBaseUrl(PUBLIC_ORIGIN);
+  }
   const host = (headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "")
     .split(",")[0]
     .trim();
   const proto = headerList.get("x-forwarded-proto") ?? "http";
   if (!host) {
-    return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    return `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}${BASE_PATH}`;
   }
-  return `${proto}://${host}`;
+  return `${proto}://${host}${BASE_PATH}`;
 }
 
 function readEmail(formData: FormData) {

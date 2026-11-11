@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { BASE_PATH, PUBLIC_ORIGIN } from "@/lib/base-path";
 import { headers } from "next/headers";
 import { getAdvisor, isAdvisorId, type AdvisorId } from "@/lib/advisors";
 import { getAdvisorComment, getAdvisorPreference } from "@/lib/advisor-store";
@@ -71,16 +72,20 @@ function storageProblem(error: { message?: string } | null) {
   return /schema cache|does not exist|Could not find the table|Could not find the '.+' column/i.test(message);
 }
 
+/** シェアカードのURLの土台(/diet 付き)。本番は固定、開発はアクセス元のホスト。 */
 export async function appOrigin() {
+  if (process.env.NODE_ENV === "production") {
+    return `${PUBLIC_ORIGIN}${BASE_PATH}`;
+  }
   const headerList = await headers();
   const host = (headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "")
     .split(",")[0]
     .trim();
   const proto = headerList.get("x-forwarded-proto") ?? "https";
   if (!host) {
-    return "https://diet.finance-tower.com";
+    return `${PUBLIC_ORIGIN}${BASE_PATH}`;
   }
-  return `${proto}://${host}`;
+  return `${proto}://${host}${BASE_PATH}`;
 }
 
 export function sharePagePath(id: string) {

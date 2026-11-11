@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
+import { withBase } from "@/lib/base-path";
 
 export function NavAnchor({
   href,
@@ -16,7 +17,7 @@ export function NavAnchor({
 
   return (
     <a
-      href={href}
+      href={withBase(href)}
       aria-busy={pending}
       className={`relative transition active:scale-[0.98] active:brightness-90 ${className}`}
       onClick={(event) => {

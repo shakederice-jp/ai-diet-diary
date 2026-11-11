@@ -1,3 +1,4 @@
+import { withBase } from "@/lib/base-path";
 import { removeShareCard } from "@/app/share/actions";
 import { getAdvisor } from "@/lib/advisors";
 import type { OwnedShareCard } from "@/lib/share-store";
@@ -17,7 +18,7 @@ export function ShareCardList({ cards }: { cards: OwnedShareCard[] }) {
             {card.situation ? <p className="mt-1 text-base leading-7 text-zinc-800">{situationBubble(card.situation)}</p> : null}
             <p className={`${card.situation ? "" : "mt-1 "}text-base leading-7 text-zinc-800`}>{card.text}</p>
             <div className="mt-3 flex flex-wrap gap-3">
-              <a href={`/s/${card.id}`} className="inline-flex min-h-11 items-center text-sm font-medium text-[#F5821F]">
+              <a href={withBase(`/s/${card.id}`)} className="inline-flex min-h-11 items-center text-sm font-medium text-[#F5821F]">
                 公開ページを開く
               </a>
               <form

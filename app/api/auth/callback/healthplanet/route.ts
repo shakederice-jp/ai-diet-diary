@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { publicOrigin, withBase } from "@/lib/base-path";
 import { exchangeAuthorizationCode, HEALTHPLANET_SCOPE } from "@/lib/healthplanet";
 import {
   clearOAuthStateCookie,
@@ -15,7 +16,7 @@ function redirectMypage(
   status: "connected" | "error",
   reason?: string,
 ) {
-  const destination = new URL("/mypage", origin);
+  const destination = new URL(withBase("/mypage"), origin);
   destination.searchParams.set("healthplanet", status);
   if (status === "error" && reason) {
     destination.searchParams.set("reason", reason);
@@ -35,7 +36,7 @@ function statesMatch(expected: string, actual: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin;
+  const origin = publicOrigin(request.nextUrl.origin);
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
   const oauthError = request.nextUrl.searchParams.get("error");

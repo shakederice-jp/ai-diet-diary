@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { BASE_PATH } from "@/lib/base-path";
 import { OG_IMAGE, OG_IMAGE_PATH, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -43,8 +44,8 @@ export const metadata: Metadata = {
     google: "QkiBSGZYFOhFzNmdi5-3AYgYYFSxUXuVEzStGB8IuZ8",
   },
   icons: {
-    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
-    apple: [{ url: "/icons/icon-180.png", sizes: "180x180", type: "image/png" }],
+    icon: [{ url: `${BASE_PATH}/icons/icon-192.png`, sizes: "192x192", type: "image/png" }],
+    apple: [{ url: `${BASE_PATH}/icons/icon-180.png`, sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,

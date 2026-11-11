@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { X_POST_LIMIT, buildXPost, xWeightedLength } from "./share-post";
 
-const URL = "https://diet.finance-tower.com/s/example";
+const URL = "https://finance-tower.com/diet/s/example";
 const NAME = "ツンデレ猫";
 
 function post(input: { shareText: string; reply?: string; url?: string }) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { saveDiary, setDiaryShareReply } from "@/app/diary/actions";
 import { ShareCardButton } from "@/components/share-card-button";
@@ -130,7 +131,7 @@ export function DiaryCard({
       {reply && advisor ? (
         <div className="mt-4 flex items-end gap-3">
           <img
-            src={`/characters/${advisor.id}.svg`}
+            src={withBase(`/characters/${advisor.id}.svg`)}
             alt=""
             width={48}
             height={48}
