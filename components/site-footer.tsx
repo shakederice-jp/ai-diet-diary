@@ -26,6 +26,11 @@ export function SiteFooter({ className = "" }: { className?: string }) {
           </InstantLink>
         ))}
       </nav>
+      <p className="mt-2">
+        <a href="https://finance-tower.com/students" className={linkClass}>
+          姉妹サイト：大学生向け 人生設計・マネープラン入門
+        </a>
+      </p>
     </div>
   );
 }
